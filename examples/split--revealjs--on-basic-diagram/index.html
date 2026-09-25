@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Basic diagram deck</title>
+    <style>
+      .reveal [data-diagram-slot] { width: 100%; height: 520px; margin: 0 auto; }
+      .reveal .slides section { height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section id="title">
+          <h1>A small web service</h1>
+          <p>diagram-webkit in reveal.js</p>
+        </section>
+
+        <section id="overview" data-diagram-view="overview">
+          <h3>Overview</h3>
+          <div data-diagram-slot data-prevent-swipe></div>
+        </section>
+
+        <section id="request-path" data-diagram-view="request-path">
+          <h3>Request path</h3>
+          <div data-diagram-slot data-prevent-swipe></div>
+        </section>
+
+        <section id="level" data-diagram-state='{"level":0}'>
+          <h3>Level 0: the essentials</h3>
+          <div data-diagram-slot data-prevent-swipe></div>
+        </section>
+
+        <section id="only-data" data-diagram-view="cache-path" data-diagram-state='{"onlyTags":["Data"]}'>
+          <h3>Only the data layer</h3>
+          <div data-diagram-slot data-prevent-swipe></div>
+        </section>
+
+        <section id="pin" data-diagram-view="data" data-diagram-state='{"pins":["DbAccess"]}'>
+          <h3>Who may reach the database</h3>
+          <div data-diagram-slot data-prevent-swipe></div>
+        </section>
+
+        <section id="steps" data-diagram-state='{"camera":{"rect":[0.5,0.5,0.6,0.8]}}'>
+          <h3>Step by step</h3>
+          <div data-diagram-slot data-prevent-swipe></div>
+          <p class="fragment" data-diagram-state='{"pins":["LoadBalancer"]}'>TLS terminates at the load balancer</p>
+          <p class="fragment" data-diagram-state='{"highlight":{"slugs":["WebApp"],"mode":"outline"}}'>The web app is stateless</p>
+          <p class="fragment" data-diagram-state='{"camera":{"focus":{"slugs":["Cache"]},"padding":0.3}}'>Reads go through the cache</p>
+        </section>
+
+        <section id="no-diagram">
+          <h3>No diagram here</h3>
+          <ul>
+            <li>Slides without a slot suspend the diagram.</li>
+            <li>The next slide gets it back.</li>
+          </ul>
+        </section>
+
+        <section id="live" data-diagram-view="overview" data-diagram-features='{"input":{"wheel":true,"drag":true,"pinch":true}}'>
+          <h3>Try it</h3>
+          <div data-diagram-slot data-prevent-swipe></div>
+        </section>
+
+        <section id="from-url" data-diagram-state-url="http://localhost:4101/?v=0.75,0.45,0.4,0.5&pins=Cache&only-tags=Data&menu=true#about">
+          <h3>Pasted from the full page</h3>
+          <div data-diagram-slot data-prevent-swipe></div>
+        </section>
+      </div>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

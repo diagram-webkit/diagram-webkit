@@ -1,0 +1,183 @@
+{
+  "tagFilters": {
+    "groups": [
+      {
+        "id": "priority",
+        "label": "Priority",
+        "order": 1
+      },
+      {
+        "id": "general",
+        "label": "Tags",
+        "order": 10,
+        "disableHelpIfHidden": true,
+        "layout": "tree"
+      }
+    ],
+    "tags": {
+      "info": {
+        "label": "Info",
+        "group": "priority",
+        "order": 4,
+        "style": {
+          "background": "#DFF4FF",
+          "color": "#0A3D5A",
+          "borderColor": "#0B6FA4",
+          "borderWidth": "3px",
+          "fontWeight": "700"
+        },
+        "panelStyle": {
+          "borderColor": "#0B6FA4",
+          "borderWidth": "3px",
+          "boxShadow": "inset 0 0 0 1px rgba(11, 111, 164, 0.42)"
+        }
+      },
+      "pri-1": {
+        "label": "Priority 1",
+        "group": "priority",
+        "order": 1,
+        "style": {
+          "background": "#FF7A7A",
+          "color": "#5B1010",
+          "borderColor": "#7A1414",
+          "borderWidth": "3px",
+          "fontWeight": "700"
+        },
+        "panelStyle": {
+          "borderColor": "#7A1414",
+          "borderWidth": "3px",
+          "boxShadow": "inset 0 0 0 1px rgba(122, 20, 20, 0.40)"
+        }
+      },
+      "pri-2": {
+        "label": "Priority 2",
+        "group": "priority",
+        "order": 2,
+        "style": {
+          "background": "#FFD1A1",
+          "color": "#6B2F00",
+          "borderColor": "#B45F06",
+          "borderWidth": "3px",
+          "fontWeight": "700"
+        },
+        "panelStyle": {
+          "borderColor": "#B45F06",
+          "borderWidth": "3px",
+          "boxShadow": "inset 0 0 0 1px rgba(180, 95, 6, 0.35)"
+        }
+      },
+      "pri-3": {
+        "label": "Priority 3",
+        "group": "priority",
+        "order": 3,
+        "style": {
+          "background": "#FFF2A6",
+          "color": "#5C4300",
+          "borderColor": "#B68A00",
+          "borderWidth": "3px",
+          "fontWeight": "700"
+        },
+        "panelStyle": {
+          "borderColor": "#B68A00",
+          "borderWidth": "3px",
+          "boxShadow": "inset 0 0 0 1px rgba(182, 138, 0, 0.35)"
+        }
+      }
+    }
+  },
+  "tagDescriptions": {
+    "Access": "people and tools that change the cluster",
+    "Access.Cli": "kubectl / oc / k9s / Headlamp",
+    "Access.Operator": "platform operator(s)",
+    "Access.Portal": "service portal",
+    "Access.ServiceOwner": "service owner / developer",
+    "Api": "kube-apiserver request path",
+    "Api.Admission": "validating/mutating admission",
+    "Api.Apf": "API Priority and Fairness, rate limiting",
+    "Api.Authn": "authentication, auth webhook, IdP, client CA, JWT",
+    "Api.Authz": "authorization, `system:masters`",
+    "Api.Rbac": "Role/ClusterRole, bindings, ServiceAccount, User/Group",
+    "CertManager": "",
+    "CertManager.Certificate": "Certificate → Secret",
+    "CertManager.Issuer": "Issuer, ClusterIssuer, external CA",
+    "Cnapp": "CNAPP scanner",
+    "ControlPlane": "control-plane components besides the API",
+    "ControlPlane.ControllerManager": "",
+    "ControlPlane.Etcd": "etcd, API → etcd",
+    "ControlPlane.Kubelet": "kubelet ↔ API, NodeRestriction",
+    "ControlPlane.Scheduler": "",
+    "CronJob": "scheduled integrity / policy / compliance checks",
+    "CustomOperator": "custom operators, orchestrators, Tofu",
+    "Ingress": "route of external traffic into the cluster, one child per API. Consumer carries the root",
+    "Ingress.Controller": "classic Ingress: Ingress resource, IngressProxy, and its network path (LB, service type=NodePort)",
+    "Ingress.GatewayApi": "Gateway API",
+    "Ingress.GatewayApi.Gateway": "GatewayClass, Gateway, kgateway, TLS secret, GatewayProxy and its network path (routable-ip, service type=LoadBalancer)",
+    "Ingress.GatewayApi.Policy": "policy attachment",
+    "Ingress.GatewayApi.Route": "*Route, ReferenceGrant",
+    "Logging": "",
+    "Logging.Api": "API/audit logs",
+    "Logging.Instrumentation": "",
+    "Logging.Observability": "",
+    "Logging.Pod": "stdout/stderr",
+    "Logging.Service": "services/controllers",
+    "Namespace": "namespace as a boundary",
+    "Namespace.DefaultSa": "default ServiceAccount",
+    "Namespace.Psa": "Pod Security Admission",
+    "Namespace.Quota": "ResourceQuota, LimitRange",
+    "Network": "",
+    "Network.ClusterMesh": "cluster-to-cluster",
+    "Network.Cni": "overlay/underlay interfaces, CNI and interface types",
+    "Network.Cni.HostNetwork": "`hostNetwork`",
+    "Network.Cni.Multus": "Multus (multiple interfaces)",
+    "Network.Egress": "traffic leaving a pod: filters → other pods' Service/EndpointSlice, egress IPs → firewall → outside",
+    "Network.Egress.Gateway": "CiliumEgressGatewayPolicy",
+    "Network.Ingress": "direction: traffic entering a pod (all routes). The route itself is under `Ingress`",
+    "Network.PodToPod": "pod-to-pod traffic (default allow), egress into another pod",
+    "Network.Policy": "NetworkPolicy/ClusterNetworkPolicy, L3/L4/L7 filter layers",
+    "Network.Service": "Service ClusterIP, EndpointSlice, exposed ports",
+    "Network.ServiceMesh": "L7 service-mesh layer, mTLS",
+    "Node": "node-level concerns",
+    "Node.Observability": "Hubble, network datapath",
+    "Node.Roles": "masters / workers / infra / special nodes",
+    "Node.RuntimeSecurity": "runtime instrumentation, Falco, Tetragon",
+    "ProcessSecurity": "isolation of the container process",
+    "ProcessSecurity.Cgroups": "",
+    "ProcessSecurity.Mac": "AppArmor, SELinux",
+    "ProcessSecurity.Namespaces": "OS namespaces, user namespace",
+    "ProcessSecurity.RunPolicy": "non-root, read-only fs, capabilities, privileged, escalation",
+    "ProcessSecurity.Seccomp": "syscall filtering",
+    "SupplyChain": "",
+    "SupplyChain.Git": "git forge, protected branch, four-eyes",
+    "SupplyChain.Gitops": "argocd, platform-management cluster",
+    "SupplyChain.ImageBuild": "image builder, filtered internet",
+    "SupplyChain.Registry": "image repo, image pull",
+    "SupplyChain.Sbom": "",
+    "SupplyChain.Scanning": "image scanning",
+    "SupplyChain.Signing": "signed commits, image signing, provenance",
+    "Traditional": "non-cloud-native servers, for comparison",
+    "Workload": "pod contents",
+    "Workload.ContainerType": "sidecar, init, ephemeral, WASM containers",
+    "Workload.Sandbox": "kata, gVisor, hardened runtimes",
+    "Workload.Vm": "VirtualMachine, QEMU, virtual HW",
+    "Workload.Volume": "volume definitions, mounts, env/projections, ConfigMap/Secret"
+  },
+  "htmlWhitelist": {
+    "hr": [],
+    "br": [],
+    "b": [],
+    "strong": [],
+    "i": [],
+    "em": [],
+    "u": []
+  },
+  "allowedHtmlTags": [
+    "hr",
+    "br",
+    "b",
+    "strong",
+    "i",
+    "em",
+    "u"
+  ],
+  "maxUserAnnotations": 10
+}

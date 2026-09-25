@@ -1,0 +1,144 @@
+{
+  "parse": [
+    [
+      null,
+      null
+    ],
+    [
+      "",
+      null
+    ],
+    [
+      "   \n  \n",
+      null
+    ],
+    [
+      "Title only",
+      {
+        "title": "Title only",
+        "bodyHtml": "",
+        "searchText": "title only\n"
+      }
+    ],
+    [
+      "Title\nBody line",
+      {
+        "title": "Title",
+        "bodyHtml": "Body line",
+        "searchText": "title\nbody line"
+      }
+    ],
+    [
+      "\n\n  Title with space  \n    indented\n      more\n    back\n",
+      {
+        "title": "Title with space",
+        "bodyHtml": "indented<br>  more<br>back",
+        "searchText": "title with space\n    indented\n      more\n    back"
+      }
+    ],
+    [
+      "Title\r\nWindows\r\nlines",
+      {
+        "title": "Title",
+        "bodyHtml": "Windows<br>lines",
+        "searchText": "title\nwindows\nlines"
+      }
+    ],
+    [
+      "Title\rOld mac",
+      {
+        "title": "Title",
+        "bodyHtml": "Old mac",
+        "searchText": "title\nold mac"
+      }
+    ],
+    [
+      "What is <b>this</b>\n  <a href=\"https://x\">link</a> & more\n\n  para",
+      {
+        "title": "What is <b>this</b>",
+        "bodyHtml": "<a href=\"https://x\">link</a> & more<br><br>para",
+        "searchText": "what is <b>this</b>\n  <a href=\"https://x\">link</a> & more\n\n  para"
+      }
+    ],
+    [
+      "T\n\tTabbed\n\t\tdeeper",
+      {
+        "title": "T",
+        "bodyHtml": "Tabbed<br>\tdeeper",
+        "searchText": "t\n\ttabbed\n\t\tdeeper"
+      }
+    ]
+  ],
+  "normalizeQuery": [
+    [
+      "",
+      ""
+    ],
+    [
+      "  ",
+      ""
+    ],
+    [
+      " Api ",
+      "api"
+    ],
+    [
+      "RBAC",
+      "rbac"
+    ],
+    [
+      "a b",
+      "a b"
+    ]
+  ],
+  "summary": [
+    [
+      [
+        5,
+        5,
+        ""
+      ],
+      "Showing all annotations (5)"
+    ],
+    [
+      [
+        1,
+        5,
+        ""
+      ],
+      "Showing 1 of 5 annotations"
+    ],
+    [
+      [
+        0,
+        5,
+        "x"
+      ],
+      "0 matches for \"x\""
+    ],
+    [
+      [
+        1,
+        5,
+        "rbac"
+      ],
+      "1 match for \"rbac\""
+    ],
+    [
+      [
+        2,
+        5,
+        "net"
+      ],
+      "2 matches for \"net\""
+    ],
+    [
+      [
+        0,
+        0,
+        ""
+      ],
+      "Showing all annotations (0)"
+    ]
+  ]
+}

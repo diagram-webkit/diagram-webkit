@@ -1,0 +1,23 @@
+{
+  "name": "example-direct--basic-diagram",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./definition": "./definition.js",
+    "./example.svg": "./example.svg"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "validate": "diagram-webkit validate example.svg --definition definition.js"
+  },
+  "dependencies": {
+    "diagram-webkit": "file:../../packages/diagram-webkit"
+  },
+  "devDependencies": {
+    "vite": "^8.3.0"
+  }
+}

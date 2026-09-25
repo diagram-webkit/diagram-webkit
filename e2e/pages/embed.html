@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>embed</title>
+    <style>
+      body { margin: 0; font-family: sans-serif; }
+      .slot { width: 600px; height: 400px; margin: 20px; border: 1px solid #999; display: inline-block; vertical-align: top; }
+      .slot.small { width: 480px; height: 300px; }
+      .scaled { transform: scale(0.5); transform-origin: 0 0; width: 1200px; height: 800px; }
+      .scaled .slot { width: 1000px; height: 600px; }
+      .zoomed { zoom: 1.5; }
+      .zoomed .slot { width: 400px; height: 260px; }
+    </style>
+  </head>
+  <body>
+    <div id="mount"></div>
+    <script type="module" src="./embed.js"></script>
+  </body>
+</html>

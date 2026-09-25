@@ -1,0 +1,1124 @@
+{
+  "parseTags": [
+    [
+      "",
+      []
+    ],
+    [
+      "level-1 Api Api.Rbac",
+      [
+        "level-1",
+        "Api",
+        "Api.Rbac"
+      ]
+    ],
+    [
+      "Api,Api.Rbac, level-2",
+      [
+        "Api",
+        "Api.Rbac",
+        "level-2"
+      ]
+    ],
+    [
+      "  info   pri-2 Network ",
+      [
+        "info",
+        "pri-2",
+        "Network"
+      ]
+    ],
+    [
+      "LEVEL-3 css-brighter CSS-Dim-Blue pri-1 Pri-3 info",
+      [
+        "LEVEL-3",
+        "css-brighter",
+        "CSS-Dim-Blue",
+        "pri-1",
+        "Pri-3",
+        "info"
+      ]
+    ],
+    [
+      "pri-10 pri-2",
+      [
+        "pri-10",
+        "pri-2"
+      ]
+    ],
+    [
+      "Network Network.Egress Network.Egress.Gateway level-2",
+      [
+        "Network",
+        "Network.Egress",
+        "Network.Egress.Gateway",
+        "level-2"
+      ]
+    ],
+    [
+      "Access.Cli Access",
+      [
+        "Access.Cli",
+        "Access"
+      ]
+    ],
+    [
+      "legend",
+      [
+        "legend"
+      ]
+    ],
+    [
+      "info",
+      [
+        "info"
+      ]
+    ],
+    [
+      "css-bad_name level-x level-",
+      [
+        "css-bad_name",
+        "level-x",
+        "level-"
+      ]
+    ],
+    [
+      "Ingress.GatewayApi Ingress Ingress.GatewayApi.Route pri-3",
+      [
+        "Ingress.GatewayApi",
+        "Ingress",
+        "Ingress.GatewayApi.Route",
+        "pri-3"
+      ]
+    ]
+  ],
+  "perName": [
+    {
+      "tag": "Api",
+      "parent": null,
+      "leaf": "Api",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": "Api",
+        "label": "Api",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": "kube-apiserver request path"
+      },
+      "description": "kube-apiserver request path",
+      "descriptionInherited": "kube-apiserver request path",
+      "declared": true
+    },
+    {
+      "tag": "Api.Rbac",
+      "parent": "Api",
+      "leaf": "Rbac",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": "Api.Rbac",
+        "label": "Api.Rbac",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": "Role/ClusterRole, bindings, ServiceAccount, User/Group"
+      },
+      "description": "Role/ClusterRole, bindings, ServiceAccount, User/Group",
+      "descriptionInherited": "Role/ClusterRole, bindings, ServiceAccount, User/Group",
+      "declared": true
+    },
+    {
+      "tag": "Network.Egress.Gateway",
+      "parent": "Network.Egress",
+      "leaf": "Gateway",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": "Network.Egress.Gateway",
+        "label": "Network.Egress.Gateway",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": "CiliumEgressGatewayPolicy"
+      },
+      "description": "CiliumEgressGatewayPolicy",
+      "descriptionInherited": "CiliumEgressGatewayPolicy",
+      "declared": true
+    },
+    {
+      "tag": "level-1",
+      "parent": null,
+      "leaf": "level-1",
+      "isLevel": true,
+      "isCss": false,
+      "level": 1,
+      "meta": {
+        "shortName": "level-1",
+        "label": "level-1",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": ""
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    },
+    {
+      "tag": "LEVEL-2",
+      "parent": null,
+      "leaf": "LEVEL-2",
+      "isLevel": true,
+      "isCss": false,
+      "level": 2,
+      "meta": {
+        "shortName": "LEVEL-2",
+        "label": "LEVEL-2",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": ""
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    },
+    {
+      "tag": "css-brighter",
+      "parent": null,
+      "leaf": "css-brighter",
+      "isLevel": false,
+      "isCss": true,
+      "level": null,
+      "meta": {
+        "shortName": "css-brighter",
+        "label": "css-brighter",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": ""
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    },
+    {
+      "tag": "css-Bad",
+      "parent": null,
+      "leaf": "css-Bad",
+      "isLevel": false,
+      "isCss": true,
+      "level": null,
+      "meta": {
+        "shortName": "css-Bad",
+        "label": "css-Bad",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": ""
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    },
+    {
+      "tag": "info",
+      "parent": null,
+      "leaf": "info",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": "info",
+        "label": "Info",
+        "group": "priority",
+        "order": 4,
+        "style": {
+          "background": "#DFF4FF",
+          "color": "#0A3D5A",
+          "borderColor": "#0B6FA4",
+          "borderWidth": "3px",
+          "fontWeight": "700"
+        },
+        "description": "",
+        "panelStyle": {
+          "borderColor": "#0B6FA4",
+          "borderWidth": "3px",
+          "boxShadow": "inset 0 0 0 1px rgba(11, 111, 164, 0.42)"
+        }
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    },
+    {
+      "tag": "pri-1",
+      "parent": null,
+      "leaf": "pri-1",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": "pri-1",
+        "label": "Priority 1",
+        "group": "priority",
+        "order": 1,
+        "style": {
+          "background": "#FF7A7A",
+          "color": "#5B1010",
+          "borderColor": "#7A1414",
+          "borderWidth": "3px",
+          "fontWeight": "700"
+        },
+        "description": "",
+        "panelStyle": {
+          "borderColor": "#7A1414",
+          "borderWidth": "3px",
+          "boxShadow": "inset 0 0 0 1px rgba(122, 20, 20, 0.40)"
+        }
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    },
+    {
+      "tag": "pri-10",
+      "parent": null,
+      "leaf": "pri-10",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": "pri-10",
+        "label": "pri-10",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": ""
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    },
+    {
+      "tag": "Unknown.Tag",
+      "parent": "Unknown",
+      "leaf": "Tag",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": "Unknown.Tag",
+        "label": "Unknown.Tag",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": ""
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    },
+    {
+      "tag": "Ingress.GatewayApi.Policy",
+      "parent": "Ingress.GatewayApi",
+      "leaf": "Policy",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": "Ingress.GatewayApi.Policy",
+        "label": "Ingress.GatewayApi.Policy",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": "policy attachment"
+      },
+      "description": "policy attachment",
+      "descriptionInherited": "policy attachment",
+      "declared": true
+    },
+    {
+      "tag": "a.",
+      "parent": "a",
+      "leaf": "",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": "a.",
+        "label": "a.",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": ""
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    },
+    {
+      "tag": ".a",
+      "parent": null,
+      "leaf": "a",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": ".a",
+        "label": ".a",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": ""
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    },
+    {
+      "tag": "",
+      "parent": null,
+      "leaf": "",
+      "isLevel": false,
+      "isCss": false,
+      "level": null,
+      "meta": {
+        "shortName": "",
+        "label": "",
+        "group": "general",
+        "order": 9007199254740991,
+        "style": null,
+        "description": ""
+      },
+      "description": "",
+      "descriptionInherited": "",
+      "declared": false
+    }
+  ],
+  "perSet": [
+    {
+      "tags": [],
+      "level": 0,
+      "nonLevel": [],
+      "cssClasses": [],
+      "sorted": [],
+      "badges": "",
+      "severityTag": null,
+      "severityClass": "severity-default",
+      "hasPriority": false
+    },
+    {
+      "tags": [
+        "level-1",
+        "Api",
+        "Api.Rbac"
+      ],
+      "level": 1,
+      "nonLevel": [
+        "Api",
+        "Api.Rbac"
+      ],
+      "cssClasses": [],
+      "sorted": [
+        "Api",
+        "Api.Rbac"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Api</span><span class=\"annotation-tag-badge\" style=\"\">Api.Rbac</span></div>",
+      "severityTag": null,
+      "severityClass": "severity-default",
+      "hasPriority": false
+    },
+    {
+      "tags": [
+        "Api",
+        "Api.Rbac",
+        "level-2"
+      ],
+      "level": 2,
+      "nonLevel": [
+        "Api",
+        "Api.Rbac"
+      ],
+      "cssClasses": [],
+      "sorted": [
+        "Api",
+        "Api.Rbac"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Api</span><span class=\"annotation-tag-badge\" style=\"\">Api.Rbac</span></div>",
+      "severityTag": null,
+      "severityClass": "severity-default",
+      "hasPriority": false
+    },
+    {
+      "tags": [
+        "info",
+        "pri-2",
+        "Network"
+      ],
+      "level": 0,
+      "nonLevel": [
+        "info",
+        "pri-2",
+        "Network"
+      ],
+      "cssClasses": [
+        "custom-pri-2"
+      ],
+      "sorted": [
+        "pri-2",
+        "info",
+        "Network"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"background:#FFD1A1;color:#6B2F00;border-color:#B45F06;border-width:3px;font-weight:700;\">Priority 2</span><span class=\"annotation-tag-badge\" style=\"background:#DFF4FF;color:#0A3D5A;border-color:#0B6FA4;border-width:3px;font-weight:700;\">Info</span><span class=\"annotation-tag-badge\" style=\"\">Network</span></div>",
+      "severityTag": "pri-2",
+      "severityClass": "severity-pri-2",
+      "hasPriority": true
+    },
+    {
+      "tags": [
+        "LEVEL-3",
+        "css-brighter",
+        "CSS-Dim-Blue",
+        "pri-1",
+        "Pri-3",
+        "info"
+      ],
+      "level": 3,
+      "nonLevel": [
+        "pri-1",
+        "Pri-3",
+        "info"
+      ],
+      "cssClasses": [
+        "custom-brighter",
+        "custom-dim-blue",
+        "custom-pri-1",
+        "custom-pri-3"
+      ],
+      "sorted": [
+        "pri-1",
+        "info",
+        "Pri-3"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"background:#FF7A7A;color:#5B1010;border-color:#7A1414;border-width:3px;font-weight:700;\">Priority 1</span><span class=\"annotation-tag-badge\" style=\"background:#DFF4FF;color:#0A3D5A;border-color:#0B6FA4;border-width:3px;font-weight:700;\">Info</span><span class=\"annotation-tag-badge\" style=\"\">Pri-3</span></div>",
+      "severityTag": "pri-1",
+      "severityClass": "severity-pri-1",
+      "hasPriority": true
+    },
+    {
+      "tags": [
+        "pri-10",
+        "pri-2"
+      ],
+      "level": 0,
+      "nonLevel": [
+        "pri-10",
+        "pri-2"
+      ],
+      "cssClasses": [
+        "custom-pri-10",
+        "custom-pri-2"
+      ],
+      "sorted": [
+        "pri-2",
+        "pri-10"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"background:#FFD1A1;color:#6B2F00;border-color:#B45F06;border-width:3px;font-weight:700;\">Priority 2</span><span class=\"annotation-tag-badge\" style=\"\">pri-10</span></div>",
+      "severityTag": "pri-2",
+      "severityClass": "severity-pri-2",
+      "hasPriority": true
+    },
+    {
+      "tags": [
+        "Network",
+        "Network.Egress",
+        "Network.Egress.Gateway",
+        "level-2"
+      ],
+      "level": 2,
+      "nonLevel": [
+        "Network",
+        "Network.Egress",
+        "Network.Egress.Gateway"
+      ],
+      "cssClasses": [],
+      "sorted": [
+        "Network",
+        "Network.Egress",
+        "Network.Egress.Gateway"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Network</span><span class=\"annotation-tag-badge\" style=\"\">Network.Egress</span><span class=\"annotation-tag-badge\" style=\"\">Network.Egress.Gateway</span></div>",
+      "severityTag": null,
+      "severityClass": "severity-default",
+      "hasPriority": false
+    },
+    {
+      "tags": [
+        "Access.Cli",
+        "Access"
+      ],
+      "level": 0,
+      "nonLevel": [
+        "Access.Cli",
+        "Access"
+      ],
+      "cssClasses": [],
+      "sorted": [
+        "Access",
+        "Access.Cli"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Access</span><span class=\"annotation-tag-badge\" style=\"\">Access.Cli</span></div>",
+      "severityTag": null,
+      "severityClass": "severity-default",
+      "hasPriority": false
+    },
+    {
+      "tags": [
+        "legend"
+      ],
+      "level": 0,
+      "nonLevel": [
+        "legend"
+      ],
+      "cssClasses": [],
+      "sorted": [
+        "legend"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">legend</span></div>",
+      "severityTag": null,
+      "severityClass": "severity-default",
+      "hasPriority": false
+    },
+    {
+      "tags": [
+        "info"
+      ],
+      "level": 0,
+      "nonLevel": [
+        "info"
+      ],
+      "cssClasses": [],
+      "sorted": [
+        "info"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"background:#DFF4FF;color:#0A3D5A;border-color:#0B6FA4;border-width:3px;font-weight:700;\">Info</span></div>",
+      "severityTag": "info",
+      "severityClass": "severity-info",
+      "hasPriority": false
+    },
+    {
+      "tags": [
+        "css-bad_name",
+        "level-x",
+        "level-"
+      ],
+      "level": 0,
+      "nonLevel": [
+        "css-bad_name",
+        "level-x",
+        "level-"
+      ],
+      "cssClasses": [],
+      "sorted": [
+        "css-bad_name",
+        "level-",
+        "level-x"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">css-bad_name</span><span class=\"annotation-tag-badge\" style=\"\">level-</span><span class=\"annotation-tag-badge\" style=\"\">level-x</span></div>",
+      "severityTag": null,
+      "severityClass": "severity-default",
+      "hasPriority": false
+    },
+    {
+      "tags": [
+        "Ingress.GatewayApi",
+        "Ingress",
+        "Ingress.GatewayApi.Route",
+        "pri-3"
+      ],
+      "level": 0,
+      "nonLevel": [
+        "Ingress.GatewayApi",
+        "Ingress",
+        "Ingress.GatewayApi.Route",
+        "pri-3"
+      ],
+      "cssClasses": [
+        "custom-pri-3"
+      ],
+      "sorted": [
+        "pri-3",
+        "Ingress",
+        "Ingress.GatewayApi",
+        "Ingress.GatewayApi.Route"
+      ],
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"background:#FFF2A6;color:#5C4300;border-color:#B68A00;border-width:3px;font-weight:700;\">Priority 3</span><span class=\"annotation-tag-badge\" style=\"\">Ingress</span><span class=\"annotation-tag-badge\" style=\"\">Ingress.GatewayApi</span><span class=\"annotation-tag-badge\" style=\"\">Ingress.GatewayApi.Route</span></div>",
+      "severityTag": "pri-3",
+      "severityClass": "severity-pri-3",
+      "hasPriority": true
+    }
+  ],
+  "groups": [
+    {
+      "id": "priority",
+      "label": "Priority",
+      "order": 1
+    },
+    {
+      "id": "general",
+      "label": "Tags",
+      "order": 10,
+      "disableHelpIfHidden": true,
+      "layout": "tree"
+    },
+    {
+      "id": "missing",
+      "label": "missing",
+      "order": 9007199254740991
+    }
+  ],
+  "sorted": [
+    [
+      "pri-1",
+      "pri-2",
+      "info",
+      "Access",
+      "Access.Cli",
+      "Api",
+      "legend",
+      "Network",
+      "Zeta"
+    ],
+    [
+      "pri-3",
+      "CertManager",
+      "Cnapp",
+      "Ingress",
+      "Ingress.GatewayApi",
+      "Traditional"
+    ]
+  ],
+  "visibility": [
+    {
+      "hidden": [],
+      "level": 3,
+      "sets": [
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        }
+      ]
+    },
+    {
+      "hidden": [
+        "Api"
+      ],
+      "level": 3,
+      "sets": [
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": false,
+          "withinLevel": true,
+          "disabledByGroup": true,
+          "hiddenDisable": [
+            "Api"
+          ]
+        },
+        {
+          "visible": false,
+          "withinLevel": true,
+          "disabledByGroup": true,
+          "hiddenDisable": [
+            "Api"
+          ]
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        }
+      ]
+    },
+    {
+      "hidden": [
+        "Api.Rbac",
+        "info"
+      ],
+      "level": 1,
+      "sets": [
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": false,
+          "withinLevel": true,
+          "disabledByGroup": true,
+          "hiddenDisable": [
+            "Api.Rbac"
+          ]
+        },
+        {
+          "visible": false,
+          "withinLevel": false,
+          "disabledByGroup": true,
+          "hiddenDisable": [
+            "Api.Rbac"
+          ]
+        },
+        {
+          "visible": false,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": false,
+          "withinLevel": false,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": false,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": false,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        }
+      ]
+    },
+    {
+      "hidden": [
+        "pri-1",
+        "Network.Egress"
+      ],
+      "level": 0,
+      "sets": [
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": false,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": false,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": false,
+          "withinLevel": false,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": false,
+          "withinLevel": false,
+          "disabledByGroup": true,
+          "hiddenDisable": [
+            "Network.Egress"
+          ]
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        }
+      ]
+    },
+    {
+      "hidden": [
+        "Access",
+        "legend"
+      ],
+      "level": 2,
+      "sets": [
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": false,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": false,
+          "withinLevel": true,
+          "disabledByGroup": true,
+          "hiddenDisable": [
+            "Access"
+          ]
+        },
+        {
+          "visible": false,
+          "withinLevel": true,
+          "disabledByGroup": true,
+          "hiddenDisable": [
+            "legend"
+          ]
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        },
+        {
+          "visible": true,
+          "withinLevel": true,
+          "disabledByGroup": false,
+          "hiddenDisable": []
+        }
+      ]
+    }
+  ]
+}

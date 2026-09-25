@@ -1,0 +1,676 @@
+:where(.dwk-root) .marker {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 0.8;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  border: 2px solid;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+}
+
+:where(.dwk-root) .hidden-markers .marker {
+  display: none !important;
+}
+
+:where(.dwk-root) .filter-panel-controls-row .user-annotations-row {
+  gap: 8px;
+}
+
+:where(.dwk-root) .marker.filter-result-highlight {
+  box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.35), 0 0 14px rgba(250, 204, 21, 0.9);
+  transform: scale(1.08);
+}
+
+:where(.dwk-root) .user-annotations-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+:where(.dwk-root) .user-annotations-btn {
+  font-size: 12px;
+  background: #4fc3f7;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+:where(.dwk-root) .user-annotations-btn:hover {
+  background: #29b6f6;
+}
+
+:where(.dwk-root) .exit-edit-mode-btn {
+  font-size: 10px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 3px 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: normal;
+  transition: background-color 0.2s;
+  margin-left: 4px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+:where(.dwk-root) .exit-edit-mode-btn:hover {
+  background: #d32f2f;
+}
+
+:where(.dwk-root) .user-annotation-marker {
+  transform: scale(2) translate(-25%, -25%);
+  font-size: 12px !important;
+  min-width: 20px;
+  min-height: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+:where(.dwk-root) .user-annotation-ghost {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+@container dwk (max-width: 768px) {
+  :where(.dwk-root) .filter-panel-controls-row .user-annotations-row {
+    display: none !important;
+  }
+}
+
+:where(.dwk-root) .add-annotation-form {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+:where(.dwk-root) .add-annotation-form h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+:where(.dwk-root) .type-selector-group {
+  max-width: 300px;
+}
+
+:where(.dwk-root) .type-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+:where(.dwk-root) .type-btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  background: white;
+}
+
+:where(.dwk-root) .type-btn:hover {
+  border-color: #333;
+  transform: scale(1.1);
+}
+
+:where(.dwk-root) .type-btn.active {
+  border-color: #333;
+  border-width: 3px;
+  transform: scale(1.1);
+}
+
+:where(.dwk-root) .type-btn.active::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+:where(.dwk-root) .type-selection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+:where(.dwk-root) .type-selection select {
+  flex: 1;
+}
+
+:where(.dwk-root) .type-preview-marker {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  background: #f5f5f5;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+:where(.dwk-root) .mode-selector-group {
+  max-width: 180px;
+}
+
+:where(.dwk-root) .mode-selector {
+  display: flex;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+:where(.dwk-root) .mode-btn {
+  width: 80px;
+  height: 60px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 8px 4px;
+  font-size: 11px;
+  color: #666;
+}
+
+:where(.dwk-root) .mode-btn:hover {
+  border-color: #4fc3f7;
+  background: #f8fffe;
+  color: #4fc3f7;
+}
+
+:where(.dwk-root) .mode-btn.active {
+  border-color: #4fc3f7;
+  background: #e3f2fd;
+  color: #4fc3f7;
+}
+
+:where(.dwk-root) .mode-icon {
+  width: 20px;
+  height: 20px;
+  margin-bottom: 4px;
+  border: 2px solid #666;
+  transition: border-color 0.2s ease;
+}
+
+:where(.dwk-root) .point-icon {
+  border-radius: 50%;
+  background: #666;
+}
+
+:where(.dwk-root) .area-icon {
+  border-radius: 2px;
+}
+
+:where(.dwk-root) .mode-btn.active .mode-icon {
+  border-color: #4fc3f7;
+}
+
+:where(.dwk-root) .mode-btn.active .point-icon {
+  background: #4fc3f7;
+}
+
+:where(.dwk-root) .mode-btn:hover .mode-icon {
+  border-color: #4fc3f7;
+}
+
+:where(.dwk-root) .mode-btn:hover .point-icon {
+  background: #4fc3f7;
+}
+
+:where(.dwk-root) .shape-selector-group {
+  max-width: 120px;
+}
+
+:where(.dwk-root) .shape-selector {
+  display: flex;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+:where(.dwk-root) .shape-btn {
+  width: 50px;
+  height: 50px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+:where(.dwk-root) .shape-btn:hover {
+  border-color: #4fc3f7;
+  background: #f8fffe;
+}
+
+:where(.dwk-root) .shape-btn.active {
+  border-color: #4fc3f7;
+  background: #e3f2fd;
+}
+
+:where(.dwk-root) .shape-icon {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #666;
+  transition: border-color 0.2s ease;
+}
+
+:where(.dwk-root) .rectangle-icon {
+  border-radius: 2px;
+}
+
+:where(.dwk-root) .circle-icon {
+  border-radius: 50%;
+}
+
+:where(.dwk-root) .shape-btn.active .shape-icon {
+  border-color: #4fc3f7;
+}
+
+:where(.dwk-root) .shape-btn:hover .shape-icon {
+  border-color: #4fc3f7;
+}
+
+:where(.dwk-root) .dwk-place-annotation-btn {
+  padding: 12px 24px;
+  background: #4fc3f7;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+:where(.dwk-root) .dwk-place-annotation-btn:hover:not(:disabled) {
+  background: #29b6f6;
+}
+
+:where(.dwk-root) .dwk-place-annotation-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+:where(.dwk-root) .annotation-help {
+  color: #666;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+:where(.dwk-root) .user-annotations-list {
+  margin-bottom: 20px;
+}
+
+:where(.dwk-root) .list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+:where(.dwk-root) .list-header h4 {
+  margin: 0;
+  color: #333;
+}
+
+:where(.dwk-root) .edit-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+  user-select: none;
+}
+
+:where(.dwk-root) .edit-mode-toggle input[type="checkbox"] {
+  display: none;
+}
+
+:where(.dwk-root) .edit-mode-toggle .checkmark {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ddd;
+  border-radius: 3px;
+  background: white;
+  transition: all 0.2s;
+}
+
+:where(.dwk-root) .edit-mode-toggle input[type="checkbox"]:checked+.checkmark {
+  background: #4fc3f7;
+  border-color: #4fc3f7;
+}
+
+:where(.dwk-root) .edit-mode-toggle input[type="checkbox"]:checked+.checkmark::after {
+  content: '✓';
+  position: absolute;
+  top: -1px;
+  left: 2px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+:where(.dwk-root) .user-annotation-item {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+:where(.dwk-root) .annotation-item-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 12px;
+}
+
+:where(.dwk-root) .type-indicator {
+  width: 34px;
+  height: 34px;
+  border: 2px solid;
+  flex-shrink: 0;
+}
+
+:where(.dwk-root) .annotation-info {
+  flex: 1;
+  min-width: 0;
+}
+
+:where(.dwk-root) .annotation-title {
+  display: block;
+  font-weight: bold;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.2;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:where(.dwk-root) .annotation-meta {
+  display: none;
+}
+
+:where(.dwk-root) .annotation-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+:where(.dwk-root) .action-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+:where(.dwk-root) .action-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+:where(.dwk-root) .type-badge {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+:where(.dwk-root) .annotation-item-title {
+  color: #333;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  flex: 1;
+}
+
+:where(.dwk-root) .annotation-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+:where(.dwk-root) .edit-btn,
+:where(.dwk-root) .delete-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+:where(.dwk-root) .edit-btn {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+:where(.dwk-root) .edit-btn:hover {
+  background: #bbdefb;
+}
+
+:where(.dwk-root) .delete-btn {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+:where(.dwk-root) .delete-btn:hover {
+  background: #ffcdd2;
+}
+
+:where(.dwk-root) .area-annotation {
+  position: absolute;
+  background: transparent;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: border-width 0.2s ease;
+  pointer-events: auto;
+}
+
+:where(.dwk-root) .area-annotation.rectangle {
+  border-radius: 4px;
+}
+
+:where(.dwk-root) .area-annotation.circle {
+  border-radius: 50%;
+}
+
+:where(.dwk-root) .area-annotation:hover {
+  filter: brightness(1.1);
+}
+
+:where(.dwk-root) .area-annotation.edit-mode {
+  cursor: move;
+}
+
+:where(.dwk-root) .area-annotation.edit-mode .resize-handle {
+  display: block;
+}
+
+:where(.dwk-root) .resize-handle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border: 2px solid;
+  border-radius: 50%;
+  display: none;
+  cursor: nw-resize;
+}
+
+:where(.dwk-root) .resize-handle.se {
+  bottom: -4px;
+  right: -4px;
+}
+
+:where(.dwk-root) .resize-handle.sw {
+  bottom: -4px;
+  left: -4px;
+  cursor: sw-resize;
+}
+
+:where(.dwk-root) .resize-handle.ne {
+  top: -4px;
+  right: -4px;
+  cursor: ne-resize;
+}
+
+:where(.dwk-root) .resize-handle.nw {
+  top: -4px;
+  left: -4px;
+}
+
+@container dwk (max-width: 768px) {
+  :where(.dwk-root) .type-preview-group {
+    max-width: none;
+  }
+
+  :where(.dwk-root) .size-controls {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  :where(.dwk-root) .annotation-item-actions {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  :where(.dwk-root) .edit-btn,
+  :where(.dwk-root) .delete-btn {
+    width: 100%;
+    padding: 8px;
+  }
+}
+
+:where(.dwk-root) .arrow-annotation-wrapper {
+  pointer-events: none;
+}
+
+:where(.dwk-root) .arrow-annotation-handle {
+  cursor: grab;
+}
+
+:where(.dwk-root) .arrow-annotation-handle:active {
+  cursor: grabbing;
+}
+
+:where(.dwk-root) .arrow-icon {
+  border: 0;
+  background: linear-gradient(
+        to right,
+        #666 0 70%,
+        transparent 70% 100%
+    );
+  height: 2px;
+  margin-top: 9px;
+  position: relative;
+}
+
+:where(.dwk-root) .arrow-icon::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: -4px;
+  border-left: 7px solid #666;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+:where(.dwk-root) .mode-btn.active .arrow-icon,
+:where(.dwk-root) .mode-btn:hover .arrow-icon {
+  background: linear-gradient(
+        to right,
+        #4fc3f7 0 70%,
+        transparent 70% 100%
+    );
+}
+
+:where(.dwk-root) .mode-btn.active .arrow-icon::after,
+:where(.dwk-root) .mode-btn:hover .arrow-icon::after {
+  border-left-color: #4fc3f7;
+}
+
+:where(.dwk-root) .type-btn.type-btn-arrow {
+  background: white;
+  border: 2px solid #ddd;
+  overflow: visible;
+}
+
+:where(.dwk-root) .type-btn-arrow-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+:where(.dwk-root) .type-btn.type-btn-arrow.active::after {
+  content: "";
+}
+
+:where(.dwk-root) .type-btn.type-btn-arrow.active {
+  border-color: #1976d2;
+  border-width: 3px;
+  background: #e3f2fd;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.35);
+}
+
+:where(.dwk-root) .type-indicator-arrow {
+  background: none;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:where(.dwk-root) .type-indicator-arrow .type-btn-arrow-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+:where(.dwk-root) .annotation-title-empty {
+  opacity: 0.6;
+}

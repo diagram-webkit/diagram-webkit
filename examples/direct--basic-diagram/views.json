@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "views": {
+    "overview": {
+      "title": "Overview",
+      "state": { "camera": { "fit": true }, "level": 0 }
+    },
+    "request-path": {
+      "title": "Request path",
+      "state": {
+        "camera": { "focus": { "tags": ["Network.Ingress"] }, "padding": 0.1 },
+        "level": 1,
+        "onlyTags": ["Network"],
+        "pins": ["LoadBalancer"]
+      }
+    },
+    "data": {
+      "title": "Data layer",
+      "state": {
+        "camera": { "rect": [0.851, 0.379, 0.3, 0.75] },
+        "level": 2,
+        "hiddenTags": ["Observability"],
+        "highlight": { "slugs": ["DbAccess"], "mode": "pulse" }
+      }
+    }
+  }
+}

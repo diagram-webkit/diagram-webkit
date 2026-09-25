@@ -1,0 +1,269 @@
+:where(.dwk-root) .dwk-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  z-index: 12000;
+  font-family: sans-serif;
+  text-align: center;
+}
+
+:where(.dwk-root) .dwk-loading-message {
+  margin-bottom: 12px;
+}
+
+:where(.dwk-root) .dwk-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #333;
+  border-top: 3px solid #4fc3f7;
+  border-radius: 50%;
+  animation: dwk-spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+:where(.dwk-root) .dwk-loading.dwk-feedback-container {
+  padding: 12px;
+  font-size: 13px;
+}
+
+@keyframes dwk-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+:where(.dwk-root) .dwk-error-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.45);
+  z-index: 30000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+:where(.dwk-root) .dwk-error-box {
+  background: #ff4444;
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  font-family: sans-serif;
+  font-size: 14px;
+  max-width: 400px;
+  width: min(400px, 92cqw);
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+:where(.dwk-root) .dwk-error-title {
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+:where(.dwk-root) .dwk-error-detail {
+  margin-top: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  opacity: 0.9;
+  overflow-wrap: anywhere;
+}
+
+:where(.dwk-root) .dwk-error-actions {
+  margin-top: 12px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+:where(.dwk-root) .dwk-error-close {
+  background: #fff;
+  color: #ff4444;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* Local mode (local-source.js): the picker, the drop target and the
+   embedded-link warnings in the link info. */
+/* The picker is the help dialog's "Open" tab. With nothing loaded yet the
+   dialog is the whole page, so its backdrop is the page. */
+.dwk-root.dwk-local-waiting .dwk-help-dialog {
+  background: var(--page-bg, #f1f5f9);
+}
+
+:where(.dwk-root) .dwk-local-picker-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #0f172a;
+}
+
+:where(.dwk-root) .dwk-local-picker-title {
+  margin: 0;
+  font-size: 20px;
+}
+
+:where(.dwk-root) .dwk-local-picker-intro,
+:where(.dwk-root) .dwk-local-picker-muted {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+}
+
+:where(.dwk-root) .dwk-local-picker button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  padding: 8px 12px;
+}
+
+:where(.dwk-root) .dwk-local-picker .dwk-local-picker-choose {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+
+:where(.dwk-root) .dwk-local-picker-link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+:where(.dwk-root) .dwk-local-picker-row {
+  display: flex;
+  gap: 8px;
+}
+
+:where(.dwk-root) .dwk-local-picker-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+
+:where(.dwk-root) .dwk-local-picker-error {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.dwk-root.dwk-local-dropping::after {
+  content: attr(data-dwk-drop-text);
+  position: absolute;
+  inset: 12px;
+  z-index: 13100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px dashed #2563eb;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #1e3a8a;
+  font: 600 20px sans-serif;
+  pointer-events: none;
+}
+
+:where(.dwk-root) .dwk-embed-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+:where(.dwk-root) .dwk-embed-message {
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+}
+
+/* Not a link row: its actions are always shown, not only on hover. */
+:where(.dwk-root) .dwk-embed-status .link-info-action {
+  opacity: 1;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+:where(.dwk-root) .dwk-embed-status.is-long,
+:where(.dwk-root) .dwk-embed-status.is-very-long,
+:where(.dwk-root) .dwk-embed-status.is-too-large {
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+:where(.dwk-root) .dwk-embed-status.is-long {
+  background: #fef9c3;
+  border: 1px solid #facc15;
+  color: #713f12;
+}
+
+:where(.dwk-root) .dwk-embed-status.is-very-long {
+  background: #fde68a;
+  border: 2px solid #d97706;
+  color: #78350f;
+  font-weight: 600;
+}
+
+:where(.dwk-root) .dwk-embed-status.is-too-large {
+  background: #fee2e2;
+  border: 2px solid #dc2626;
+  color: #7f1d1d;
+  font-weight: 600;
+}
+
+:where(.dwk-root) .dwk-local-picker-privacy {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 13px;
+}
+
+:where(.dwk-root) .dwk-local-picker-project {
+  margin: 0;
+  align-self: center;
+  font-size: 13px;
+  color: #64748b;
+}
+
+:where(.dwk-root) .dwk-local-picker-project a {
+  color: #2563eb;
+}
+
+:where(.dwk-root) .dwk-open-another {
+  font: inherit;
+  font-size: 12px;
+  padding: 2px 8px;
+  margin-right: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}

@@ -1,0 +1,882 @@
+:where(.dwk-root) .filter-panel .close-button {
+  color: #e5e7eb;
+  width: 38px;
+  height: 38px;
+  font-size: 28px;
+  line-height: 1;
+  border-radius: 10px;
+}
+
+:where(.dwk-root) .filter-panel .close-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:where(.dwk-root) .modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100cqw;
+  height: 100cqh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+:where(.dwk-root) .modal-content {
+  background: white;
+  border-radius: 8px;
+  max-width: min(800px, 90cqw);
+  max-height: calc(100cqh - 40px);
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  width: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+:where(.dwk-root) .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 10px;
+  border-bottom: 1px solid #eee;
+}
+
+:where(.dwk-root) .modal-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+:where(.dwk-root) .close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+:where(.dwk-root) .close-button:hover {
+  background-color: #f0f0f0;
+}
+
+:where(.dwk-root) .modal-body {
+  padding: 20px;
+  min-width: 400px;
+}
+
+:where(.dwk-root) .form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+:where(.dwk-root) .form-row .form-group {
+  flex: 1;
+}
+
+:where(.dwk-root) .modal-actions {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+:where(.dwk-root) .modal-actions button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+:where(.dwk-root) .dwk-share-url-btn {
+  background: #4caf50;
+  color: white;
+}
+
+:where(.dwk-root) .dwk-share-url-btn:hover {
+  background: #45a049;
+}
+
+:where(.dwk-root) .danger-btn {
+  background: #f44336;
+  color: white;
+}
+
+:where(.dwk-root) .danger-btn:hover {
+  background: #da190b;
+}
+
+:where(.dwk-root) .form-group {
+  margin-bottom: 15px;
+}
+
+:where(.dwk-root) .form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+:where(.dwk-root) .form-group input,
+:where(.dwk-root) .form-group textarea,
+:where(.dwk-root) .form-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+:where(.dwk-root) .form-group textarea {
+  resize: vertical;
+  font-family: 'Courier New', monospace;
+  line-height: 1.4;
+}
+
+:where(.dwk-root) .char-count {
+  display: block;
+  text-align: right;
+  color: #666;
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+:where(.dwk-root) .description-preview {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f9f9f9;
+  min-height: 40px;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+:where(.dwk-root) .form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+:where(.dwk-root) .form-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+:where(.dwk-root) .form-actions button[type="submit"] {
+  background: #4fc3f7;
+  color: white;
+}
+
+:where(.dwk-root) .form-actions button[type="submit"]:hover {
+  background: #29b6f6;
+}
+
+:where(.dwk-root) .form-actions button[type="button"] {
+  background: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+:where(.dwk-root) .form-actions button[type="button"]:hover {
+  background: #e0e0e0;
+}
+
+@container dwk (max-width: 768px) {
+  :where(.dwk-root) .modal {
+    padding: 10px;
+  }
+
+  :where(.dwk-root) .modal-content {
+    max-width: 100%;
+    max-height: calc(100cqh - 20px);
+  }
+
+  :where(.dwk-root) .modal-body {
+    min-width: auto;
+    padding: 15px;
+  }
+
+  :where(.dwk-root) .form-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  :where(.dwk-root) .modal-actions {
+    flex-direction: column;
+  }
+
+  :where(.dwk-root) .modal-actions button {
+    width: 100%;
+  }
+
+  :where(.dwk-root) .form-actions {
+    flex-direction: column;
+  }
+
+  :where(.dwk-root) .form-actions button {
+    width: 100%;
+  }
+}
+
+.dwk-root.modal-locks-diagram .filter-panel,
+.dwk-root.modal-locks-diagram .floating-filter-toggle {
+  pointer-events: none;
+  filter: saturate(0.5) brightness(0.8);
+}
+
+/* The help dialog (help-dialog.js): tabs on top, the panel scrolling in
+   between, the version bar at the bottom. A fixed height, a little above the
+   middle: switching tabs or loading content never moves it. */
+:where(.dwk-root) .dwk-help-dialog {
+  --help-height: min(600px, calc(100cqh - 32px));
+  --help-text: #1e293b;
+  --help-muted: #64748b;
+  --help-faint: #94a3b8;
+  --help-line: #e2e8f0;
+  --help-surface: #f8fafc;
+  --help-accent: #2563eb;
+  --help-accent-soft: #eff6ff;
+  --help-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Above the menu button and panel (11100-11200), below the loading box. */
+  z-index: 11500;
+  align-items: flex-start;
+  padding-top: max(16px, calc((100cqh - var(--help-height)) / 2 - 5cqh));
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+:where(.dwk-root) .help-dialog-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: min(680px, 94cqw);
+  height: var(--help-height);
+  max-height: none;
+  overflow: hidden;
+  /* The modal centres it; the base left/translate would shift it again. */
+  left: auto;
+  transform: none;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28), 0 2px 8px rgba(15, 23, 42, 0.08);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--help-text);
+}
+
+:where(.dwk-root) .help-dialog-header {
+  flex: 0 0 auto;
+  gap: 8px;
+  padding: 12px 12px 12px 16px;
+  align-items: center;
+  background: var(--help-surface);
+  border-bottom: 1px solid var(--help-line);
+}
+
+:where(.dwk-root) .help-tabs {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+:where(.dwk-root) .help-tab {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
+  color: var(--help-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+:where(.dwk-root) .help-tab:hover {
+  color: var(--help-text);
+  background: rgba(15, 23, 42, 0.05);
+}
+
+:where(.dwk-root) .help-tab.active {
+  color: var(--help-text);
+  background: #ffffff;
+  border-color: var(--help-line);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+:where(.dwk-root) .help-tab:focus-visible {
+  outline: 2px solid var(--help-accent);
+  outline-offset: 1px;
+}
+
+:where(.dwk-root) .help-dialog-header .close-button {
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--help-muted);
+}
+
+:where(.dwk-root) .help-dialog-header .close-button:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--help-text);
+}
+
+/* .close-button and .help-tab set display, which would beat [hidden]. */
+:where(.dwk-root) .help-dialog-header [hidden] {
+  display: none;
+}
+
+:where(.dwk-root) .help-dialog-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 20px 24px 24px;
+}
+
+:where(.dwk-root) .help-dialog-body a {
+  color: var(--help-accent);
+  text-decoration: none;
+}
+
+:where(.dwk-root) .help-dialog-body a:hover {
+  text-decoration: underline;
+}
+
+:where(.dwk-root) .help-intro {
+  margin: 0 0 20px;
+  color: var(--help-muted);
+}
+
+:where(.dwk-root) .help-heading {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+:where(.dwk-root) .help-section + .help-section,
+:where(.dwk-root) .param-group + .param-group,
+:where(.dwk-root) .param-reference {
+  margin-top: 22px;
+}
+
+:where(.dwk-root) .help-section-title,
+:where(.dwk-root) .help-subtitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--help-muted);
+}
+
+:where(.dwk-root) .help-empty {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--help-line);
+  border-radius: 10px;
+  color: var(--help-muted);
+}
+
+/* About: name and description, the definition's text, then the facts. */
+:where(.dwk-root) .about-header {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--help-line);
+}
+
+:where(.dwk-root) .about-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+:where(.dwk-root) .about-description {
+  margin: 4px 0 0;
+  color: var(--help-muted);
+}
+
+:where(.dwk-root) .about-text h4 {
+  margin: 20px 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+:where(.dwk-root) .about-text p {
+  margin: 0 0 10px;
+}
+
+:where(.dwk-root) .about-list {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+
+:where(.dwk-root) .about-list li + li {
+  margin-top: 4px;
+}
+
+:where(.dwk-root) .about-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  margin: 22px 0 0;
+  border: 1px solid var(--help-line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--help-line);
+}
+
+:where(.dwk-root) .about-facts > div {
+  flex: 1 1 170px;
+  padding: 10px 14px;
+  background: var(--help-surface);
+}
+
+:where(.dwk-root) .about-facts dt {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--help-muted);
+}
+
+:where(.dwk-root) .about-facts dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+
+/* Controls. */
+:where(.dwk-root) .shortcut-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--help-line);
+  border-radius: 10px;
+  border-style: hidden;
+  box-shadow: 0 0 0 1px var(--help-line);
+}
+
+:where(.dwk-root) .shortcut-table th,
+:where(.dwk-root) .shortcut-table td {
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--help-line);
+}
+
+:where(.dwk-root) .shortcut-table tr:last-child th,
+:where(.dwk-root) .shortcut-table tr:last-child td {
+  border-bottom: 0;
+}
+
+:where(.dwk-root) .shortcut-table th[scope="row"] {
+  width: 40%;
+  font-weight: 500;
+  color: var(--help-muted);
+}
+
+:where(.dwk-root) .help-keys {
+  margin-top: 22px;
+}
+
+/* No keyboard, no keyboard section. */
+@media (hover: none) and (pointer: coarse) {
+  :where(.dwk-root) .help-keys {
+    display: none;
+  }
+}
+
+:where(.dwk-root) kbd {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 6px;
+  border: 1px solid #cbd5e1;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: #ffffff;
+  font-family: var(--help-mono, ui-monospace, monospace);
+  font-size: 12px;
+  text-align: center;
+  color: var(--help-text, #1e293b);
+}
+
+/* Share: the links as a list of cards. */
+:where(.dwk-root) .link-info-muted {
+  color: var(--help-muted);
+}
+
+:where(.dwk-root) .link-info-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--help-line);
+  border-radius: 10px;
+  background: #ffffff;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+:where(.dwk-root) .link-info-link + .link-info-link {
+  margin-top: 8px;
+}
+
+:where(.dwk-root) .link-info-link:hover,
+:where(.dwk-root) .link-info-link:focus-within {
+  border-color: #cbd5e1;
+  background: var(--help-surface);
+}
+
+:where(.dwk-root) .link-info-actions {
+  display: flex;
+  flex: none;
+  gap: 6px;
+}
+
+:where(.dwk-root) .link-info-link-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+:where(.dwk-root) .link-info-link-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  align-items: baseline;
+}
+
+:where(.dwk-root) .link-info-link-head strong {
+  font-weight: 600;
+}
+
+:where(.dwk-root) .link-info-link-head .link-info-muted {
+  font-size: 13px;
+}
+
+:where(.dwk-root) .link-info-preview {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--help-mono);
+  font-size: 11px;
+  color: var(--help-faint);
+}
+
+:where(.dwk-root) .link-info-preview del {
+  color: #dc2626;
+  opacity: 0.7;
+}
+
+:where(.dwk-root) .link-info-action,
+:where(.dwk-root) .link-info-copy {
+  flex: none;
+  padding: 4px 12px;
+  border: 1px solid var(--help-line);
+  border-radius: 8px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--help-text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+:where(.dwk-root) .link-info-copy {
+  padding: 1px 8px;
+  font-size: 11px;
+}
+
+:where(.dwk-root) .link-info-action:hover,
+:where(.dwk-root) .link-info-copy:hover {
+  border-color: var(--help-accent);
+  color: var(--help-accent);
+}
+
+:where(.dwk-root) .link-info-action:focus-visible,
+:where(.dwk-root) .link-info-copy:focus-visible {
+  outline: 2px solid var(--help-accent);
+  outline-offset: 1px;
+}
+
+:where(.dwk-root) .dwk-help-dialog .is-done {
+  border-color: var(--help-accent);
+  background: var(--help-accent-soft);
+  color: var(--help-accent);
+}
+
+:where(.dwk-root) .dwk-help-dialog .is-error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+/* URL parameters: one table-like card per group. */
+:where(.dwk-root) .param-group {
+  border: 1px solid var(--help-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+:where(.dwk-root) .param-group > .help-section-title {
+  margin: 0;
+  padding: 8px 14px;
+  background: var(--help-surface);
+  border-bottom: 1px solid var(--help-line);
+}
+
+:where(.dwk-root) .param-group + .param-group {
+  margin-top: 12px;
+}
+
+:where(.dwk-root) .link-info-param {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+:where(.dwk-root) .link-info-param + .link-info-param {
+  border-top: 1px solid var(--help-line);
+}
+
+:where(.dwk-root) .link-info-param-name {
+  align-self: start;
+  justify-self: start;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: #f1f5f9;
+  font-family: var(--help-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  overflow-wrap: anywhere;
+}
+
+:where(.dwk-root) .link-info-param-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+:where(.dwk-root) .link-info-param-meaning {
+  color: var(--help-text);
+}
+
+:where(.dwk-root) .link-info-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+:where(.dwk-root) .link-info-code {
+  font-family: var(--help-mono);
+  font-size: 12px;
+  color: #0f172a;
+  overflow-wrap: anywhere;
+}
+
+:where(.dwk-root) .link-info-hint {
+  font-size: 11px;
+  color: var(--help-faint);
+}
+
+:where(.dwk-root) .link-info-pills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-family: var(--help-mono);
+  font-size: 11px;
+}
+
+:where(.dwk-root) .link-info-pill {
+  padding: 0 7px;
+  border: 1px solid var(--help-line);
+  border-radius: 999px;
+  color: var(--help-faint);
+}
+
+:where(.dwk-root) .link-info-pill.is-active {
+  border-color: #bfdbfe;
+  background: var(--help-accent-soft);
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+:where(.dwk-root) .link-info-pill.is-none {
+  font-style: italic;
+}
+
+:where(.dwk-root) .link-info-pill.is-invalid {
+  border-color: #fca5a5;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+:where(.dwk-root) .param-reference {
+  border-top: 1px solid var(--help-line);
+  padding-top: 14px;
+}
+
+:where(.dwk-root) .param-reference summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--help-text);
+}
+
+:where(.dwk-root) .param-reference summary:focus-visible {
+  outline: 2px solid var(--help-accent);
+  outline-offset: 2px;
+}
+
+:where(.dwk-root) .param-reference .help-section-title {
+  margin-top: 16px;
+}
+
+:where(.dwk-root) .param-reference-list {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 0;
+}
+
+:where(.dwk-root) .param-reference-list dt {
+  font-family: var(--help-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+:where(.dwk-root) .param-reference-list dd {
+  margin: 0;
+  color: var(--help-muted);
+}
+
+/* The bottom bar: versions and links. */
+:where(.dwk-root) .help-dialog-meta {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  padding: 10px 24px;
+  border-top: 1px solid var(--help-line);
+  background: var(--help-surface);
+  font-size: 12px;
+  color: var(--help-muted);
+}
+
+:where(.dwk-root) .help-dialog-meta a {
+  color: var(--help-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--help-line);
+  text-underline-offset: 2px;
+}
+
+:where(.dwk-root) .help-dialog-meta a:hover {
+  color: var(--help-accent);
+}
+
+:where(.dwk-root) .help-meta-site {
+  color: var(--help-text);
+  font-weight: 600;
+}
+
+@container dwk (max-width: 768px) {
+  :where(.dwk-root) .dwk-help-dialog {
+    --help-height: calc(100cqh - 20px);
+    padding: 10px;
+  }
+
+  :where(.dwk-root) .help-dialog-content {
+    max-width: 100cqw;
+  }
+
+  :where(.dwk-root) .help-dialog-header {
+    padding: 8px;
+  }
+
+  :where(.dwk-root) .help-tab {
+    padding: 8px 12px;
+  }
+
+  :where(.dwk-root) .help-dialog-body {
+    padding: 16px;
+  }
+
+  :where(.dwk-root) .help-dialog-meta {
+    padding: 8px 16px;
+  }
+}
+
+@container dwk (max-width: 480px) {
+  :where(.dwk-root) .link-info-link {
+    flex-wrap: wrap;
+  }
+
+  :where(.dwk-root) .link-info-param,
+  :where(.dwk-root) .param-reference-list {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  :where(.dwk-root) .param-reference-list dd {
+    margin-bottom: 6px;
+  }
+}
+
+/* Share > The diagram: how it travels (feedback.css colours the warnings). */
+:where(.dwk-root) .dwk-help-dialog .dwk-embed-status {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+:where(.dwk-root) .dwk-help-dialog .dwk-embed-status.is-ok,
+:where(.dwk-root) .dwk-help-dialog .dwk-embed-status.is-link {
+  border: 1px solid var(--help-line);
+  background: var(--help-surface);
+  color: var(--help-muted);
+}

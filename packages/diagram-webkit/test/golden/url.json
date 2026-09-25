@@ -1,0 +1,620 @@
+{
+  "parseFilter": [
+    [
+      "",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 0,
+        "hasLevel": false,
+        "hasHiddenTags": false,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?menu=true",
+      {
+        "open": true,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 0,
+        "hasLevel": false,
+        "hasHiddenTags": false,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?menu=false&filter-query=%20rbac%20",
+      {
+        "open": false,
+        "query": " rbac ",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 0,
+        "hasLevel": false,
+        "hasHiddenTags": false,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?filter-hide-tags=Api,Network.Egress,,%20Access%20",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [
+          "Api",
+          "Network.Egress",
+          "Access"
+        ],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 0,
+        "hasLevel": false,
+        "hasHiddenTags": true,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?filter-hide-tags=",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 0,
+        "hasLevel": false,
+        "hasHiddenTags": true,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?pins=WebApp,,DbAccess&constraint=pinned",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [
+          "WebApp",
+          "DbAccess"
+        ],
+        "constraints": [
+          "pinned"
+        ],
+        "level": 0,
+        "hasLevel": false,
+        "hasHiddenTags": false,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?constraint=pinned,other",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [
+          "pinned",
+          "other"
+        ],
+        "level": 0,
+        "hasLevel": false,
+        "hasHiddenTags": false,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?filter-level=2",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 2,
+        "hasLevel": true,
+        "hasHiddenTags": false,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?filter-level=-3",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 0,
+        "hasLevel": true,
+        "hasHiddenTags": false,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?filter-level=abc",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 0,
+        "hasLevel": true,
+        "hasHiddenTags": false,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?filter-level=",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 0,
+        "hasLevel": true,
+        "hasHiddenTags": false,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?tags=open",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 0,
+        "hasLevel": false,
+        "hasHiddenTags": false,
+        "tagsExpanded": true
+      }
+    ],
+    [
+      "?tags=closed",
+      {
+        "open": false,
+        "query": "",
+        "hiddenTags": [],
+        "pinnedSlugs": [],
+        "constraints": [],
+        "level": 0,
+        "hasLevel": false,
+        "hasHiddenTags": false,
+        "tagsExpanded": false
+      }
+    ],
+    [
+      "?menu=true&filter-query=a%2Cb&filter-hide-tags=A&pins=B&constraint=pinned&filter-level=1&tags=open",
+      {
+        "open": true,
+        "query": "a,b",
+        "hiddenTags": [
+          "A"
+        ],
+        "pinnedSlugs": [
+          "B"
+        ],
+        "constraints": [
+          "pinned"
+        ],
+        "level": 1,
+        "hasLevel": true,
+        "hasHiddenTags": true,
+        "tagsExpanded": true
+      }
+    ]
+  ],
+  "parseAnnotations": [
+    [
+      "",
+      []
+    ],
+    [
+      "?annotations=",
+      []
+    ],
+    [
+      "?annotations=notbase64!!",
+      []
+    ],
+    [
+      "?annotations=eyJ4IjoxfQ%3D%3D",
+      []
+    ],
+    [
+      "?annotations=W3sieCI6MC41LCJ5IjowLjUsInR5cGUiOiJ1c2VyLWluZm8iLCJ0aXRsZSI6IkhpIiwiZGVzY3JpcHRpb24iOiJkIn0seyJ4IjowLjEsInkiOjAuMiwidHlwZSI6ImFyZWEtaW5mbyIsInNoYXBlIjoiY2lyY2xlIiwid2lkdGhSZWwiOjAuMSwiaGVpZ2h0UmVsIjowLjJ9LHsieCI6MC4xLCJ5IjowLjIsInR5cGUiOiJhcnJvdy1pbmZvIiwieDIiOjAuMywieTIiOjAuNCwidGl0bGUiOiIifSx7IngiOjEuNSwieSI6MC41LCJ0eXBlIjoidXNlci1pbmZvIn0seyJ4IjowLjUsInkiOjAuNSwidHlwZSI6M30seyJ4IjowLjUsInkiOjAuNSwidHlwZSI6InVzZXItaW5mbyIsInRpdGxlIjoieHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4In0seyJ4IjowLjUsInkiOjAuNSwidHlwZSI6InVzZXItaW5mbyIsInRpdGxlIjoiw5xuw69jw7hkw6kg4pyTIiwiZGVzY3JpcHRpb24iOiJ5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXkifSx7IngiOjAuNSwieSI6MC41LCJ0eXBlIjoidXNlci1pbmZvIiwic2hhcGUiOiJoZXhhZ29uIiwid2lkdGhSZWwiOi0xLCJoZWlnaHRSZWwiOjB9LHsieCI6MC41LCJ5IjowLjUsInR5cGUiOiJhcnJvdy1pbmZvIiwieDIiOjIsInkyIjowLjR9LG51bGwsInN0ciJd",
+      [
+        {
+          "x": 0.5,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "Hi",
+          "description": "d",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.1,
+          "y": 0.2,
+          "type": "area-info",
+          "title": "",
+          "description": "",
+          "shape": "circle",
+          "widthRel": 0.1,
+          "heightRel": 0.2
+        },
+        {
+          "x": 0.1,
+          "y": 0.2,
+          "type": "arrow-info",
+          "title": "",
+          "description": "",
+          "shape": "rectangle",
+          "x2": 0.3,
+          "y2": 0.4
+        },
+        {
+          "x": 0.5,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "Ünïcødé ✓",
+          "description": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.5,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "",
+          "description": "",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.5,
+          "y": 0.5,
+          "type": "arrow-info",
+          "title": "",
+          "description": "",
+          "shape": "rectangle"
+        }
+      ]
+    ],
+    [
+      "?annotations=W3sieCI6MCwieSI6MC41LCJ0eXBlIjoidXNlci1pbmZvIiwidGl0bGUiOiIwIn0seyJ4IjowLjA4MzMzMzMzMzMzMzMzMzMzLCJ5IjowLjUsInR5cGUiOiJ1c2VyLWluZm8iLCJ0aXRsZSI6IjEifSx7IngiOjAuMTY2NjY2NjY2NjY2NjY2NjYsInkiOjAuNSwidHlwZSI6InVzZXItaW5mbyIsInRpdGxlIjoiMiJ9LHsieCI6MC4yNSwieSI6MC41LCJ0eXBlIjoidXNlci1pbmZvIiwidGl0bGUiOiIzIn0seyJ4IjowLjMzMzMzMzMzMzMzMzMzMzMsInkiOjAuNSwidHlwZSI6InVzZXItaW5mbyIsInRpdGxlIjoiNCJ9LHsieCI6MC40MTY2NjY2NjY2NjY2NjY3LCJ5IjowLjUsInR5cGUiOiJ1c2VyLWluZm8iLCJ0aXRsZSI6IjUifSx7IngiOjAuNSwieSI6MC41LCJ0eXBlIjoidXNlci1pbmZvIiwidGl0bGUiOiI2In0seyJ4IjowLjU4MzMzMzMzMzMzMzMzMzQsInkiOjAuNSwidHlwZSI6InVzZXItaW5mbyIsInRpdGxlIjoiNyJ9LHsieCI6MC42NjY2NjY2NjY2NjY2NjY2LCJ5IjowLjUsInR5cGUiOiJ1c2VyLWluZm8iLCJ0aXRsZSI6IjgifSx7IngiOjAuNzUsInkiOjAuNSwidHlwZSI6InVzZXItaW5mbyIsInRpdGxlIjoiOSJ9LHsieCI6MC44MzMzMzMzMzMzMzMzMzM0LCJ5IjowLjUsInR5cGUiOiJ1c2VyLWluZm8iLCJ0aXRsZSI6IjEwIn0seyJ4IjowLjkxNjY2NjY2NjY2NjY2NjYsInkiOjAuNSwidHlwZSI6InVzZXItaW5mbyIsInRpdGxlIjoiMTEifV0%3D",
+      [
+        {
+          "x": 0,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "0",
+          "description": "",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.08333333333333333,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "1",
+          "description": "",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.16666666666666666,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "2",
+          "description": "",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.25,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "3",
+          "description": "",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.3333333333333333,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "4",
+          "description": "",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.4166666666666667,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "5",
+          "description": "",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.5,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "6",
+          "description": "",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.5833333333333334,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "7",
+          "description": "",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.6666666666666666,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "8",
+          "description": "",
+          "shape": "rectangle"
+        },
+        {
+          "x": 0.75,
+          "y": 0.5,
+          "type": "user-info",
+          "title": "9",
+          "description": "",
+          "shape": "rectangle"
+        }
+      ]
+    ]
+  ],
+  "write": [
+    [
+      "empty",
+      ""
+    ],
+    [
+      "strip-all-filters",
+      "?other=1"
+    ],
+    [
+      "menu-only",
+      "?menu=true"
+    ],
+    [
+      "query",
+      "?other=1&filter-query=rbac,+api"
+    ],
+    [
+      "hidden-tags-ancestor-filter",
+      "?filter-hide-tags=pri-1,Api.Rbac,Network,Zeta"
+    ],
+    [
+      "pins-sorted",
+      "?pins=Cache,DbAccess,WebApp"
+    ],
+    [
+      "constraint",
+      "?pins=A&constraint=pinned"
+    ],
+    [
+      "level-default",
+      ""
+    ],
+    [
+      "level-nondefault",
+      "?filter-level=1"
+    ],
+    [
+      "tags-open",
+      "?tags=open"
+    ],
+    [
+      "viewport",
+      "?menu=true&v=0.5,0.5,0.25,0.25"
+    ],
+    [
+      "viewport-fit",
+      "?v=fit"
+    ],
+    [
+      "viewport-remove",
+      ""
+    ],
+    [
+      "annotations",
+      "?annotations=W3sieCI6MC41LCJ5IjowLjI1LCJ0eXBlIjoidXNlci1pbmZvIiwidGl0bGUiOiJIaSDinJMiLCJkZXNjcmlwdGlvbiI6ImFcbmIiLCJzaGFwZSI6InJlY3RhbmdsZSJ9XQ%3D%3D"
+    ],
+    [
+      "annotations-remove",
+      ""
+    ],
+    [
+      "order-preserved",
+      "?pins=Z&v=fit&x=1&menu=true&annotations=W3sieCI6MCwieSI6MCwidHlwZSI6InQiLCJ0aXRsZSI6IiJ9XQ%3D%3D"
+    ],
+    [
+      "hash",
+      "?a=1&menu=true#frag"
+    ]
+  ],
+  "viewport": [
+    [
+      "",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": null
+        },
+        "urlValue": null
+      }
+    ],
+    [
+      "?v=fit",
+      {
+        "parsed": {
+          "fit": true,
+          "rect": null
+        },
+        "urlValue": "fit"
+      }
+    ],
+    [
+      "?v=FIT",
+      {
+        "parsed": {
+          "fit": true,
+          "rect": null
+        },
+        "urlValue": "fit"
+      }
+    ],
+    [
+      "?v=0",
+      {
+        "parsed": {
+          "fit": true,
+          "rect": null
+        },
+        "urlValue": "fit"
+      }
+    ],
+    [
+      "?v=%20fit%20",
+      {
+        "parsed": {
+          "fit": true,
+          "rect": null
+        },
+        "urlValue": "fit"
+      }
+    ],
+    [
+      "?v=0.5,0.5,0.25,0.25",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": {
+            "cx": 0.5,
+            "cy": 0.5,
+            "w": 0.25,
+            "h": 0.25
+          }
+        },
+        "urlValue": "0.5,0.5,0.25,0.25"
+      }
+    ],
+    [
+      "?v=0.123456,0.5,0.99999,1",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": {
+            "cx": 0.123456,
+            "cy": 0.5,
+            "w": 0.99999,
+            "h": 1
+          }
+        },
+        "urlValue": "0.1235,0.5,1,1"
+      }
+    ],
+    [
+      "?v=0.5,0.5,0,0.5",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": null
+        },
+        "urlValue": null
+      }
+    ],
+    [
+      "?v=0.5,0.5,1.1,0.5",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": null
+        },
+        "urlValue": null
+      }
+    ],
+    [
+      "?v=-0.1,0.5,0.5,0.5",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": null
+        },
+        "urlValue": null
+      }
+    ],
+    [
+      "?v=0.5,0.5,0.5",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": null
+        },
+        "urlValue": null
+      }
+    ],
+    [
+      "?v=a,b,c,d",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": null
+        },
+        "urlValue": null
+      }
+    ],
+    [
+      "?v=0.5,0.5,0.5,0.5,0.5",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": null
+        },
+        "urlValue": null
+      }
+    ],
+    [
+      "?v=1,0,1,1",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": {
+            "cx": 1,
+            "cy": 0,
+            "w": 1,
+            "h": 1
+          }
+        },
+        "urlValue": "1,0,1,1"
+      }
+    ],
+    [
+      "?v=0.33333333,0.66666666,0.1,0.2",
+      {
+        "parsed": {
+          "fit": false,
+          "rect": {
+            "cx": 0.33333333,
+            "cy": 0.66666666,
+            "w": 0.1,
+            "h": 0.2
+          }
+        },
+        "urlValue": "0.3333,0.6667,0.1,0.2"
+      }
+    ]
+  ]
+}

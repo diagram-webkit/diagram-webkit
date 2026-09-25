@@ -1,0 +1,146 @@
+{
+  "escape": [
+    [
+      "",
+      ""
+    ],
+    [
+      "plain",
+      "plain"
+    ],
+    [
+      "<b>x</b> & y > z",
+      "&lt;b&gt;x&lt;/b&gt; &amp; y &gt; z"
+    ],
+    [
+      "\"quoted\" 'single'",
+      "\"quoted\" 'single'"
+    ],
+    [
+      "line1\nline2",
+      "line1<br>line2"
+    ],
+    [
+      "cr\rlf\r\nend",
+      "cr<br>lf<br>end"
+    ],
+    [
+      "nb sp",
+      "nb&nbsp;sp"
+    ],
+    [
+      "tab\tx",
+      "tab\tx"
+    ],
+    [
+      null,
+      ""
+    ],
+    [
+      "__undefined__",
+      "undefined"
+    ],
+    [
+      42,
+      "42"
+    ]
+  ],
+  "cleanMultiline": [
+    [
+      "",
+      ""
+    ],
+    [
+      null,
+      ""
+    ],
+    [
+      "one",
+      "one"
+    ],
+    [
+      "\n  a\n  b\n",
+      "a<br>b"
+    ],
+    [
+      "   a\n     b\n   c   ",
+      "a<br>  b<br>c"
+    ],
+    [
+      "\n\n  x\n\n  y\n",
+      "x<br><br>y"
+    ],
+    [
+      "a\n  b",
+      "a<br>  b"
+    ]
+  ],
+  "sanitize": [
+    [
+      "",
+      ""
+    ],
+    [
+      "plain text",
+      "plain text"
+    ],
+    [
+      "<b>bold</b> <i>it</i> <u>u</u>",
+      "<b>bold</b> <i>it</i> <u>u</u>"
+    ],
+    [
+      "<script>alert(1)</script>ok",
+      "alert(1)ok"
+    ],
+    [
+      "<a href=\"javascript:alert(1)\">x</a>",
+      "x"
+    ],
+    [
+      "<b onclick=\"x()\">b</b>",
+      "<b>b</b>"
+    ],
+    [
+      "a<br>b<hr>c",
+      "a<br>b<hr>c"
+    ],
+    [
+      "<div><strong>nested <em>deep</em></strong></div>",
+      "<strong>nested <em>deep</em></strong>"
+    ],
+    [
+      "<p>para</p>",
+      "para"
+    ],
+    [
+      "<b>unclosed",
+      "<b>unclosed</b>"
+    ],
+    [
+      "&lt;tag&gt; &amp; entities",
+      "<tag> & entities"
+    ],
+    [
+      "<BR><B>UPPER</B>",
+      "<br><b>UPPER</b>"
+    ]
+  ],
+  "description": [
+    [
+      "",
+      ""
+    ],
+    [
+      "line\nnext",
+      "line<br>next"
+    ],
+    [
+      "<b>x</b>\n<script>y</script>",
+      "<b>x</b><br>y"
+    ],
+    [
+      "a & b\n\nc",
+      "a & b<br><br>c"
+    ]
+  ]
+}

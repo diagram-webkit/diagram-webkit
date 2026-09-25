@@ -1,0 +1,62 @@
+name: release
+
+# Publishes diagram-webkit when packages/diagram-webkit/package.json has a
+# version that is not on npm yet: CI first, then npm publish (trusted
+# publishing, no token) and a GitHub release with tag v<version>.
+on:
+  push:
+    branches: [main]
+    paths: [packages/diagram-webkit/package.json]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      publish: ${{ steps.check.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check
+        run: |
+          version=$(node -p "require('./packages/diagram-webkit/package.json').version")
+          published=$(npm view "diagram-webkit@$version" version 2>/dev/null || true)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "$published" = "$version" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::diagram-webkit@$version is already on npm; nothing to publish"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  ci:
+    needs: version
+    if: needs.version.outputs.publish == 'true'
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: [version, ci]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # tag and GitHub release
+      id-token: write # npm trusted publishing and provenance
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run build
+      - run: npm publish -w diagram-webkit --provenance --access public
+      - run: gh release create "v$VERSION" --target "$GITHUB_SHA" --title "v$VERSION" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -1,8 +1,23 @@
 {
   "name": "diagram-webkit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Interactive draw.io SVG diagrams",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diagram-webkit/diagram-webkit.git",
+    "directory": "packages/diagram-webkit"
+  },
+  "homepage": "https://diagram-webkit.github.io",
+  "bugs": "https://github.com/diagram-webkit/diagram-webkit/issues",
+  "keywords": [
+    "drawio",
+    "draw.io",
+    "diagram",
+    "svg",
+    "interactive",
+    "reveal.js"
+  ],
   "type": "module",
   "sideEffects": [
     "*.css"
@@ -33,6 +48,7 @@
     "src/tools"
   ],
   "scripts": {
+    "prepack": "cp ../../README.md ../../LICENSE .",
     "build": "vite build && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.core.json --noEmit && tsc -p tsconfig.js.json --noEmit",
     "test": "vitest run",

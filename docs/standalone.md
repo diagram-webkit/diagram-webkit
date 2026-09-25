@@ -12,6 +12,18 @@ await mountDiagram(element, undefined, { features: "embed" }); // an embed that 
 await mountDiagram(element, defineDiagram({ id: "x" }));        // same: a definition without source
 ```
 
+Your own standalone app with other defaults (priority styles, groups, CSS): extend the built-in definition. It keeps the About, footer and links, and the help dialog still presents it as diagram-webkit (id `"diagram-webkit"`).
+
+```js
+import { mountApp, standaloneDefinition } from "diagram-webkit";
+
+const definition = standaloneDefinition().extend({
+  tags: { meta: { "pri-1": { label: "Critical", group: "priority", order: 1, style: { background: "#fecaca" } } } },
+  camera: { defaultAlign: ["center", "center"] },
+});
+await mountApp(document.body, definition);
+```
+
 Local mode is on only when neither `definition.source` nor `opts.source` names a diagram. A defined diagram never shows the picker, never reads `svg` from the URL, and accepts no drops.
 
 ## Opening a diagram

@@ -32,7 +32,7 @@ import { createHighlight } from "./overlays/highlight.js";
 import { createFocus } from "./focus.js";
 import { createPhases } from "./phases.js";
 import { createLocalSource } from "./local-source.js";
-import { standaloneDefinition } from "./standalone.js";
+import { STANDALONE_ID, standaloneDefinition } from "./standalone.js";
 import { renderErrorBox } from "./error-box.js";
 import { STARTING_CLASS } from "./lifecycle.js";
 import { createHighlightLine } from "./overlays/highlight-line.js";
@@ -236,8 +236,8 @@ export function createInstance(container, definitionOrNone, opts = {}) {
     texts,
     model,
     idPrefix,
-    // No definition given: the standalone app (dom/standalone.js).
-    standalone: definitionOrNone === undefined || definitionOrNone === null,
+    // The standalone app (dom/standalone.js), or a site built on it with extend().
+    standalone: definition.id === STANDALONE_ID,
     signal: controller.signal,
     timers,
     services: {},

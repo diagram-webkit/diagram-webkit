@@ -4,6 +4,7 @@ Interactive draw.io SVG diagrams: pan and zoom, tag filters, detail levels, sear
 
 - npm: [`diagram-webkit`](https://www.npmjs.com/package/diagram-webkit)
 - License: MIT
+- Try it: [diagram-webkit.github.io](https://diagram-webkit.github.io) (open any draw.io SVG)
 - Used by: [Kubernetes security diagram](https://github.com/kubesec-diagram/kubesec-diagram.github.io)
 
 ```
@@ -47,9 +48,9 @@ npx diagram-webkit validate my-diagram.svg --definition definition.js
 
 ## Docs
 
-- [docs/user-guide.md](docs/user-guide.md): using the app and making a diagram in draw.io
-- [docs/README.md](docs/README.md): index for developers (definition, state, features, API, URL parameters, reveal.js, standalone, tools, development)
-- [examples/](examples/): a definition package, two reveal.js decks, and the standalone app
+- [docs/user-guide.md](https://github.com/diagram-webkit/diagram-webkit/blob/main/docs/user-guide.md): using the app and making a diagram in draw.io
+- [docs/README.md](https://github.com/diagram-webkit/diagram-webkit/blob/main/docs/README.md): index for developers (definition, state, features, API, URL parameters, reveal.js, standalone, tools, development)
+- [examples/](https://github.com/diagram-webkit/diagram-webkit/tree/main/examples): a definition package, two reveal.js decks, and the standalone app
 
 ## Repository
 
@@ -64,4 +65,4 @@ e2e/                       Playwright suites
 npm ci && npm run build && npm test && npm run e2e
 ```
 
-For more, see [docs/development.md](docs/development.md) and [AGENTS.md](AGENTS.md).
+For more, see [docs/development.md](https://github.com/diagram-webkit/diagram-webkit/blob/main/docs/development.md) and [AGENTS.md](https://github.com/diagram-webkit/diagram-webkit/blob/main/AGENTS.md).

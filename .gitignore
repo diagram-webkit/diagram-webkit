@@ -5,3 +5,5 @@ playwright-report
 coverage
 .vite
 \.\$*
+packages/diagram-webkit/README.md
+packages/diagram-webkit/LICENSE

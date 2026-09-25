@@ -240,8 +240,10 @@ npx diagram-webkit tag-tree METADATA.md --heading "Tag tree" --out config/tag-de
 - Release:
 
   ```sh
-  npm version <x.y.z> -w diagram-webkit
-  npm run build && npm publish -w diagram-webkit
+  npm version <x.y.z> -w diagram-webkit --no-git-tag-version
+  git commit -am "diagram-webkit <x.y.z>" && git push
   ```
+
+  `.github/workflows/release.yml` publishes a version that is not on npm yet (after CI) and tags `v<x.y.z>`. Never publish by hand. `repository` in the package's `package.json` must stay `github.com/diagram-webkit/diagram-webkit`, or the provenance check fails. Links in the root README are absolute: it is also the npm page.
 
 - Open work: strip the SVG root `content` attribute (the embedded mxfile) in the build, make the dark theme work without `filter: invert`, add an optional custom element, convert `dom/` and `ui/` to TS, and add more examples (`direct--embed-minimal`, `via--custom-hooks--on-basic-diagram`, `via--multi-instance--on-basic-diagram`).

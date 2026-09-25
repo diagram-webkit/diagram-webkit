@@ -372,3 +372,17 @@ test("the wheel scrolls the help dialog's content, and moves nothing behind it",
   await page.waitForTimeout(200);
   expect(await transform()).toBe(before);
 });
+
+test("a site extending the standalone definition keeps the project's About and bottom bar", async ({ page }) => {
+  await page.goto("/standalone.html?extended");
+  await page.setInputFiles(".dwk-local-picker input[type=file]", SVG_FILE);
+  await loaded(page);
+  await page.locator(".dwk-help-toggle").click();
+  await page.locator('.help-tab[data-tab="about"]').click();
+  const dialog = page.locator(".help-dialog-content");
+  await expect(dialog).toContainText("Nothing leaves this browser");
+  await expect(dialog).not.toContainText("Built with");
+  await page.keyboard.press("Escape");
+  await page.locator(".dwk-floating-filter-toggle").click();
+  await expect(page.locator(".tag-group-buttons .tag-filter-btn").first()).toHaveText("Critical");
+});

@@ -1,7 +1,7 @@
 # API
 
 ```js
-import { mountApp, mountDiagram, defineDiagram } from "diagram-webkit"; // browser
+import { mountApp, mountDiagram, defineDiagram, standaloneDefinition } from "diagram-webkit"; // browser
 import { ... } from "diagram-webkit/core";      // pure TS: codecs, state, tags, validate
 import { revealPlugin } from "diagram-webkit/reveal";
 import { diagramWebkit } from "diagram-webkit/tools/vite"; // Node

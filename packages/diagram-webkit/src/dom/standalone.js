@@ -5,6 +5,10 @@ import { PROJECT_URL, USER_GUIDE_URL, VERSION } from "../core/version";
 
 export { PROJECT_URL, USER_GUIDE_URL };
 
+// The standalone app's id. A definition with this id is the project's own app
+// (standaloneDefinition().extend(...)), and the help dialog says so.
+export const STANDALONE_ID = "diagram-webkit";
+
 // Sites built on diagram-webkit, for "Used by" in the standalone About.
 export const USED_BY = Object.freeze([
   { label: "Kubernetes security diagram", href: "https://kubesec-diagram.github.io/", note: "where security happens in a Kubernetes cluster" },
@@ -24,7 +28,7 @@ let definition = null;
 
 export function standaloneDefinition() {
   definition ??= defineDiagram({
-    id: "diagram-webkit",
+    id: STANDALONE_ID,
     content: {
       page: { title: "diagram-webkit", description: "Interactive draw.io diagrams in the browser." },
       about: ABOUT,

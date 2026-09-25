@@ -74,8 +74,10 @@ npm run validate   # the checkout's CLI
 ## Release
 
 ```sh
-npm version <x.y.z> -w diagram-webkit
-npm run build && npm publish -w diagram-webkit
+npm version <x.y.z> -w diagram-webkit --no-git-tag-version   # package.json + package-lock.json
+git commit -am "diagram-webkit <x.y.z>" && git push
 ```
+
+On `main`, `.github/workflows/release.yml` sees a version that is not on npm yet, runs CI (`ci.yml` via `workflow_call`), publishes with npm trusted publishing (OIDC, no token; provenance) and creates the GitHub release `v<x.y.z>`. Re-run by hand: Actions -> release -> Run workflow. `prepack` copies the root README and LICENSE into the package.
 
 `VERSION` comes from `package.json`; `requires` in definitions is checked against it.

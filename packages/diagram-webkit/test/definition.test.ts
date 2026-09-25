@@ -39,6 +39,9 @@ describe("defineDiagram", () => {
     expect(() => defineDiagram({ id: "x", features: "kiosk" as never })).toThrow(/unknown preset/);
     expect(() => defineDiagram({ id: "x", features: { panel: "yes" } as never })).toThrow(/features\.panel: expected a boolean/);
     expect(() => defineDiagram({ id: "x", features: { input: { mouse: true } } as never })).toThrow(/unknown input/);
+    expect(PRESETS.app.resultLocate).toBe("click");
+    expect(defineDiagram({ id: "x", features: { resultLocate: "hover" } }).features.resultLocate).toBe("hover");
+    expect(() => defineDiagram({ id: "x", features: { resultLocate: "always" } as never })).toThrow(/features\.resultLocate: expected "click" or "hover"/);
     expect(() => defineDiagram({ id: "x", baseState: { level: -1 } })).toThrow(/baseState\.level/);
     expect(() => defineDiagram({ id: "x", views: { a: { state: { pins: "A" } } } } as never)).toThrow(/views\.a\.state\.pins/);
     expect(() => defineDiagram({ id: "x", views: { a: { state: {}, extra: 1 } } } as never)).toThrow(/views\.a\.extra/);

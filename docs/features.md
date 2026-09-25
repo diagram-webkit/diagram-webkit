@@ -18,6 +18,9 @@ Every key, with both presets written out. Source: `PRESETS` in `src/core/presets
   tooltips: true,           // data-help tooltips
   copySlide: true,          // "copy as slide" on the Share tab (reveal <section> snippet); shown only with ?debug
   feedback: "page",         // error/toast placement: "page" | "container" | false
+  resultLocate: "click",    // search results: "click" = click/tap/Enter centres the element at the current zoom
+                            //   (the entry glows on hover; the diagram stays put) | "hover" = hover and keyboard
+                            //   focus already show it
   input: {
     wheel: true,            // wheel / trackpad zoom
     drag: true,             // mouse drag pan
@@ -39,6 +42,7 @@ Every key, with both presets written out. Source: `PRESETS` in `src/core/presets
   tooltips: true,
   copySlide: false,
   feedback: "container",
+  resultLocate: "click",
   input: { wheel: false, drag: false, pinch: false, keyboard: false },
 }
 ```

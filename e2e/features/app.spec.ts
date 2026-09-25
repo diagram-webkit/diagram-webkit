@@ -240,11 +240,47 @@ test("F13 search, keyboard cursor, pinned section, hidden reason", async ({ page
   await expect(item).toHaveAttribute("aria-current", "true");
 });
 
-test("F14 result line and highlight", async ({ page }) => {
+const glow = (entry: ReturnType<Page["locator"]>) => entry.evaluate((element) => getComputedStyle(element, "::before").opacity);
+
+test("F14 results (resultLocate click): hover and focus light the entry, click shows the element", async ({ page }) => {
   await open(page, "?menu=true");
-  await page.locator(".filter-result-item", { has: page.getByText("Load balancer", { exact: true }) }).hover();
+  const entry = page.locator(".filter-result-item", { has: page.getByText("Load balancer", { exact: true }) });
+  const before = await transform(page);
+  await entry.hover();
+  await settle(page, 400);
+  expect(await transform(page)).toEqual(before);
+  await expect(page.locator(".filter-highlight-line-layer.active")).toHaveCount(0);
+  expect(await entry.evaluate((element) => getComputedStyle(element).cursor)).toBe("pointer");
+  await expect.poll(() => glow(entry)).toBe("1");
+  await page.mouse.move(5, 5);
+  await expect.poll(() => glow(entry)).toBe("0");
+  await entry.focus();
+  await settle(page, 400);
+  expect(await transform(page)).toEqual(before);
+  await entry.click();
   await expect(page.locator(".filter-highlight-line-layer.active")).toHaveCount(1);
   expect(await page.evaluate(() => document.querySelector('[data-slug="LoadBalancer"]')!.classList.contains("help-highlight"))).toBe(true);
+  // Centred at the same zoom.
+  const after = await transform(page);
+  expect(after).not.toEqual(before);
+  expect(after[0]).toBeCloseTo(before[0], 5);
+});
+
+test("F14 mobile: a tap on a result shows the element", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const page = await context.newPage();
+  await open(page, "?menu=true");
+  const before = await transform(page);
+  const entry = page.locator(".filter-result-item", { has: page.getByText("Load balancer", { exact: true }) });
+  expect(await glow(entry)).toBe("0");
+  await entry.tap();
+  await expect.poll(() => page.evaluate(() => document.querySelector(".dwk-root")!.classList.contains("filter-panel-open"))).toBe(false);
+  await settle(page, 600);
+  const after = await transform(page);
+  expect(after).not.toEqual(before);
+  expect(after[0]).toBeCloseTo(before[0], 5);
+  expect(await page.evaluate(() => document.querySelector('[data-slug="LoadBalancer"]')!.classList.contains("help-highlight"))).toBe(true);
+  await context.close();
 });
 
 test("F15 pins, rings, normalization; constraint is no longer read", async ({ page }) => {

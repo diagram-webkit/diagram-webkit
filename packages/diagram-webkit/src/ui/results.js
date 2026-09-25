@@ -15,6 +15,9 @@ export function createResults(ctx) {
   const model = ctx.model;
   const texts = ctx.texts;
   const list = ctx.el("filter-results");
+  // features.resultLocate: "click" (the entry glows on hover, the diagram
+  // stays put) or "hover" (hover and focus already show the element).
+  list.dataset.locate = ctx.features.resultLocate;
   const summaryElement = ctx.el("filter-result-count");
   let pinnedSectionCollapsed = false;
   let lastTouchLikeActivationAt = 0;
@@ -79,6 +82,8 @@ export function createResults(ctx) {
       // Activating with the keyboard keeps the panel open, so focus stays
       // somewhere the reader can carry on from.
       closePanel: isMobile && !fromKeyboard,
+      // Centre the element at the reader's zoom level; the pulse and line show it.
+      keepZoom: true,
       preserveFitAll: Boolean(s.fitAllMode),
       onComplete: () => sv.highlightLine.highlightTemporarily(record, isMobile ? null : item, 1000),
     });
@@ -214,7 +219,7 @@ export function createResults(ctx) {
     item.innerHTML = `<div class="filter-result-head"><strong>${escapeHTML(record.title || texts.resultFallbackTitle)}</strong></div><div class="filter-result-content">${record.bodyHtml || escapeHTML(texts.resultFallbackBody)}</div>${actionsHtml}`;
     item.setAttribute("aria-label", buildResultAriaLabel(record, { inactive, hiddenReason }));
     if (slug === keyboardCursorSlug) item.setAttribute("aria-current", "true");
-    if (!inactive && hasHoverCapability()) sv.highlightLine.bindResultHighlight(item, record, signal);
+    if (!inactive && ctx.features.resultLocate === "hover" && hasHoverCapability()) sv.highlightLine.bindResultHighlight(item, record, signal);
 
     const pinButton = item.querySelector('[data-role="pin"]');
     if (pinButton) {

@@ -1,7 +1,9 @@
 import { mountApp } from "diagram-webkit";
 import definition from "../../examples/direct--basic-diagram/definition.js";
 
-mountApp(document.body, definition).then(
+// ?locate=hover: features.resultLocate "hover" (default "click").
+const locate = new URLSearchParams(location.search).get("locate");
+mountApp(document.body, definition, locate ? { features: { resultLocate: locate } } : undefined).then(
   (instance) => {
     window.instance = instance;
     document.body.dataset.ready = "true";

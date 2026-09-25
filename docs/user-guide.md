@@ -59,7 +59,7 @@ Parts of the diagram can carry a short explanation. Hover over them (or tap on a
 
 The menu button (bottom right) opens a panel with everything for narrowing down what you see:
 
-- **Search** (`/` jumps to it) looks through all help text. Parts with matching help stay, the other parts with help are hidden. Click a result to jump to it.
+- **Search** (`/` jumps to it) looks through all help text. Parts with matching help stay, the other parts with help are hidden. Click or tap a result to see where it is in the diagram.
 - **Level** controls the amount of detail. Level 0 is the overview; each step up adds more. "max" shows everything.
 - **Tags** are the topics of the diagram, as a tree. Click a topic to hide it and everything under it in the tree. **Show all**, **Hide all** and **Invert** work on the whole tree, and the filter field finds a tag by name. **Reset** (shown once something is hidden or in focus) brings back every tag and ends the focus.
 - Hover a tag in the tree for **focus**: it zooms to that topic and highlights it, and stays lit while on. Focus on several at once. **Dim others** (in yellow, after Show all / Hide all / Invert) fades out everything else while something is in focus. Hiding a topic ends its focus.

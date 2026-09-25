@@ -20,6 +20,9 @@ export interface Features {
   input: InputFeatures;
   copySlide: boolean;
   feedback: "page" | "container" | false;
+  // How a search result shows where its element is: on click/tap/Enter, or
+  // already on hover and keyboard focus (which moves the camera).
+  resultLocate: "click" | "hover";
 }
 
 export type FeaturesOverride = Partial<Omit<Features, "input">> & { input?: Partial<InputFeatures> };
@@ -42,6 +45,7 @@ export const PRESETS: Readonly<Record<PresetName, Readonly<Features>>> = Object.
     input: Object.freeze({ wheel: true, drag: true, pinch: true, keyboard: true }),
     copySlide: true,
     feedback: "page",
+    resultLocate: "click",
   }),
   embed: Object.freeze({
     panel: false,
@@ -56,6 +60,7 @@ export const PRESETS: Readonly<Record<PresetName, Readonly<Features>>> = Object.
     input: Object.freeze({ wheel: false, drag: false, pinch: false, keyboard: false }),
     copySlide: false,
     feedback: "container",
+    resultLocate: "click",
   }),
 });
 
@@ -84,6 +89,8 @@ function checkOverride(spec: Record<string, unknown>, path: string): void {
       if (value !== "edit" && value !== "render" && value !== false) fail(`${path}.annotations`, 'expected "edit", "render" or false');
     } else if (key === "feedback") {
       if (value !== "page" && value !== "container" && value !== false) fail(`${path}.feedback`, 'expected "page", "container" or false');
+    } else if (key === "resultLocate") {
+      if (value !== "click" && value !== "hover") fail(`${path}.resultLocate`, 'expected "click" or "hover"');
     } else if (typeof value !== "boolean") {
       fail(`${path}.${key}`, "expected a boolean");
     }

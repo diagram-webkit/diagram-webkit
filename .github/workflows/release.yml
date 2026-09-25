@@ -1,12 +1,13 @@
 name: release
 
-# Publishes diagram-webkit when packages/diagram-webkit/package.json has a
-# version that is not on npm yet: CI first, then npm publish (trusted
-# publishing, no token) and a GitHub release with tag v<version>.
+# Publishes diagram-webkit by itself. On every push to main,
+# scripts/next-version.mjs checks whether the package changed since the
+# published version and picks the next one (patch; "[minor]"/"[major]" in a
+# commit message). Then: CI, the version committed back to main ([skip ci]),
+# npm publish (trusted publishing, no token) and a GitHub release v<version>.
 on:
   push:
     branches: [main]
-    paths: [packages/diagram-webkit/package.json]
   workflow_dispatch:
 
 concurrency:
@@ -17,21 +18,17 @@ jobs:
   version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.check.outputs.version }}
-      publish: ${{ steps.check.outputs.publish }}
+      version: ${{ steps.next.outputs.version }}
+      publish: ${{ steps.next.outputs.publish }}
     steps:
       - uses: actions/checkout@v5
-      - id: check
-        run: |
-          version=$(node -p "require('./packages/diagram-webkit/package.json').version")
-          published=$(npm view "diagram-webkit@$version" version 2>/dev/null || true)
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          if [ "$published" = "$version" ]; then
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::diagram-webkit@$version is already on npm; nothing to publish"
-          else
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-          fi
+        with:
+          fetch-depth: 0 # diff against the commit of the published version
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+      - id: next
+        run: node scripts/next-version.mjs >> "$GITHUB_OUTPUT"
 
   ci:
     needs: version
@@ -43,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write # tag and GitHub release
+      contents: write # version commit, tag and GitHub release
       id-token: write # npm trusted publishing and provenance
     env:
       VERSION: ${{ needs.version.outputs.version }}
@@ -55,8 +52,21 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org
       - run: npm ci
+      # Committed before publishing, so npm records this commit as gitHead and
+      # the next run diffs from here.
+      - name: Commit the version
+        run: |
+          npm version "$VERSION" -w diagram-webkit --no-git-tag-version --allow-same-version
+          if git diff --quiet; then
+            echo "package.json already has $VERSION"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -am "diagram-webkit $VERSION [skip ci]"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
       - run: npm run build
       - run: npm publish -w diagram-webkit --provenance --access public
-      - run: gh release create "v$VERSION" --target "$GITHUB_SHA" --title "v$VERSION" --generate-notes
+      - run: gh release create "v$VERSION" --target "$(git rev-parse HEAD)" --title "v$VERSION" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}

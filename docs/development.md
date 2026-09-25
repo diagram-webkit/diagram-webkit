@@ -18,7 +18,7 @@ examples/
   split--revealjs--on-basic-diagram/   same deck, importing diagram-webkit/reveal directly
   direct--standalone-app/              no definition: local mode, built as one offline index.html
 e2e/{embed,features,reveal}/           Playwright against the examples
-scripts/                               check-examples
+scripts/                               check-examples, next-version (release)
 ```
 
 ## Commands
@@ -73,11 +73,11 @@ npm run validate   # the checkout's CLI
 
 ## Release
 
-```sh
-npm version <x.y.z> -w diagram-webkit --no-git-tag-version   # package.json + package-lock.json
-git commit -am "diagram-webkit <x.y.z>" && git push
-```
+Automatic: push to `main`. `.github/workflows/release.yml` runs `scripts/next-version.mjs`, which releases when anything in the package (`packages/diagram-webkit` except `test/`, plus `README.md` and `LICENSE`) changed since the commit of the latest npm version (its `gitHead`). Then CI (`ci.yml` via `workflow_call`), the version committed back to `main` (`[skip ci]`), `npm publish` with trusted publishing (OIDC, no token; provenance) and the GitHub release `v<x.y.z>`.
 
-On `main`, `.github/workflows/release.yml` sees a version that is not on npm yet, runs CI (`ci.yml` via `workflow_call`), publishes with npm trusted publishing (OIDC, no token; provenance) and creates the GitHub release `v<x.y.z>`. Re-run by hand: Actions -> release -> Run workflow. `prepack` copies the root README and LICENSE into the package.
+- Version: next patch. `[minor]` or `[major]` in a commit message since the last release bumps that part; a higher version set by hand in `packages/diagram-webkit/package.json` wins.
+- `node scripts/next-version.mjs` shows what the next push would release.
+- Re-run: Actions -> release -> Run workflow.
+- `prepack` copies the root README and LICENSE into the package.
 
 `VERSION` comes from `package.json`; `requires` in definitions is checked against it.

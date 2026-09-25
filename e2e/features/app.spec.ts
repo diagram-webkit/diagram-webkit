@@ -7,6 +7,7 @@ import { settle } from "../helpers";
 // F1-F27 on examples/direct--basic-diagram, app preset.
 const EXAMPLE = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../examples/direct--basic-diagram");
 const NS = "basic-diagram";
+const ENGINE_VERSION: string = JSON.parse(fs.readFileSync(path.resolve(EXAMPLE, "../../packages/diagram-webkit/package.json"), "utf8")).version;
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -355,8 +356,9 @@ test("F22 footer", async ({ page }) => {
   await expect(page.locator(".dwk-help-panel-about")).toBeVisible();
   await expect(page.locator(".help-tab:not([hidden])")).toHaveText(["About", "Share", "URL parameters", "Controls"]);
   // The version moved from the footer into the dialog.
+  // The site's own version (footer.version in the example's definition).
   await expect(page.locator(".help-dialog-meta")).toContainText("Basic web service diagram v0.1.0");
-  await expect(page.locator(".help-dialog-meta")).toContainText("Built with diagram-webkit v0.1.0");
+  await expect(page.locator(".help-dialog-meta")).toContainText(`Built with diagram-webkit v${ENGINE_VERSION}`);
   // About: a header, the definition's text, then the facts it has.
   await expect(page.locator(".about-name")).toHaveText("Basic diagram");
   await expect(page.locator(".about-facts dt")).toHaveText(["Version", "Built with"]);

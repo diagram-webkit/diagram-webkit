@@ -266,6 +266,29 @@ test("F14 results (resultLocate click): hover and focus light the entry, click s
   expect(after[0]).toBeCloseTo(before[0], 5);
 });
 
+test("F14 result focus outline: keyboard only, no flash on a mouse press", async ({ page }) => {
+  await open(page, "?menu=true");
+  const entry = page.locator(".filter-result-item", { has: page.getByText("Load balancer", { exact: true }) });
+  const outline = (locator: ReturnType<Page["locator"]>) => locator.evaluate((element) => getComputedStyle(element).outlineStyle);
+  const box = (await entry.boundingBox())!;
+  await page.mouse.move(box.x + 40, box.y + 20);
+  await page.mouse.down();
+  expect(await page.evaluate(() => document.activeElement!.classList.contains("filter-result-item"))).toBe(true);
+  expect(await outline(entry)).toBe("none");
+  await page.mouse.up();
+  await settle(page, 600);
+  await page.locator(".dwk-filter-search-input").focus();
+  let focusedOutline = "";
+  for (let step = 0; step < 12 && !focusedOutline; step += 1) {
+    await page.keyboard.press("Tab");
+    focusedOutline = await page.evaluate(() => {
+      const active = document.activeElement!;
+      return active.classList.contains("filter-result-item") ? getComputedStyle(active).outlineStyle : "";
+    });
+  }
+  expect(focusedOutline).toBe("solid");
+});
+
 test("F14 mobile: a tap on a result shows the element", async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   const page = await context.newPage();

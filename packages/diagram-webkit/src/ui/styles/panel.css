@@ -565,7 +565,13 @@
   padding-right: 0;
 }
 
+/* Keyboard focus only: a mouse press focuses the entry for a moment before
+   the click hands it back, which would flash the outline. */
 :where(.dwk-root) .filter-result-item:focus {
+  outline: none;
+}
+
+:where(.dwk-root) .filter-result-item:focus-visible {
   outline: 2px solid #93c5fd;
   outline-offset: 1px;
 }

@@ -106,21 +106,27 @@ export function createHighlightLine(ctx) {
     lineAnimationFrame = 0;
   }
 
+  // Points are re-read every frame so the line keeps up with a pan or zoom
+  // while it grows.
   function animateLineToTarget(durationMs = 200) {
     stopLineAnimation();
-    const points = getConnectionPoints();
-    if (!points || !lineLayer) {
+    if (!getConnectionPoints() || !lineLayer) {
       if (lineLayer) lineLayer.classList.remove("active");
       return;
     }
-    lineLayer.setAttribute("viewBox", `0 0 ${points.viewportWidth} ${points.viewportHeight}`);
-    lineLayer.classList.add("active");
-    const { sourceX, sourceY, targetX, targetY } = points;
-    setLinePoints(sourceX, sourceY, sourceX, sourceY);
     const start = ctx.win.performance.now();
     const step = (now) => {
+      const points = getConnectionPoints();
+      if (!points) {
+        lineAnimationFrame = 0;
+        lineLayer.classList.remove("active");
+        return;
+      }
       const t = Math.min(1, (now - start) / durationMs);
+      const { sourceX, sourceY, targetX, targetY } = points;
+      lineLayer.setAttribute("viewBox", `0 0 ${points.viewportWidth} ${points.viewportHeight}`);
       setLinePoints(sourceX, sourceY, sourceX + (targetX - sourceX) * t, sourceY + (targetY - sourceY) * t);
+      lineLayer.classList.add("active");
       lineAnimationFrame = t < 1 ? ctx.timers.requestAnimationFrame(step) : 0;
     };
     lineAnimationFrame = ctx.timers.requestAnimationFrame(step);
@@ -152,7 +158,7 @@ export function createHighlightLine(ctx) {
   }
 
   function scheduleLineUpdate() {
-    if (!activeConnection || lineFrame) return;
+    if (!activeConnection || lineFrame || lineAnimationFrame) return;
     lineFrame = ctx.timers.requestAnimationFrame(updateLinePosition);
   }
 

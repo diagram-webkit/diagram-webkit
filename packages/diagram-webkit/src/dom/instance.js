@@ -340,6 +340,8 @@ export function createInstance(container, definitionOrNone, opts = {}) {
       if (immediate) sv.pinRings.reposition();
       else sv.pinRings.scheduleReposition();
       sv.highlight.reposition();
+      sv.pulse.reposition();
+      sv.highlightLine.refreshConnectionPosition();
     },
   };
   createUi(ctx);

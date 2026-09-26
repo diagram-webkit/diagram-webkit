@@ -143,6 +143,24 @@ test("F6 go-to centres and pulses", async ({ page }) => {
   expect(center.x).toBeLessThan(panel!.x);
 });
 
+test("F6 hovering an entry rings its element without moving the camera", async ({ page }) => {
+  await open(page, "?menu=true");
+  const transform = () => page.locator(".dwk-main-image").evaluate((el) => getComputedStyle(el).transform);
+  const before = await transform();
+  const entries = page.locator(".filter-result-item:not(.is-inactive)");
+  const count = await entries.count();
+  let ringed = false;
+  for (let index = 0; index < count && !ringed; index += 1) {
+    await entries.nth(index).hover();
+    ringed = (await page.locator(".mobile-go-to-indicator.dwk-pulse-hover").count()) === 1;
+  }
+  expect(ringed).toBe(true);
+  await settle(page, 300);
+  expect(await transform()).toBe(before);
+  await page.mouse.move(10, 450);
+  await expect(page.locator(".mobile-go-to-indicator")).toHaveCount(0);
+});
+
 test("F7 v= link, arming and single-pin centering", async ({ page }) => {
   await open(page, "?pins=Cache");
   await settle(page, 600);

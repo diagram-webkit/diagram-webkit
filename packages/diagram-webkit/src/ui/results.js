@@ -187,6 +187,16 @@ export function createResults(ctx) {
     return parts.join(" · ");
   }
 
+  // resultLocate "click": a ring on the element while the pointer rests on
+  // its entry; the camera stays put. A re-render aborts the signal without a
+  // mouseleave, so that drops the ring too.
+  function bindHoverRing(item, record, signal) {
+    const release = () => sv.pulse.release(record.element);
+    item.addEventListener("mouseenter", () => sv.pulse.hold(record.element), { signal });
+    item.addEventListener("mouseleave", release, { signal });
+    signal.addEventListener("abort", release);
+  }
+
   function createResultItem(record, signal, options = {}) {
     const inactive = Boolean(options.inactive);
     const hiddenReason = inactive ? formatHiddenReason(options) : "";
@@ -219,7 +229,10 @@ export function createResults(ctx) {
     item.innerHTML = `<div class="filter-result-head"><strong>${escapeHTML(record.title || texts.resultFallbackTitle)}</strong></div><div class="filter-result-content">${record.bodyHtml || escapeHTML(texts.resultFallbackBody)}</div>${actionsHtml}`;
     item.setAttribute("aria-label", buildResultAriaLabel(record, { inactive, hiddenReason }));
     if (slug === keyboardCursorSlug) item.setAttribute("aria-current", "true");
-    if (!inactive && ctx.features.resultLocate === "hover" && hasHoverCapability()) sv.highlightLine.bindResultHighlight(item, record, signal);
+    if (!inactive && hasHoverCapability()) {
+      if (ctx.features.resultLocate === "hover") sv.highlightLine.bindResultHighlight(item, record, signal);
+      else bindHoverRing(item, record, signal);
+    }
 
     const pinButton = item.querySelector('[data-role="pin"]');
     if (pinButton) {

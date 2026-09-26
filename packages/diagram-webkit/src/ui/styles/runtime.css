@@ -69,6 +69,15 @@ body:has(> .dwk-root.dwk-app) {
   animation: dwk-go-to-pulse 3s ease-out infinite;
 }
 
+:where(.dwk-root) .mobile-go-to-indicator.dwk-pulse-hover {
+  animation-duration: 1.6s;
+}
+
+:where(.dwk-root) .mobile-go-to-indicator.dwk-pulse-leaving {
+  animation: none;
+  transition: opacity 150ms ease-out;
+}
+
 .dwk-root.diagram-fit-all {
   background: #000;
 }

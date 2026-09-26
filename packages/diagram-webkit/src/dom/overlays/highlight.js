@@ -143,7 +143,6 @@ export function createHighlight(ctx) {
     current.forEach((element) => {
       if (!pulse.has(element)) pulse.pulseGoToElement(element, { persistent: true });
     });
-    pulse.repositionPersistent();
   }
 
   return { apply, reposition, reset, elements: () => current };

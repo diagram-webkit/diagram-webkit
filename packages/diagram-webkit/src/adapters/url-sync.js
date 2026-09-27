@@ -1,7 +1,7 @@
 // Writes the state to the address bar (feature urlSync), with the viewport
 // write debounced. Without urlSync the same search string is built on
 // demand for serialize("url") but never written.
-import { writeUrlSearch } from "../core/codec/url";
+import { toReadableSearch, writeUrlSearch } from "../core/codec/url";
 
 // Pan and zoom settle asynchronously, so the URL is rewritten once the
 // viewport stops moving instead of on every frame.
@@ -34,13 +34,19 @@ export function createUrlSync(ctx) {
     return ctx.win.location;
   }
 
+  function replaceSearch(search) {
+    const location = currentLocation();
+    ctx.win.history.replaceState(ctx.win.history.state, "", `${location.pathname}${search}${location.hash}`);
+  }
+
   function updateURLState() {
-    if (enabled && !ctx.destroyed) {
-      const location = currentLocation();
-      const search = buildSearch(location.search);
-      ctx.win.history.replaceState(ctx.win.history.state, "", `${location.pathname}${search}${location.hash}`);
-    }
+    if (enabled && !ctx.destroyed) replaceSearch(buildSearch(currentLocation().search));
     ctx.notifyStateChange();
+  }
+
+  // Parameters outside the state (tag-picker-mode): rewrite(search) -> search.
+  function rewriteSearch(rewrite) {
+    if (enabled && !ctx.destroyed) replaceSearch(rewrite(currentLocation().search));
   }
 
   function scheduleViewportUrlSync() {
@@ -63,9 +69,8 @@ export function createUrlSync(ctx) {
 
   // Absolute URL with readable commas.
   function toAbsoluteReadableUrl(url) {
-    const search = url.searchParams.toString().replace(/%2C/g, ",");
-    return `${url.origin}${url.pathname}${search ? `?${search}` : ""}${url.hash}`;
+    return `${url.origin}${url.pathname}${toReadableSearch(url.searchParams)}${url.hash}`;
   }
 
-  return { enabled, buildSearch, updateURLState, scheduleViewportUrlSync, armViewportUrlSync, toAbsoluteReadableUrl };
+  return { enabled, buildSearch, updateURLState, rewriteSearch, scheduleViewportUrlSync, armViewportUrlSync, toAbsoluteReadableUrl };
 }

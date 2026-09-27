@@ -3,10 +3,10 @@
 // description tooltips.
 import { escapeHTML } from "../core/html";
 import { formatText } from "../core/texts";
-import { getScale } from "../dom/context.js";
+import { FINE_POINTER_QUERY, getScale } from "../dom/context.js";
 import { createLevelSlider } from "./level-slider.js";
 
-const TAG_TREE_LAYOUT = "tree";
+export const TAG_TREE_LAYOUT = "tree";
 // Height budget for the default expansion. A row is one tag line; the
 // reserve is the space the result list must keep below the tree.
 export const TAG_TREE_ROW_HEIGHT_PX = 30;
@@ -96,6 +96,13 @@ export function createTagTree(ctx) {
 
   function createFocusButton(tag, signal) {
     return createRowAction("tag-focus-btn", texts.tagFocus, tag, () => sv.focus.toggle(tag), signal);
+  }
+
+  // Tag picker mode only (CSS hides it otherwise).
+  function createSelectButton(tag, signal) {
+    const button = createRowAction("tag-select-btn", texts.tagSelect, tag, () => sv.tagPicker.toggle(tag), signal);
+    sv.tagPicker.renderTreeButton(button);
+    return button;
   }
 
   // Every focus button, and "Dim others" (only with something in focus).
@@ -294,7 +301,7 @@ export function createTagTree(ctx) {
   // Wide containers only: on a phone the panel is the whole screen, so there
   // is no "beside the menu" to put this in.
   function canShowTagTooltip() {
-    return ctx.root.clientWidth > TAG_TOOLTIP_MIN_WIDTH_PX && ctx.win.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    return ctx.root.clientWidth > TAG_TOOLTIP_MIN_WIDTH_PX && ctx.win.matchMedia(FINE_POINTER_QUERY).matches;
   }
 
   // The box lives on the root, not in the tooltip layer: that layer sits
@@ -477,6 +484,7 @@ export function createTagTree(ctx) {
         toggle.classList.add("tag-tree-toggle");
         toggle.addEventListener("click", (event) => event.stopPropagation(), { signal });
         row.appendChild(toggle);
+        row.appendChild(createSelectButton(node.path, signal));
         row.appendChild(createFocusButton(node.path, signal));
       } else {
         const labelElement = ctx.doc.createElement("span");

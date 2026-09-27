@@ -194,7 +194,8 @@ export function createPanel(ctx) {
       if (!isMobileLayout()) {
         pendingFocusTimeout = ctx.timers.setTimeout(() => {
           pendingFocusTimeout = 0;
-          if (s.filterPanelOpen) searchInput.focus({ preventScroll: true });
+          // Tag picker mode: the digits pick topics, so no field takes them.
+          if (s.filterPanelOpen && !(sv.tagPicker && sv.tagPicker.isOn())) searchInput.focus({ preventScroll: true });
         }, SEARCH_FOCUS_DELAY_MS);
       }
     } else {

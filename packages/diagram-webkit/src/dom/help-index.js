@@ -99,7 +99,8 @@ export function createHelpIndex(ctx) {
   function bindTooltip(record, signal) {
     const { element: targetEl, tooltip } = record;
     const tooltipService = ctx.services.tooltip;
-    const hideDelay = ctx.config.ui.tooltipHideDelay;
+    const tagPicker = ctx.services.tagPicker;
+    const hideDelay = () => (tagPicker ? tagPicker.tooltipHideDelay() : ctx.config.ui.tooltipHideDelay);
     let hideTimeout = 0;
 
     targetEl.addEventListener(
@@ -107,6 +108,7 @@ export function createHelpIndex(ctx) {
       (event) => {
         if (s.editModeEnabled) return;
         ctx.timers.clearTimeout(hideTimeout);
+        if (tagPicker) tagPicker.beforeTooltipShow(tooltip);
         tooltipService.showForSvgElement(tooltip, targetEl, event);
         ctx.emit("elementactivate", { element: targetEl, slug: record.slug, id: ctx.cellId(targetEl) });
       },
@@ -115,7 +117,7 @@ export function createHelpIndex(ctx) {
     const scheduleHide = () => {
       hideTimeout = ctx.timers.setTimeout(() => {
         tooltip.style.display = "none";
-      }, hideDelay);
+      }, hideDelay());
     };
     targetEl.addEventListener("mouseleave", scheduleHide, { signal });
     targetEl.addEventListener(

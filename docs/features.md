@@ -7,7 +7,7 @@ Every key, with both presets written out. Source: `PRESETS` in `src/core/presets
 ```js
 // preset "app": full page
 {
-  panel: true,              // filter/search/tag-tree panel
+  panel: true,              // filter/search/tag-tree panel; the help dialog's Settings tab (tag picker mode)
   urlSync: true,            // read URL params on load, write them back (url.md)
   persistence: true,        // localStorage under definition.storage.namespace (default: id)
   shortcuts: true,          // "?" key and the help dialog's Controls tab, "/" focus search

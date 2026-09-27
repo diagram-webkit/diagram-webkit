@@ -292,6 +292,13 @@ body:has(> .dwk-root.dwk-app) {
   transition: opacity var(--dwk-fade, 0s) ease;
 }
 
+/* Copies keep draw.io's pointer-events="all" (an attribute on shapes, an
+   inline style on label divs, hence !important); the real cell below must
+   get the hover (overlays/highlight.js). */
+:where(.dwk-root) .dwk-highlight-layer * {
+  pointer-events: none !important;
+}
+
 /* Page load (lifecycle.js reveal()): only the loading box shows, and nothing
    animates, until the layout is final; then everything fades in at once. */
 .dwk-root.dwk-starting > :not(.dwk-loading, .dwk-help-dialog) {
@@ -464,4 +471,14 @@ body:has(> .dwk-root.dwk-app) {
     opacity: 0;
     transform: scale(1.8);
   }
+}
+
+/* Tag picker selection (dom/overlays/selection.js): the focus glow, in
+   magenta, on the cell itself. A focus copy above it glows yellow. */
+:where(.dwk-root) .dwk-main-image .dwk-selected:not(.dwk-highlighted) {
+  filter: drop-shadow(0 0 3px rgba(217, 70, 239, 0.95)) drop-shadow(0 0 8px rgba(217, 70, 239, 0.55));
+}
+
+.dwk-root.dwk-dim-others .dwk-main-image .dwk-selected:not(.dwk-highlight-target):not(.dwk-highlighted) {
+  filter: grayscale(0.6) drop-shadow(0 0 3px rgba(217, 70, 239, 0.95)) drop-shadow(0 0 8px rgba(217, 70, 239, 0.55));
 }

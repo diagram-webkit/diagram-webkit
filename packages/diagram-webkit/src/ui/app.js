@@ -7,10 +7,12 @@ import { createHelpDialog } from "./help-dialog.js";
 import { createKeys } from "./keys.js";
 import { createLayout } from "./layout.js";
 import { createLinkInfo } from "./link-info.js";
-import { aboutMarkup, annotationModalsMarkup, footerMarkup, HELP_TABS, helpDialogMarkup, panelMarkup } from "./markup.js";
+import { aboutMarkup, annotationModalsMarkup, footerMarkup, HELP_TABS, helpDialogMarkup, panelMarkup, tagPickerFinalMarkup } from "./markup.js";
 import { createPanel } from "./panel.js";
 import { createResults } from "./results.js";
+import { createSettings } from "./settings.js";
 import { createShortcuts } from "./shortcuts.js";
+import { createTagPicker } from "./tag-picker.js";
 import { createTagTree } from "./tag-tree.js";
 
 function append(root, html) {
@@ -46,10 +48,20 @@ export function createUi(ctx) {
         })
       : "";
   // The help dialog's tabs that apply here (help-dialog.js).
-  const wanted = { open: !ctx.s.source, about: Boolean(aboutHtml), links: features.linkInfo, url: features.linkInfo, shortcuts: features.shortcuts };
+  const wanted = {
+    open: !ctx.s.source,
+    about: Boolean(aboutHtml),
+    links: features.linkInfo,
+    url: features.linkInfo,
+    settings: features.panel,
+    shortcuts: features.shortcuts,
+  };
   const helpTabs = HELP_TABS.filter((tab) => wanted[tab]);
 
-  if (features.panel) append(ctx.root, panelMarkup(prefix, texts, { annotationsEditor: editor }));
+  if (features.panel) {
+    append(ctx.root, panelMarkup(prefix, texts, { annotationsEditor: editor }));
+    append(ctx.root, tagPickerFinalMarkup(prefix, texts, { links: features.urlSync }));
+  }
   if (features.footer) {
     append(ctx.root, footerMarkup(prefix, texts, content.footer, { help: helpTabs.length > 0, renderFooter: hooks.renderFooter }));
   }
@@ -62,11 +74,13 @@ export function createUi(ctx) {
     version: VERSION,
     site: !ctx.standalone && content.footer.version ? `${siteName()} ${content.footer.version}` : "",
   };
-  if (helpTabs.length > 0) append(ctx.root, helpDialogMarkup(prefix, texts, { tabs: helpTabs, aboutHtml, meta }));
+  const debug = { on: Boolean(ctx.s.debug), toggle: features.urlSync };
+  if (helpTabs.length > 0) append(ctx.root, helpDialogMarkup(prefix, texts, { tabs: helpTabs, aboutHtml, meta, debug }));
 
   if (features.panel) {
     sv.panel = createPanel(ctx);
     sv.tagTree = createTagTree(ctx);
+    sv.tagPicker = createTagPicker(ctx);
     sv.results = createResults(ctx);
     sv.panel.initialize();
     sv.theme.bindToggleButton(ctx.el("floating-theme-toggle"));
@@ -78,6 +92,7 @@ export function createUi(ctx) {
   if (helpTabs.length > 0) {
     sv.helpDialog = createHelpDialog(ctx);
     sv.helpDialog.initialize();
+    if (helpTabs.includes("settings")) createSettings(ctx);
   }
   if (features.linkInfo) sv.linkInfo = createLinkInfo(ctx);
   if (features.shortcuts || features.input.keyboard) {

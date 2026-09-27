@@ -880,3 +880,105 @@
   background: var(--help-surface);
   color: var(--help-muted);
 }
+
+/* Settings tab (settings.js). */
+:where(.dwk-root) .dwk-setting {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--help-line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+:where(.dwk-root) .dwk-setting input {
+  margin-top: 3px;
+}
+
+:where(.dwk-root) .dwk-setting-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+:where(.dwk-root) .dwk-setting-description {
+  color: var(--help-muted);
+  font-size: 13px;
+}
+
+:where(.dwk-root) .dwk-setting-debug {
+  align-items: center;
+  margin-top: 28px;
+  border-style: dashed;
+  cursor: default;
+}
+
+:where(.dwk-root) .dwk-setting-unavailable {
+  color: #b45309;
+  font-size: 13px;
+}
+
+/* Tag picker: the Make final dialog (tag-picker.js), above the panel like
+   the help dialog. */
+:where(.dwk-root) .dwk-tag-picker-final-modal {
+  z-index: 11500;
+}
+
+:where(.dwk-root) .tag-picker-final-content {
+  max-width: min(560px, 90cqw);
+  left: auto;
+  transform: none;
+}
+
+
+:where(.dwk-root) .tag-picker-final-intro {
+  margin: 0 0 16px;
+}
+
+:where(.dwk-root) .tag-picker-final-checks {
+  margin: 0;
+  padding-left: 20px;
+}
+
+:where(.dwk-root) .tag-picker-final-checks li + li {
+  margin-top: 6px;
+}
+
+:where(.dwk-root) .tag-picker-final-checks li.is-warning {
+  color: #b45309;
+}
+
+:where(.dwk-root) .tag-picker-final-undo {
+  margin: 16px 0 0;
+  padding: 8px 12px;
+  border-left: 3px solid #dc2626;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+:where(.dwk-root) .modal-actions.tag-picker-final-actions {
+  align-items: center;
+}
+
+:where(.dwk-root) .modal-actions .link-info-action {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+:where(.dwk-root) .tag-picker-final-spacer {
+  flex: 1;
+}
+
+:where(.dwk-root) .modal-actions .tag-picker-final-cancel {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+:where(.dwk-root) .modal-actions .tag-picker-final-apply {
+  background: #c026d3;
+  color: #ffffff;
+}

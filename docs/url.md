@@ -1,6 +1,6 @@
 # URL parameters
 
-Read on load and written back when `features.urlSync` is on (the `app` preset). Other parameters are left untouched. Commas are written unescaped.
+Read on load and written back when `features.urlSync` is on (the `app` preset). Other parameters are left untouched. Commas are written unescaped, and flags without `=` (`?debug`, not `?debug=`).
 
 | Param | Example | State |
 | --- | --- | --- |
@@ -16,7 +16,8 @@ Read on load and written back when `features.urlSync` is on (the `app` preset). 
 | `annotations` | `annotations=<base64 JSON>` | `annotations` (max `definition.annotations.max`) |
 | `menu` | `menu=true` | `ui.panelOpen` |
 | `tags` | `tags=open` | `ui.tagTreeExpanded` |
-| `debug` | `debug` | load `source.debug`, debug logs |
+| `debug` | `debug` | load `source.debug`, debug logs; set from Settings > Open in debug (reloads) |
+| `tag-picker-mode` | `tag-picker-mode` / `tag-picker-mode=Network.Ingress,Data` | not state: tag picker mode on (Settings), with the selected topics; Make final removes it. Unknown or non-tree tags are dropped with a warning; ignored (with a warning) without a mouse or trackpad |
 | `svg` | `#svg=https://example.org/k8s.svg`, `#svg=zZnr…` (or `?svg=`) | local mode only: a link to the SVG, or the SVG itself, deflate + base64url ([standalone.md](standalone.md)) |
 
 reveal.js decks: `?diagram-debug` shows the state overlay, and a copied page URL can be a slide as `data-diagram-state-url` ([reveal.md](reveal.md)).
@@ -31,6 +32,8 @@ reveal.js decks: `?diagram-debug` shows the state overlay, and a copied page URL
 /?highlight=tag:Data,mode:dim-others         # dim everything but the data layer
 /?menu=true&filter-query=tls&tags=open       # panel open with a search
 /?focus=Api.Rbac&focus-mode=dim-others       # zoom to RBAC, dim the rest
+/?tag-picker-mode&menu=true                  # design a view: tag picker on, nothing selected
+/?tag-picker-mode=Network,Data&filter-hide-tags=Observability  # selection framed, Observability hidden
 ```
 
 A `camera.focus` is written as the `v` on screen. `focus=` without `v` fits the focused topics on load; the app then writes their `v`.
@@ -44,4 +47,7 @@ urlToState("?v=fit&only-tags=Network", 10);
 stateToSearch({ version: 1, view: { level: 0 }, ui: {} }, { defaultLevel: 2 }); // "?filter-level=0"
 
 paramDocs(3); // [{ name, kind, values?, description }] (drives the link-info dialog)
+
+parseTagPickerParam("?tag-picker-mode=A,B");     // ["A", "B"]; bare: []; absent: null
+writeTagPickerParam("?v=fit", []);               // "?v=fit&tag-picker-mode"
 ```

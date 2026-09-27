@@ -24,21 +24,24 @@ diagram-webkit              engine: every piece of logic, UI and CSS (this repo)
 
 ```
 packages/diagram-webkit/
-  src/index.ts        mountDiagram, mountApp, defineDiagram, PRESETS, DEFAULT_TEXTS, VERSION
+  src/index.ts        mountDiagram, mountApp, standaloneDefinition, defineDiagram, PRESETS, DEFAULT_TEXTS, VERSION
+  src/types.ts        public instance types (DiagramInstance, MountOptions, DiagramEvents, ...)
   src/core/           pure TS, no DOM (lib ES2024): definition, presets, state, tags, help, html
-                      sanitizer, annotations, validate, texts, version, codec/{url,camera,slide,json,params}
-  src/dom/            instance runtime (JS, checkJs): instance, lifecycle, loader, camera*, input,
-                      filter, focus, pins, phases, help-index, overlays/*, annotations/*,
-                      local-source, embed-codec, svg-sanitize, standalone, error-box
-  src/ui/             app chrome (JS, checkJs): panel, tag-tree, level-slider, results, tooltip,
-                      theme, help-dialog, shortcuts, link-info, feedback, layout,
-                      annotation-editor/*, styles/*.css
+                      sanitizer, annotations, validate, texts, version, semver, tag-tree-markdown,
+                      codec/{url,camera,slide,json,params}
+  src/dom/            instance runtime (JS, checkJs): instance, context, lifecycle, loader, styles,
+                      camera*, input, filter, focus, pins, phases, help-index, tag-style,
+                      overlays/*, annotations/*, local-source, embed-codec, svg-sanitize,
+                      standalone, error-box
+  src/ui/             app chrome (JS, checkJs): mount-app, app, panel, tag-tree, tag-picker, level-slider,
+                      results, tooltip, theme, help-dialog, settings, keys, shortcuts, link-info,
+                      feedback, layout, markup, annotation-editor/*, styles/*.css
   src/adapters/       storage.js (localStorage), url-sync.js (history/location)
   src/reveal/         reveal.js plugin (TS): plugin, stage, slots, print, debug-overlay
   src/tools/          Node, shipped as source: cli.js, vite-plugin.js, load-definition, local-engine, page-template, tag-tree-markdown
   test/               vitest (node; happy-dom where a DOM is needed); golden/ = reference outputs
 examples/             independent projects (see Examples)
-e2e/                  Playwright: embed/, features/ (F1-F30 on the app), reveal/; pages/ = test pages
+e2e/                  Playwright: embed/, features/ (F1-F33 on the app), reveal/; pages/ = test pages
 scripts/              check-examples.mjs, next-version.mjs (release)
 docs/                 usage, definition, state, features, api, url, reveal, standalone, tools, development, user-guide
 ```
@@ -123,7 +126,7 @@ No path may point outside the repo. The only link to other checkouts is the othe
   - State goes in classes or attributes on the root, never on `body`. The theme is `data-theme` on the root.
   - The root has `contain: layout`, which keeps fixed overlays inside it.
   - Styles are adopted with `adoptedStyleSheets`, ref-counted per document. Definition CSS is `content.css`, a string.
-- Performance: animate `opacity` and `transform`, never `filter`, on cells. Filter animations cut frame rates by about 5x. Set `will-change` only while a tween runs, through `geometry.holdLayer(key)`, because leaving it on blurs a zoomed diagram. Outline highlights are drawn on copies in `svg.dwk-highlight-layer`, and pin rings are drawn in an SVG layer inside the transformed image.
+- Performance: animate `opacity` and `transform`, never `filter`, on cells. Filter animations cut frame rates by about 5x. Set `will-change` only while a tween runs, through `geometry.holdLayer(key)`, because leaving it on blurs a zoomed diagram. Outline highlights are drawn on copies in `svg.dwk-highlight-layer` (above the whole diagram); the tag picker's selection glow is a static class on the cells themselves (`dom/overlays/selection.js`), so they keep their stacking, and pin rings are drawn in an SVG layer inside the transformed image.
 - With the `fade` mount option (the Reveal default is 400), changes run in two phases through `dom/phases.js`: out first, then in. Without it, changes apply at once, as the app does.
 - There is no frontend framework. The runtime is imperative SVG/DOM. `core/` and `reveal/` are TS, while `dom/` and `ui/` are JS checked by `tsconfig.js.json`.
 - Errors must be visible:
@@ -148,15 +151,16 @@ Keep these stable. Changing any of them breaks links and embeds that already exi
   - A cell is hidden if its level is above the selected level, or if one of its topic tags is hidden. Hiding a parent hides the whole branch.
   - A tag in a group with `disableHelpIfHidden` also hides the cell's help.
   - A pin overrides tag and search filtering, but not a hide caused by level or by a group.
-- **URL parameters** (`core/codec/url.ts`, `docs/url.md`): `v`, `filter-level`, `filter-hide-tags`, `only-tags`, `filter-query`, `pins`, `highlight`, `focus`, `focus-mode`, `annotations`, `menu`, `tags`, `debug`, `svg`.
-  - Commas are written unescaped with `history.replaceState`.
+- **URL parameters** (`core/codec/url.ts`, `docs/url.md`): `v`, `filter-level`, `filter-hide-tags`, `only-tags`, `filter-query`, `pins`, `highlight`, `focus`, `focus-mode`, `annotations`, `menu`, `tags`, `debug`, `tag-picker-mode`, `svg`.
+  - Commas are written unescaped with `history.replaceState`, and flags without `=`.
+  - `tag-picker-mode` (Settings tab, `ui/tag-picker.js`) is not in `DiagramState`: bare = on, a list = the selection. Its actions change only tree-group topics, never levels or priorities.
   - `v` is written only after the user has moved the view, and is left out in the default view.
   - Unknown parameters are kept. The removed `constraint` and `runtime` parameters are treated as unknown.
   - `paramDocs()` feeds the URL tab. Add every new parameter there, with its `group`.
 - **Storage keys:** `${storage.namespace}-theme` and `${storage.namespace}-about`. The namespace defaults to `id`; changing a diagram's `id` or namespace resets its readers' saved theme.
 - **State** (`docs/state.md`): `DiagramState` has `version: 1`. `null` removes a key in deltas. The merge rules for `extend` are: objects merge deep, arrays and functions replace, `views` merge per key, and `null` removes. `definition.test.ts` covers these rules.
 - **Slides:** `serialize("slide", { base })` and the `url-to-slide` CLI produce a `<section>` that holds only what differs from `base`. Round trips must be exact: `resolve(serialize(s, b), b) == s`, and url -> state -> slide -> state.
-- **Camera constants** (for example `COVER_ZOOM`, `maxZoom` 4, `FIT_ALL_INSET` 20, `OVERHANG_*`, `RESTORE_PADDING`, `PAN_STEP` 0.15/0.5) are named constants in `dom/camera-geometry.js`, `dom/camera-url.js` and `ui/shortcuts.js`. Read the design notes on the pan clamp in `dom/camera-geometry.js` before changing the clamp.
+- **Camera constants** are named: `COVER_ZOOM` (`dom/camera.js`), `FIT_ALL_INSET` 20 and `OVERHANG_*` (`dom/camera-geometry.js`), `RESTORE_PADDING` (`dom/camera-url.js`), `PAN_STEP`/`PAN_STEP_LARGE` 0.15/0.5 (`ui/shortcuts.js`). The default `maxZoom` 4 is `DEFAULT_CAMERA` in `dom/instance.js`, overridable with `camera.maxZoom`. Read the design notes on the pan clamp in `dom/camera-geometry.js` before changing the clamp.
 - **UI texts:** `DEFAULT_TEXTS` in `core/texts.ts`. Definitions override them through `content.texts`, and an unknown key throws.
 
 ## Reference behaviour
@@ -170,7 +174,7 @@ Keep these stable. Changing any of them breaks links and embeds that already exi
 
 ## Presets and features
 
-`core/presets.ts` defines two presets: `app` (full page: panel, URL sync, persistence, shortcuts, about, footer, link info, `annotations: "edit"`, all input) and `embed` (nothing but tooltips and `annotations: "render"`, no input). `docs/features.md` lists every key and the six places where features can be overridden.
+`core/presets.ts` defines two presets: `app` (full page: panel, URL sync, persistence, shortcuts, about, footer, link info, copy as slide, `annotations: "edit"`, `feedback: "page"`, all input incl. keyboard) and `embed` (tooltips, `annotations: "render"`, `feedback: "container"`, no input). Both have `resultLocate: "click"` (`"hover"` locates on hover/focus). `docs/features.md` lists every key and the six places where features can be overridden.
 
 - Only `input.wheel`, `input.drag` and `input.pinch` can change after mount, through `setInput` or per-slide `data-diagram-features`. Any other key throws.
 
@@ -189,7 +193,7 @@ Keep these stable. Changing any of them breaks links and embeds that already exi
 - The reader opens a file, drops one, pastes a link, or uses `#svg=`: a link, or the SVG itself as raw-deflate + base64url.
 - Every SVG in local mode is untrusted. `dom/svg-sanitize.js` removes scripts, handlers, `javascript:`, external references and CSS `url()`/`@import`.
 - Nothing is sent anywhere except to a link the reader asks for, which is fetched with `credentials: omit` and `no-referrer`.
-- Size limits: warnings at 32k and 100k, and refusal above 2 MiB.
+- `#svg=` link length (`EMBED_*` in `dom/embed-codec.js`): warnings at 32k and 100k chars, refusal above 2 MiB.
 - `dom/standalone.js` holds the built-in definition. `PROJECT_URL` and `USER_GUIDE_URL` are in `core/version.ts`.
 
 ## Examples (`examples/`)

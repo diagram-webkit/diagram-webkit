@@ -274,3 +274,53 @@
 .dwk-root.mobile-tooltip-open .pin-indicator {
   opacity: 0 !important;
 }
+
+/* Tag picker mode (tag-picker.js): a line of topics to select, at the
+   bottom of a part's tooltip. */
+.dwk-root:not(.dwk-tag-picker-mode) .tooltip-picker {
+  display: none;
+}
+
+:where(.dwk-root) .tooltip-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(217, 70, 239, 0.6);
+  white-space: normal;
+}
+
+:where(.dwk-root) .tooltip-picker-label {
+  margin-right: 2px;
+  color: #f0abfc;
+  font-size: 11px;
+}
+
+:where(.dwk-root) .tooltip-picker-tag {
+  padding: 3px 8px;
+  border: 1px solid rgba(217, 70, 239, 0.55);
+  border-radius: 999px;
+  background: none;
+  color: #f5d0fe;
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+:where(.dwk-root) .tooltip-picker-tag:hover {
+  border-color: #d946ef;
+}
+
+:where(.dwk-root) .tooltip-picker-tag.active {
+  border-color: #d946ef;
+  background: #c026d3;
+  color: #ffffff;
+}
+
+:where(.dwk-root) .dwk-picker-tooltip .tooltip-picker {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}

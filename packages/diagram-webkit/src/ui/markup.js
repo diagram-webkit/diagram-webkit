@@ -36,7 +36,7 @@ export function panelMarkup(prefix, t, { annotationsEditor }) {
       <small ${named(prefix, "filter-result-count")}>${escapeHTML(t.resultCountInitial)}</small>
     </div>
     <hr class="filter-divider" />
-    <div class="filter-section"><div ${named(prefix, "filter-tag-controls", "tag-control-group")}></div></div>
+    <div class="filter-section"><div ${named(prefix, "tag-picker-bar", "tag-picker-bar")} hidden></div><div ${named(prefix, "filter-tag-controls", "tag-control-group")}></div></div>
     <hr class="filter-divider" />
     <div class="filter-section"><div ${named(prefix, "filter-results", "filter-results")}></div></div>
   </div>
@@ -83,7 +83,7 @@ function modal(prefix, name, closeName, title, body, contentClass = "") {
 
 // The one help dialog: a tab per topic, only the ones that apply.
 // tabs: ordered subset of HELP_TABS.
-export const HELP_TABS = Object.freeze(["open", "about", "links", "url", "shortcuts"]);
+export const HELP_TABS = Object.freeze(["open", "about", "links", "url", "shortcuts", "settings"]);
 
 // The About tab: name and description, the definition's own text, then the
 // facts that apply.
@@ -105,9 +105,19 @@ export function aboutMarkup(t, about) {
   return `${header}<div class="about-text">${about.html}</div>${factList}`;
 }
 
+// The Settings tab. debug: { on, toggle } - toggle: a reload can change it.
+function settingsMarkup(t, debug) {
+  const setting = (name, title, description) =>
+    `<label class="dwk-setting"><input type="checkbox" data-setting="${name}" /><span class="dwk-setting-text"><strong>${escapeHTML(title)}</strong><span class="dwk-setting-description">${escapeHTML(description)}</span></span></label>`;
+  const debugLine = debug.toggle
+    ? `<div class="dwk-setting dwk-setting-debug"><span class="dwk-setting-text"><strong>${escapeHTML(t.debugSettingTitle)}</strong><span class="dwk-setting-description">${escapeHTML(t.debugSettingDescription)}</span></span><button type="button" class="link-info-action" data-role="debug-toggle">${escapeHTML(debug.on ? t.debugLeave : t.debugOpen)}</button></div>`
+    : "";
+  return `<p class="help-intro">${escapeHTML(t.settingsIntro)}</p><section class="help-section">${setting("tag-picker", t.tagPickerSetting, t.tagPickerSettingDescription)}</section>${debugLine}`;
+}
+
 // meta: { site: "Name v1.2" | "", standalone: boolean, version: "0.1.0" }
-export function helpDialogMarkup(prefix, t, { tabs, aboutHtml, meta }) {
-  const labels = { open: t.helpTabOpen, about: t.helpTabAbout, links: t.helpTabLinks, url: t.helpTabUrl, shortcuts: t.helpTabShortcuts };
+export function helpDialogMarkup(prefix, t, { tabs, aboutHtml, meta, debug }) {
+  const labels = { open: t.helpTabOpen, about: t.helpTabAbout, links: t.helpTabLinks, url: t.helpTabUrl, settings: t.helpTabSettings, shortcuts: t.helpTabShortcuts };
   const tabId = (tab) => `${prefix}-help-tab-${tab}`;
   const panelId = (tab) => `${prefix}-help-panel-${tab}`;
   const row = (keys, text) => `<tr><th scope="row">${keys}</th><td>${text}</td></tr>`;
@@ -117,6 +127,7 @@ export function helpDialogMarkup(prefix, t, { tabs, aboutHtml, meta }) {
     about: aboutHtml || "",
     links: `<p class="help-intro">${escapeHTML(t.helpLinksIntro)}</p><section class="help-section"><h4 class="help-section-title">${escapeHTML(t.shareViewTitle)}</h4><div ${named(prefix, "link-info-variants")}></div></section><div ${named(prefix, "link-info-embed")}></div><div ${named(prefix, "link-info-slide")}></div>`,
     url: `<p class="help-intro">${escapeHTML(t.helpUrlIntro)}</p><div ${named(prefix, "link-info-params")}></div>`,
+    settings: tabs.includes("settings") ? settingsMarkup(t, debug) : "",
     // Pointer and touch for everyone; the keys only where there is a keyboard (CSS).
     shortcuts: `<h4 class="help-subtitle">${escapeHTML(t.controlsPointer)}</h4>
   <table class="shortcut-table"><tbody>
@@ -134,6 +145,8 @@ export function helpDialogMarkup(prefix, t, { tabs, aboutHtml, meta }) {
     ${row("<kbd>0</kbd>", escapeHTML(t.shortcutFit))}
     ${row("<kbd>?</kbd>", escapeHTML(t.shortcutHelp))}
     ${row("<kbd>&larr;</kbd> <kbd>&rarr;</kbd>", escapeHTML(t.shortcutTabs))}
+    ${row("<kbd>1</kbd>&ndash;<kbd>9</kbd>", escapeHTML(t.shortcutPickTag))}
+    ${row("<kbd>Ctrl</kbd>/<kbd>&#8984;</kbd> + <kbd>Z</kbd>, + <kbd>Shift</kbd> + <kbd>Z</kbd>", escapeHTML(t.shortcutPickUndo))}
     ${row("<kbd>Esc</kbd>", escapeHTML(t.shortcutClose))}
   </tbody></table></div>`,
   };
@@ -161,6 +174,24 @@ export function helpDialogMarkup(prefix, t, { tabs, aboutHtml, meta }) {
     <div ${named(prefix, "help-meta", "help-dialog-meta")}>${metaParts.join('<span class="help-meta-sep" aria-hidden="true">·</span>')}</div>
   </div>
 </div>`;
+}
+
+// Tag picker mode's Make final: a summary (tag-picker.js fills it), then
+// the links and Apply. links: the address can be copied (urlSync).
+export function tagPickerFinalMarkup(prefix, t, { links }) {
+  const button = (name, className, text, title = "") =>
+    `<button type="button" ${named(prefix, name, className)}${title ? ` title="${escapeHTML(title)}"` : ""}>${escapeHTML(text)}</button>`;
+  const copies = links
+    ? button("tag-picker-copy-backup", "link-info-action", t.finalCopyBackup, t.finalCopyBackupTitle) +
+      button("tag-picker-copy-final", "link-info-action", t.finalCopyFinal, t.finalCopyFinalTitle)
+    : "";
+  const body = `<div ${named(prefix, "tag-picker-final-body", "tag-picker-final-body")}></div>
+<div class="modal-actions tag-picker-final-actions">
+  ${copies}<span class="tag-picker-final-spacer"></span>
+  ${button("tag-picker-final-cancel", "tag-picker-final-cancel", t.cancel)}
+  ${button("tag-picker-final-apply", "tag-picker-final-apply", t.finalApply)}
+</div>`;
+  return modal(prefix, "tag-picker-final-modal", "close-tag-picker-final", t.finalDialogTitle, body, "tag-picker-final-content");
 }
 
 export function annotationModalsMarkup(prefix, t, max, allowedTags) {

@@ -62,6 +62,7 @@ One dialog with tabs, opened by the footer "?" (bottom left; first tab) or the `
 | Share | `features.linkInfo` | Link to this view (the variants), The diagram (how it travels, Download SVG; local mode), For presentations (Copy as slide, `?debug`) |
 | URL parameters | `features.linkInfo` | the parameters in this address, grouped (`PARAM_GROUPS`), then all parameters (collapsed) |
 | Controls | `features.shortcuts` | mouse and touch; the keys (hidden on touch-only devices) |
+| Settings | `features.panel` | tag picker mode (`?tag-picker-mode`, [user-guide.md](user-guide.md#tag-picker-mode); mouse or trackpad only); with `features.urlSync`, Open in debug / Leave debug (reloads with or without `?debug`) |
 
 The page footer is one line, `GitHub (issues) ⭐ ?` (the definition's `content.footer.links`, then the dialog button). The dialog's bottom bar has the versions: `<diagram label> <content.footer.version> · Built with diagram-webkit vX · User guide` (standalone: `diagram-webkit vX · User guide · GitHub`). The page footer no longer shows a version.
 

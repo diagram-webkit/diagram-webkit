@@ -3,6 +3,7 @@
 import { escapeHTML } from "../core/html";
 import { getFilterResultSummary, helpMatchesSearch } from "../core/help";
 import { formatText } from "../core/texts";
+import { FINE_POINTER_QUERY } from "../dom/context.js";
 import { applySeverityStyleToElement } from "../dom/tag-style.js";
 
 const TOUCH_TAP_MOVE_THRESHOLD_PX = 14;
@@ -51,7 +52,7 @@ export function createResults(ctx) {
   }
 
   const isCompactMobileMode = () => ctx.root.clientWidth <= MOBILE_MAX_WIDTH;
-  const hasHoverCapability = () => ctx.win.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const hasHoverCapability = () => ctx.win.matchMedia(FINE_POINTER_QUERY).matches;
   const isInactive = (item) => !item || item.classList.contains("is-inactive") || item.getAttribute("aria-disabled") === "true";
 
   function itemFromTarget(target) {

@@ -1,7 +1,7 @@
 // Anchors, fit-all, cover promotion, focus,
 // centering and go-to. Client-pixel deltas are divided by the ancestor scale
 // before they are added to the translate (layout px).
-import { getScale, isRectValid } from "./context.js";
+import { FINE_POINTER_QUERY, getScale, isRectValid } from "./context.js";
 
 export const COVER_ZOOM = 1;
 export const FOCUS_MIN_ZOOM = 2;
@@ -360,7 +360,7 @@ export function createCamera(ctx) {
     const element = record && record.element;
     if (!element || typeof element.getBoundingClientRect !== "function") return done();
 
-    const hasDesktopHover = ctx.win.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const hasDesktopHover = ctx.win.matchMedia(FINE_POINTER_QUERY).matches;
     if (ctx.services.tooltip.isMobileDevice() && !hasDesktopHover) return done();
 
     stopHoverPanAnimation();

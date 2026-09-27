@@ -146,10 +146,25 @@ export interface UrlWriteInput {
 }
 
 // Commas are legal in a query string but URLSearchParams escapes them anyway.
-// Shared links are read by people, so put them back.
+// Shared links are read by people, so put them back, and write flags
+// (`debug`, a bare `tag-picker-mode`) without a trailing "=".
 export function toReadableSearch(params: URLSearchParams): string {
-  const search = params.toString().replace(/%2C/g, ",");
+  const search = params.toString().replace(/%2C/g, ",").replace(/=(?=&|$)/g, "");
   return search ? `?${search}` : "";
+}
+
+// tag-picker-mode: null when off, else the selected tags (possibly none).
+// Not part of DiagramState: an authoring tool that never goes into a slide.
+export function parseTagPickerParam(search: string): string[] | null {
+  const params = new URLSearchParams(search);
+  return params.has(PARAMS.tagPickerMode) ? splitList(params.get(PARAMS.tagPickerMode)) : null;
+}
+
+export function writeTagPickerParam(search: string, selected: readonly string[] | null): string {
+  const params = new URLSearchParams(search);
+  if (selected === null) params.delete(PARAMS.tagPickerMode);
+  else params.set(PARAMS.tagPickerMode, selected.join(","));
+  return toReadableSearch(params);
 }
 
 export interface StateToSearchOptions {

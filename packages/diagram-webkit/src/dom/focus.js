@@ -34,6 +34,7 @@ export function createFocus(ctx) {
   function changed({ moveCamera }) {
     sv.highlight.apply();
     if (sv.tagTree) sv.tagTree.refresh();
+    if (sv.tagPicker) sv.tagPicker.refresh();
     sv.urlSync.updateURLState();
     // v= is what is on screen, so write it again once the camera has arrived.
     if (moveCamera && tags().length > 0) {
@@ -47,6 +48,13 @@ export function createFocus(ctx) {
     changed({ moveCamera: true });
   }
 
+  // Replaces the focused tags, leaving the camera where it is (tag picker).
+  // Ones that cannot be in focus are left out.
+  function setTags(next) {
+    store(next.filter((tag) => has(tag) || isFocusable(tag)), mode());
+    changed({ moveCamera: false });
+  }
+
   function setMode(next) {
     if (!s.focus) return;
     store(tags(), next);
@@ -58,5 +66,5 @@ export function createFocus(ctx) {
     changed({ moveCamera: false });
   }
 
-  return { tags, mode, has, isFocusable, prune, toggle, setMode, clear };
+  return { tags, mode, has, isFocusable, prune, toggle, setTags, setMode, clear };
 }

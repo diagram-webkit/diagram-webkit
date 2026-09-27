@@ -4,7 +4,7 @@ import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { settle } from "../helpers";
 
-// F1-F27 on examples/direct--basic-diagram, app preset.
+// F1-F33 on examples/direct--basic-diagram, app preset.
 const EXAMPLE = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../examples/direct--basic-diagram");
 const NS = "basic-diagram";
 const ENGINE_VERSION: string = JSON.parse(fs.readFileSync(path.resolve(EXAMPLE, "../../packages/diagram-webkit/package.json"), "utf8")).version;
@@ -431,7 +431,7 @@ test("F22 footer", async ({ page }) => {
   // The footer "?" opens the help dialog on its first tab, About here.
   await page.locator(".dwk-help-toggle").click();
   await expect(page.locator(".dwk-help-panel-about")).toBeVisible();
-  await expect(page.locator(".help-tab:not([hidden])")).toHaveText(["About", "Share", "URL parameters", "Controls"]);
+  await expect(page.locator(".help-tab:not([hidden])")).toHaveText(["About", "Share", "URL parameters", "Controls", "Settings"]);
   // The version moved from the footer into the dialog.
   // The site's own version (footer.version in the example's definition).
   await expect(page.locator(".help-dialog-meta")).toContainText("Basic web service diagram v0.1.0");
@@ -543,4 +543,263 @@ test("F29 focus from the URL fits the camera and writes v", async ({ page }) => 
     return diagram.serialize("url");
   });
   expect(new URLSearchParams(written).get("v")).toBe(new URLSearchParams(viaApi).get("v"));
+});
+
+test("F30 tag picker mode: settings, select, glow, show/hide/focus, make final", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  // The menu opens later: in the dock it covers the parts hovered here.
+  await open(page, "?tags=open");
+  const root = page.locator(".dwk-root");
+  const bar = page.locator(".dwk-tag-picker-bar");
+  // The diagram itself (focus copies keep the class they were copied with; no glow there).
+  const glow = page.locator(".dwk-main-image > svg:first-child .dwk-selected:visible");
+  const hidden = async () => (new URLSearchParams(await search(page)).get("filter-hide-tags") || "").split(",").filter(Boolean).sort();
+  await expect(bar).toBeHidden();
+  await expect(page.locator(".tag-select-btn").first()).toBeHidden();
+
+  await page.locator(".dwk-help-toggle").click();
+  await expect(page.locator(".help-tab:not([hidden])").last()).toHaveText("Settings");
+  await page.locator('.help-tab[data-tab="settings"]').click();
+  await expect(page.locator(".dwk-setting-debug")).toContainText("Open in debug");
+  await page.locator('[data-setting="tag-picker"]').check();
+  expect(await search(page)).toMatch(/[?&]tag-picker-mode(&|$)/);
+  await expect(root).toHaveClass(/dwk-tag-picker-mode/);
+  await page.locator(".dwk-close-help-dialog").click();
+
+  // A part's tooltip lists its topics, numbered; priorities and levels are not there.
+  await page.locator("#cell-m-lb ellipse, #cell-m-lb rect").first().hover({ force: true });
+  const line = page.locator(".svg-property-tooltip .tooltip-picker:visible");
+  await expect(line.locator("[data-picker-tag]")).toHaveText(["Network [1]", "Network.Ingress [2]"]);
+  await page.keyboard.press("2");
+  await settle(page);
+  expect(new URLSearchParams(await search(page)).get("tag-picker-mode")).toBe("Network.Ingress");
+  await expect(line.locator('[data-picker-tag="Network.Ingress"]')).toHaveClass(/active/);
+  expect(await glow.count()).toBeGreaterThan(0);
+  expect(await page.locator(".dwk-highlight-target").count()).toBe(0);
+  await line.locator('[data-picker-tag="Network"]').click();
+  await line.locator('[data-picker-tag="Network"]').click();
+  // The glow copies on top do not take the hover from the part below.
+  await page.mouse.move(5, 5);
+  await expect(line).toHaveCount(0);
+  await page.locator("#cell-m-lb ellipse, #cell-m-lb rect").first().hover({ force: true });
+  await expect(line).toHaveCount(1);
+  expect(new URLSearchParams(await search(page)).get("tag-picker-mode")).toBe("Network.Ingress");
+
+  // Hovering another part replaces the tooltip at once; parts without help
+  // text get one with only the topics.
+  await page.locator("#cell-logs rect").first().hover({ force: true });
+  await expect(page.locator(".dwk-picker-tooltip [data-picker-tag]")).toHaveText(["Observability [1]"]);
+  await expect(page.locator(".svg-property-tooltip:not(.dwk-picker-tooltip):visible")).toHaveCount(0);
+  await page.mouse.move(5, 5);
+
+  await page.locator(".dwk-floating-filter-toggle").click();
+  await settle(page, 400);
+  await expect(bar).toBeVisible();
+
+  const dataRow = page.locator(".tag-tree-row", { has: page.locator('.tag-filter-btn[data-tag="Data"]') });
+  await dataRow.hover();
+  await dataRow.locator(".tag-select-btn").click();
+  await settle(page);
+  expect(new URLSearchParams(await search(page)).get("tag-picker-mode")).toBe("Network.Ingress,Data");
+  await expect(bar.locator(".tag-picker-selection .tooltip-picker-tag")).toHaveText(["Network.Ingress", "Data"]);
+
+  // Opening the menu left search without the cursor; a field that has it
+  // gives it up when a tooltip opens, so the digits pick.
+  const searchField = page.locator(".dwk-filter-search-input");
+  await expect(searchField).not.toBeFocused();
+  await searchField.focus();
+  await page.locator("#cell-m-cache ellipse, #cell-m-cache rect").first().hover({ force: true });
+  await expect(searchField).not.toBeFocused();
+  await page.keyboard.press("2");
+  await settle(page);
+  expect(new URLSearchParams(await search(page)).get("tag-picker-mode")).toBe("Network.Ingress,Data,Data.Cache");
+  await expect(searchField).toHaveValue("");
+  await page.keyboard.press("2");
+  await settle(page);
+  expect(new URLSearchParams(await search(page)).get("tag-picker-mode")).toBe("Network.Ingress,Data");
+  await page.mouse.move(5, 5);
+
+  await bar.getByRole("button", { name: "Hide others" }).click();
+  await settle(page, 300);
+  expect(await hidden()).toEqual(["Observability"]);
+  expect(await visible(page, "#cell-m-db")).toBe(true);
+  expect(await visible(page, "#cell-cache")).toBe(true);
+
+  await bar.getByRole("button", { name: "Hide selected", exact: true }).click();
+  await settle(page, 300);
+  expect(await hidden()).toEqual(["Data", "Network.Ingress", "Observability"]);
+  expect(await visible(page, "#cell-db")).toBe(false);
+  expect(await glow.count()).toBe(0);
+
+  await bar.getByRole("button", { name: "Show selected", exact: true }).click();
+  await settle(page, 300);
+  expect(await hidden()).toEqual(["Observability"]);
+
+  // Focus toggles the focus and leaves the camera alone.
+  const focus = bar.locator(".tag-picker-focus");
+  const before = await transform(page);
+  await expect(focus).toHaveText("Focus selected");
+  await focus.click();
+  await settle(page, 800);
+  expect((await state(page)).view.focus).toEqual({ tags: ["Network.Ingress", "Data"] });
+  expect(await transform(page)).toEqual(before);
+  await expect(focus).toHaveText("Unfocus selected");
+  await focus.click();
+  await settle(page, 300);
+  expect((await state(page)).view).not.toHaveProperty("focus");
+  await focus.click();
+  await settle(page, 300);
+
+  // Make final: a summary with checks first; Cancel changes nothing.
+  const dialog = page.locator(".dwk-tag-picker-final-modal");
+  await bar.getByRole("button", { name: "Make final" }).click();
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator(".tag-picker-final-facts")).toContainText("Topics shown4 of 5");
+  await expect(dialog.locator(".tag-picker-final-facts")).toContainText("HiddenObservability");
+  await expect(dialog.locator(".tag-picker-final-checks")).toContainText("Every selected topic is in focus or hidden.");
+  await expect(dialog).toContainText("cannot be undone");
+  await dialog.locator(".dwk-tag-picker-copy-backup").click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("tag-picker-mode=Network.Ingress,Data");
+  await dialog.locator(".dwk-tag-picker-copy-final").click();
+  const finalLink = await page.evaluate(() => navigator.clipboard.readText());
+  expect(finalLink).not.toContain("tag-picker-mode");
+  expect(finalLink).toContain("focus=Network.Ingress,Data");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(page.locator(".dwk-filter-panel")).toHaveAttribute("aria-hidden", "false");
+  expect(await search(page)).toContain("tag-picker-mode");
+
+  // An idle selection is pointed out.
+  await dataRow.locator("button.tag-tree-caret").click();
+  const cacheRow = page.locator(".tag-tree-row", { has: page.locator('.tag-filter-btn[data-tag="Data.Cache"]') });
+  await cacheRow.hover();
+  await cacheRow.locator(".tag-select-btn").click();
+  await bar.getByRole("button", { name: "Make final" }).click();
+  await expect(dialog.locator(".tag-picker-final-checks .is-warning")).toContainText("neither in focus nor hidden: Data.Cache");
+
+  await dialog.getByRole("button", { name: "Apply" }).click();
+  await settle(page, 300);
+  const final = await search(page);
+  expect(final).not.toContain("tag-picker-mode");
+  expect(final).toContain("focus=Network.Ingress,Data");
+  expect(await hidden()).toEqual(["Observability"]);
+  await expect(root).not.toHaveClass(/dwk-tag-picker-mode/);
+  await expect(bar).toBeHidden();
+  expect(await glow.count()).toBe(0);
+  await page.locator(".dwk-help-toggle").click();
+  await page.locator('.help-tab[data-tab="settings"]').click();
+  await expect(page.locator('[data-setting="tag-picker"]')).not.toBeChecked();
+});
+
+test("F31 tag picker mode from the URL; debug from Settings; not on touch screens", async ({ page, browser }) => {
+  const warnings: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "warning") warnings.push(message.text());
+  });
+  await open(page, "?tag-picker-mode=Data,pri-1,Bogus");
+  expect(new URLSearchParams(await search(page)).get("tag-picker-mode")).toBe("Data");
+  expect(warnings.some((text) => text.includes("pri-1, Bogus"))).toBe(true);
+  expect(await page.locator(".dwk-main-image .dwk-selected").count()).toBeGreaterThan(0);
+  expect((await state(page)).view).not.toHaveProperty("focus");
+
+  await page.locator(".dwk-help-toggle").click();
+  await page.locator('.help-tab[data-tab="settings"]').click();
+  await expect(page.locator('[data-setting="tag-picker"]')).toBeChecked();
+  await page.locator('[data-role="debug-toggle"]').click();
+  await page.waitForURL(/[?&]debug(&|$)/);
+  await page.waitForFunction(() => Boolean((window as any).diagram));
+  expect(await search(page)).toContain("tag-picker-mode=Data");
+  await page.locator(".dwk-help-toggle").click();
+  await page.locator('.help-tab[data-tab="settings"]').click();
+  await expect(page.locator('[data-role="debug-toggle"]')).toHaveText("Leave debug");
+
+  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, baseURL: test.info().project.use.baseURL });
+  const mobile = await phone.newPage();
+  await open(mobile, "?tag-picker-mode=Data");
+  await expect(mobile.locator(".dwk-root")).not.toHaveClass(/dwk-tag-picker-mode/);
+  await mobile.locator(".dwk-help-toggle").tap();
+  await mobile.locator('.help-tab[data-tab="settings"]').tap();
+  await expect(mobile.locator('[data-setting="tag-picker"]')).toBeDisabled();
+  await expect(mobile.locator(".dwk-setting-unavailable")).toBeVisible();
+  await phone.close();
+});
+
+test("F32 tag picker undo/redo: buttons, keys, tree changes, one step per level drag", async ({ page }) => {
+  await open(page, "?tag-picker-mode&menu=true&tags=open");
+  const bar = page.locator(".dwk-tag-picker-bar");
+  const undo = bar.locator(".tag-picker-undo");
+  const redo = bar.locator(".tag-picker-redo");
+  const clear = bar.locator(".tag-picker-clear");
+  const param = async (name: string) => new URLSearchParams(await search(page)).get(name);
+  await expect(undo).toBeDisabled();
+  await expect(redo).toBeDisabled();
+  await expect(clear).toBeDisabled();
+
+  const dataRow = page.locator(".tag-tree-row", { has: page.locator('.tag-filter-btn[data-tag="Data"]') });
+  await dataRow.hover();
+  await dataRow.locator(".tag-select-btn").click();
+  await bar.getByRole("button", { name: "Hide selected", exact: true }).click();
+  await settle(page, 300);
+  expect(await param("filter-hide-tags")).toBe("Data");
+  await expect(undo).toHaveAttribute("title", /hidden topics/);
+
+  await undo.click();
+  await settle(page, 300);
+  expect(await param("filter-hide-tags")).toBeNull();
+  expect(await param("tag-picker-mode")).toBe("Data");
+  await undo.click();
+  expect(await param("tag-picker-mode")).toBe("");
+  await expect(undo).toBeDisabled();
+  await redo.click();
+  expect(await param("tag-picker-mode")).toBe("Data");
+  await page.mouse.move(5, 5);
+  await page.keyboard.press("Control+Shift+Z");
+  await settle(page, 300);
+  expect(await param("filter-hide-tags")).toBe("Data");
+  await page.keyboard.press("Control+Z");
+  await settle(page, 300);
+  expect(await param("filter-hide-tags")).toBeNull();
+
+  // Clear selection is a step too.
+  await clear.click();
+  expect(await param("tag-picker-mode")).toBe("");
+  await undo.click();
+  expect(await param("tag-picker-mode")).toBe("Data");
+
+  // Changes in the tree count; a new change drops the redo.
+  await page.locator('.tag-tree .tag-filter-btn[data-tag="Observability"]').click();
+  await settle(page, 300);
+  expect(await param("filter-hide-tags")).toBe("Observability");
+  await expect(redo).toBeDisabled();
+  await undo.click();
+  await settle(page, 300);
+  expect(await param("filter-hide-tags")).toBeNull();
+
+  // A level drag is one step.
+  const slider = page.locator(".level-filter-slider");
+  await slider.fill("1");
+  await slider.fill("0");
+  await settle(page, 300);
+  expect(await param("filter-level")).toBe("0");
+  await undo.click();
+  await settle(page, 300);
+  expect(await param("filter-level")).toBeNull();
+  await expect(slider).toHaveValue("2");
+});
+
+test("F33 the selection glows in place: selected parts keep their stacking", async ({ page }) => {
+  await open(page, "?tag-picker-mode&v=fit");
+  const cells = () => page.evaluate(() => document.querySelectorAll(".dwk-main-image svg:first-child [data-tags]").length);
+  const before = await cells();
+  await page.goto("/?tag-picker-mode=Network.Ingress,Data&v=fit");
+  await page.waitForFunction(() => Boolean((window as any).diagram));
+  await settle(page, 300);
+  // No copies anywhere: the cells themselves glow, where they are.
+  expect(await cells()).toBe(before);
+  await expect(page.locator(".dwk-selection-layer")).toHaveCount(0);
+  await expect(page.locator("#cell-user")).toHaveClass(/dwk-selected/);
+  await expect(page.locator("#cell-db")).toHaveClass(/dwk-selected/);
+  await expect(page.locator("#cell-logs")).not.toHaveClass(/dwk-selected/);
+  const filter = await page.evaluate(() => getComputedStyle(document.querySelector("#cell-user")!).filter);
+  expect(filter).toContain("drop-shadow");
 });

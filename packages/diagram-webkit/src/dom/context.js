@@ -20,6 +20,9 @@
 
 const CLASS_PREFIX = "dwk-";
 
+// A mouse or trackpad: hover exists and pointing is precise.
+export const FINE_POINTER_QUERY = "(hover: hover) and (pointer: fine)";
+
 export function scopedClass(name) {
   return `${CLASS_PREFIX}${name}`;
 }

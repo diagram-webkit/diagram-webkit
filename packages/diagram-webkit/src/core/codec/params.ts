@@ -12,6 +12,8 @@ export const PARAMS = Object.freeze({
   focus: "focus",
   focusMode: "focus-mode",
   debug: "debug",
+  // Tag picker mode (help > Settings): bare = on, a list = the selected tags.
+  tagPickerMode: "tag-picker-mode",
   // Local mode only (no diagram in the definition): which SVG to open, as a
   // link or as the SVG itself.
   svg: "svg",
@@ -71,6 +73,12 @@ export function paramDocs(maxLevel: number): ParamDoc[] {
     { name: PARAMS.focus, kind: "list", group: "focus", description: "Topics in focus: the view fits them and they are highlighted" },
     { name: PARAMS.focusMode, kind: "enum", group: "focus", values: ["dim-others", ""], description: "Dim everything but the topics in focus" },
     { name: PARAMS.debug, kind: "flag", group: "development", description: "Development: local diagram source and logs" },
+    {
+      name: PARAMS.tagPickerMode,
+      kind: "list",
+      group: "development",
+      description: "Tag picker mode (Settings): the selected topics, or empty for none. Make final removes it",
+    },
     { name: PARAMS.svg, kind: "text", group: "diagram", description: "The diagram: a link to an SVG, or the SVG itself (compressed)" },
   ];
 }

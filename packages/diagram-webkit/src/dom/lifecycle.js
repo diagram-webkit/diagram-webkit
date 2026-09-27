@@ -84,6 +84,7 @@ export function createLifecycle(ctx) {
     sv.pinRings.render();
     sv.filter.indexTags();
     if (sv.tagTree) sv.tagTree.initializeTagControls();
+    if (sv.tagPicker) sv.tagPicker.initialize();
     // The panel is in its final state before anything is measured, and
     // without its slide-in: nothing moves once the diagram shows.
     if (sv.panel) sv.panel.setFilterPanelOpen(s.filterPanelOpen, { instant: true });

@@ -76,6 +76,7 @@ export const DEFAULT_TAGS_CONFIG: TagsConfig = Object.freeze({
 });
 
 export type TagVisibility = ReadonlyMap<string, boolean>;
+export type PickerAction = "show" | "hide" | "hide-others";
 
 export type TagModel = ReturnType<typeof createTagModel>;
 
@@ -368,6 +369,19 @@ export function createTagModel(config: TagsConfig) {
     return allTags.filter((tag) => isTopicTag(tag) && !isKept(tag));
   }
 
+  // Tag picker mode: which of `tags` are hidden after an action on the
+  // selected ones. A selected tag keeps its parents (it cannot show without
+  // them) and its children (its branch). "show" keeps everything else that
+  // was hidden hidden, also children of a parent it has to show.
+  function pickerHiddenTags(action: PickerAction, selected: readonly string[], tags: readonly string[], visibility: TagVisibility): string[] {
+    const related = (tag: string, other: string) => tag === other || other.startsWith(`${tag}${separator}`) || tag.startsWith(`${other}${separator}`);
+    const isKept = (tag: string) => selected.some((other) => related(tag, other));
+    const isFlagged = (tag: string) => visibility.get(tag) === false;
+    if (action === "hide") return tags.filter((tag) => isFlagged(tag) || selected.includes(tag));
+    if (action === "show") return tags.filter((tag) => (isFlagged(tag) || Boolean(getHiddenAncestor(tag, visibility))) && !isKept(tag));
+    return tags.filter((tag) => !isKept(tag));
+  }
+
   return {
     config,
     parseTags,
@@ -400,5 +414,6 @@ export function createTagModel(config: TagsConfig) {
     getHiddenAncestor,
     getExplicitHiddenTags,
     hiddenTagsForOnly,
+    pickerHiddenTags,
   };
 }

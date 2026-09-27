@@ -50,6 +50,8 @@ Loading from a link only works when the site hosting the SVG allows it to be rea
 | See everything | | `0` |
 | Help, links and controls | the **?** at the bottom left | `?` |
 | Close whatever is open | | `Esc` |
+| Select a topic in the open tooltip ([tag picker mode](#tag-picker-mode)) | | `1`–`9` |
+| Undo / redo in [tag picker mode](#tag-picker-mode) | | `Ctrl`/`⌘` + `Z` / + `Shift` + `Z` |
 
 ### Help text
 
@@ -78,6 +80,31 @@ Under **User Annotations** in the menu you can add your own points, areas and ar
 
 Descriptions can use a little formatting (bold, italics, line breaks); everything else is shown as plain text.
 
+### Tag picker mode
+
+For working out which topics a view (a slide, say) should show. Turn it on under **?** > **Settings** (or add `?tag-picker-mode` to the address). It needs a mouse or trackpad; on touch screens the setting is off and greyed out.
+
+- Hover a part: its tooltip gets a line of its topics, numbered: `Network [1]`, `Network.Ingress [2]`. Click one, or press its number, to select it. Not `Ctrl` + number: Chrome on Windows and Linux uses that to switch tabs. So the digits reach the picker, the search and tag filter fields give up the keyboard in this mode: opening the menu does not put the cursor in search, and a tooltip opening takes it out. Parts without help text get a tooltip with only that line. Hovering another part replaces the tooltip at once; moving onto the tooltip keeps it open.
+- In the menu's tag tree, **select** on a row does the same, also for hidden topics.
+- Selected parts glow magenta, the focus glows yellow. Selecting alone changes nothing else: nothing zooms, dims or hides.
+- A bar above the tags in the menu. The way of working: select topics, choose what they do (the buttons below), clear the selection, select the next ones.
+- Its top row: **↶ Undo** / **↷ Redo** (also `Ctrl`/`⌘` + `Z` and `Ctrl`/`⌘` + `Shift` + `Z`), and **Clear selection** on the right. Undo steps back through every change made while the mode is on: the selection, hidden topics, focus and level, also changes made in the tag tree or with the level slider (one drag is one step). The history is not in the address, so a reload or **Apply** starts it over.
+- Below that, the selection (click a topic to deselect it) and what to do with it:
+
+| Button | Does |
+| --- | --- |
+| Focus selected / Unfocus selected | puts them in focus, or (when all are) takes them out; the view does not move |
+| Show selected | shows them, with their parents and children; everything else stays |
+| Hide selected | hides them (and everything under them) |
+| Hide others | shows only them, with their parents and children; hides every other topic |
+| Make final | opens a summary first (below) |
+
+**Make final** shows what the result will be: how many topics and parts are shown, what is hidden and in focus, the level, a search or pins. It checks for loose ends: selected topics that are neither in focus nor hidden (the selection alone does nothing in the final view), selected topics that are hidden, and a view that shows everything. **Copy backup link** copies the address as it is, with the selection, to come back to it; **Copy final link** copies the address after Apply. **Apply** turns the mode off and takes it out of the address; the focus and hidden topics stay. It cannot be undone, except with the backup link: the undo history ends with the mode.
+
+The selection stays after each action, so you can go back and forth. Only topics in the tag tree are picked: the level slider and priorities (`pri-1`, `info`) work as always. The selection is in the address (`?tag-picker-mode=Network,Data`), so a reload keeps it; slides and "Copy as slide" never carry it.
+
+**Settings** also has **Open in debug** (or **Leave debug**): it reloads the page with `?debug`, which loads the diagram's debug source if it has one, reports missing and duplicate slugs in the browser console, and shows **Copy as slide** on the Share tab.
+
 ### Dark theme
 
 The theme button at the top of the menu switches between light and dark. Your choice is remembered in this browser.
@@ -86,7 +113,7 @@ The theme button at the top of the menu switches between light and dark. Your ch
 
 The address in your browser always describes what you see: the position, the level, the hidden tags, the search, pins, annotations and, for a diagram you opened yourself, the diagram itself. Copy it, and the person you send it to sees the same thing.
 
-The **?** at the bottom left opens a dialog with tabs: **Open diagram**, **About**, **Share** (ready-made links to copy, and the diagram file), **URL parameters** (what each part of the address means, grouped by what it does) and **Controls** (mouse, touch and keys). The `?` key opens it on Controls, the left and right arrow keys switch tabs, and the bottom of the dialog shows the version.
+The **?** at the bottom left opens a dialog with tabs: **Open diagram**, **About**, **Share** (ready-made links to copy, and the diagram file), **URL parameters** (what each part of the address means, grouped by what it does), **Controls** (mouse, touch and keys) and **Settings** ([tag picker mode](#tag-picker-mode) and debug). The `?` key opens it on Controls, the left and right arrow keys switch tabs, and the bottom of the dialog shows the version.
 
 The **Share** tab has these links, each with a copy button:
 

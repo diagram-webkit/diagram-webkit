@@ -5,6 +5,8 @@ import {
   mergeView,
   normalizeState,
   parseHighlightParam,
+  parseTagPickerParam,
+  writeTagPickerParam,
   parseSlideSnippet,
   parseStateUrlAttribute,
   formatHighlightParam,
@@ -20,6 +22,7 @@ import {
   type DiagramView,
   type Rect,
 } from "../src/core";
+import { createUndoHistory } from "../src/core/history";
 import { goldenTagModel } from "./helpers";
 import { decodeEmbeddedSvg, EmbedDecodeError, embedLinkLevel, encodeEmbeddedSvg } from "../src/dom/embed-codec.js";
 
@@ -142,6 +145,41 @@ describe("url codec", () => {
     expect(stateToSearch(normalizeState({ view: { onlyTags: ["Network"], hiddenTags: ["Api"] } }), { defaultLevel: 3 })).toBe(
       "?only-tags=Network",
     );
+  });
+
+  it("flags are written without =", () => {
+    expect(stateToSearch(normalizeState({ view: { level: 1 } }), { defaultLevel: 3, search: "?debug&x=" })).toBe("?debug&x&filter-level=1");
+  });
+
+  it("tag-picker-mode param", () => {
+    expect(parseTagPickerParam("?v=fit")).toBeNull();
+    expect(parseTagPickerParam("?tag-picker-mode")).toEqual([]);
+    expect(parseTagPickerParam("?tag-picker-mode=Network, Data.Cache")).toEqual(["Network", "Data.Cache"]);
+    expect(writeTagPickerParam("?v=fit", [])).toBe("?v=fit&tag-picker-mode");
+    expect(writeTagPickerParam("?tag-picker-mode&v=fit", ["A", "B.C"])).toBe("?tag-picker-mode=A,B.C&v=fit");
+    expect(writeTagPickerParam("?tag-picker-mode=A&v=fit", null)).toBe("?v=fit");
+    // Not state: a slide or a state never carries it.
+    expect(urlToState("?tag-picker-mode=Network", 10)).toEqual({ version: 1, view: {}, ui: {} });
+  });
+});
+
+describe("tag picker", () => {
+  const model = goldenTagModel();
+  const tags = ["Network", "Network.Ingress", "Network.Egress", "Data", "Data.Cache", "Api"];
+  const visibility = (hidden: string[]) => new Map(tags.map((tag) => [tag, !hidden.includes(tag)]));
+
+  it("hide adds the selected to what is hidden", () => {
+    expect(model.pickerHiddenTags("hide", ["Data.Cache"], tags, visibility(["Api"]))).toEqual(["Data.Cache", "Api"]);
+  });
+
+  it("hide-others keeps parents and children of the selected", () => {
+    expect(model.pickerHiddenTags("hide-others", ["Network.Ingress", "Data"], tags, visibility([]))).toEqual(["Network.Egress", "Api"]);
+  });
+
+  it("show unhides the selected, its parents and children, and nothing else", () => {
+    // Network hidden hides its branch; showing Ingress keeps Egress hidden.
+    expect(model.pickerHiddenTags("show", ["Network.Ingress"], tags, visibility(["Network", "Api"]))).toEqual(["Network.Egress", "Api"]);
+    expect(model.pickerHiddenTags("show", ["Data"], tags, visibility(["Data", "Data.Cache"]))).toEqual([]);
   });
 });
 
@@ -311,3 +349,36 @@ describe("embedded diagram (#svg=)", () => {
   });
 });
 
+
+describe("undo history", () => {
+  const history = () => {
+    const h = createUndoHistory<number>(4, String);
+    h.reset(0);
+    return h;
+  };
+
+  it("undo, redo, and a new change drops the redo", () => {
+    const h = history();
+    expect(h.record(0)).toBe(false);
+    h.record(1);
+    h.record(2);
+    expect(h.peekUndo()).toEqual({ from: 2, to: 1 });
+    expect(h.undo()).toBe(1);
+    expect(h.undo()).toBe(0);
+    expect(h.undo()).toBeNull();
+    expect(h.redo()).toBe(1);
+    h.record(5);
+    expect(h.canRedo()).toBe(false);
+    expect(h.undo()).toBe(1);
+  });
+
+  it("merge replaces the last step; the oldest go beyond the limit", () => {
+    const h = history();
+    h.record(1);
+    h.record(2, { merge: true });
+    expect(h.undo()).toBe(0);
+    const full = history();
+    [1, 2, 3, 4, 5].forEach((n) => full.record(n));
+    expect([full.undo(), full.undo(), full.undo(), full.undo()]).toEqual([4, 3, 2, null]);
+  });
+});

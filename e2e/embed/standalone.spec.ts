@@ -312,17 +312,17 @@ test("help dialog: tabs that apply, arrow keys, a steady box, and a phone layout
   await loaded(page);
   await page.keyboard.press("?");
   await expect(page.locator(".help-tab.active")).toHaveText("Controls");
-  await expect(page.locator(".help-tab:not([hidden])")).toHaveText(["Open diagram", "About", "Share", "URL parameters", "Controls"]);
+  await expect(page.locator(".help-tab:not([hidden])")).toHaveText(["Open diagram", "About", "Share", "URL parameters", "Controls", "Settings"]);
   // Arrows switch tabs from anywhere in the dialog, focus on a tab or not.
   await page.keyboard.press("ArrowRight");
-  await expect(page.locator(".help-tab.active")).toHaveText("Open diagram");
+  await expect(page.locator(".help-tab.active")).toHaveText("Settings");
   await page.keyboard.press("ArrowRight");
-  await expect(page.locator(".help-tab.active")).toHaveText("About");
+  await expect(page.locator(".help-tab.active")).toHaveText("Open diagram");
   await page.keyboard.press("End");
-  await expect(page.locator(".help-tab.active")).toHaveText("Controls");
+  await expect(page.locator(".help-tab.active")).toHaveText("Settings");
   // The dialog does not move or resize between tabs.
   const boxes = new Set<string>();
-  for (const tab of ["open", "about", "links", "url", "shortcuts"]) {
+  for (const tab of ["open", "about", "links", "url", "shortcuts", "settings"]) {
     await page.locator(`.help-tab[data-tab="${tab}"]`).click();
     const box = (await page.locator(".help-dialog-content").boundingBox())!;
     boxes.add([box.x, box.y, box.width, box.height].map(Math.round).join(","));
@@ -337,7 +337,7 @@ test("help dialog: tabs that apply, arrow keys, a steady box, and a phone layout
   await loaded(mobile);
   await mobile.locator(".dwk-help-toggle").tap();
   // Controls stays (mouse and touch), without its keyboard section.
-  await expect(mobile.locator(".help-tab:not([hidden])")).toHaveText(["Open diagram", "About", "Share", "URL parameters", "Controls"]);
+  await expect(mobile.locator(".help-tab:not([hidden])")).toHaveText(["Open diagram", "About", "Share", "URL parameters", "Controls", "Settings"]);
   await mobile.locator('.help-tab[data-tab="shortcuts"]').tap();
   await expect(mobile.locator(".help-keys")).toBeHidden();
   const widths = await mobile.evaluate(() => ({

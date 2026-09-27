@@ -6,6 +6,34 @@ import { formatText } from "../core/texts";
 const COPIED_MS = 1200;
 const PREVIEW_VALUE_MAX = 24;
 
+// Copies text and says so on the button for a moment (or why it failed).
+export function copyWithFeedback(ctx, text, button) {
+  const texts = ctx.texts;
+  const showFeedback = (label, isError) => {
+    const original = button.dataset.label || button.textContent;
+    button.dataset.label = original;
+    button.textContent = label;
+    button.classList.add(isError ? "is-error" : "is-done");
+    ctx.timers.setTimeout(() => {
+      button.textContent = original;
+      button.classList.remove("is-error", "is-done");
+    }, COPIED_MS);
+  };
+  const clipboard = ctx.win.navigator.clipboard;
+  if (!clipboard || typeof clipboard.writeText !== "function") {
+    console.error("Copy: clipboard API unavailable (needs a secure context)");
+    showFeedback(texts.linkCopyUnavailable, true);
+    return;
+  }
+  clipboard.writeText(text).then(
+    () => showFeedback(texts.linkCopied, false),
+    (error) => {
+      console.error("Copy: clipboard write failed:", error);
+      showFeedback(texts.linkCopyFailed, true);
+    },
+  );
+}
+
 export function createLinkInfo(ctx) {
   const texts = ctx.texts;
   const variantsEl = ctx.el("link-info-variants");
@@ -94,33 +122,6 @@ export function createLinkInfo(ctx) {
     return preview;
   }
 
-  function showFeedback(feedbackEl, label, isError) {
-    const original = feedbackEl.dataset.label || feedbackEl.textContent;
-    feedbackEl.dataset.label = original;
-    feedbackEl.textContent = label;
-    feedbackEl.classList.add(isError ? "is-error" : "is-done");
-    ctx.timers.setTimeout(() => {
-      feedbackEl.textContent = original;
-      feedbackEl.classList.remove("is-error", "is-done");
-    }, COPIED_MS);
-  }
-
-  function copyText(text, feedbackEl) {
-    const clipboard = ctx.win.navigator.clipboard;
-    if (!clipboard || typeof clipboard.writeText !== "function") {
-      console.error("Link info: clipboard API unavailable (needs a secure context)");
-      showFeedback(feedbackEl, texts.linkCopyUnavailable, true);
-      return;
-    }
-    clipboard.writeText(text).then(
-      () => showFeedback(feedbackEl, texts.linkCopied, false),
-      (error) => {
-        console.error("Link info: clipboard write failed:", error);
-        showFeedback(feedbackEl, texts.linkCopyFailed, true);
-      },
-    );
-  }
-
   function actionButton(className, label, onClick, signal) {
     const button = el("button", className, label);
     button.type = "button";
@@ -136,7 +137,7 @@ export function createLinkInfo(ctx) {
     head.append(el("strong", "", variant.title), el("span", "link-info-muted", variant.description));
     text.append(head, renderPreview(variant.removed));
     const actions = el("span", "link-info-actions");
-    const copy = actionButton("link-info-action", texts.linkCopy, () => copyText(variant.url, copy), signal);
+    const copy = actionButton("link-info-action", texts.linkCopy, () => copyWithFeedback(ctx, variant.url, copy), signal);
     actions.append(copy);
     if (!isCurrent) {
       const open = actionButton("link-info-action", texts.linkOpen, () => location().assign(variant.url), signal);
@@ -156,7 +157,7 @@ export function createLinkInfo(ctx) {
     head.append(el("strong", "", texts.copySlide), el("span", "link-info-muted", texts.copySlideDescription));
     text.append(head);
     const actions = el("span", "link-info-actions");
-    const copy = actionButton("link-info-action", texts.linkCopy, () => copyText(ctx.api.serialize("slide"), copy), signal);
+    const copy = actionButton("link-info-action", texts.linkCopy, () => copyWithFeedback(ctx, ctx.api.serialize("slide"), copy), signal);
     copy.dataset.role = "copy-slide";
     actions.append(copy);
     row.append(text, actions);
@@ -245,7 +246,7 @@ export function createLinkInfo(ctx) {
         wrap.append(el("code", "link-info-code", value || texts.paramEmpty));
     }
     if (copyable) {
-      const copy = actionButton("link-info-copy", texts.linkCopy, () => copyText(copyable, copy), signal);
+      const copy = actionButton("link-info-copy", texts.linkCopy, () => copyWithFeedback(ctx, copyable, copy), signal);
       wrap.append(copy);
     }
     return wrap;

@@ -1130,3 +1130,130 @@
   border-color: rgba(148, 163, 184, 0.35);
   color: #94a3b8;
 }
+
+/* Tag picker mode (tag-picker.js): "select" on tree rows, and the bar above
+   the tags. Magenta, like the selection glow on the diagram. */
+.dwk-root:not(.dwk-tag-picker-mode) .tag-select-btn {
+  display: none;
+}
+
+:where(.dwk-root) .tag-select-btn.active {
+  border-color: #d946ef;
+  background: rgba(217, 70, 239, 0.18);
+  color: #f5d0fe;
+}
+
+:where(.dwk-root) .tag-picker-bar {
+  margin: 0 0 12px;
+  padding: 8px 10px 10px;
+  border: 1px dashed rgba(217, 70, 239, 0.7);
+  border-radius: 8px;
+  background: rgba(217, 70, 239, 0.07);
+}
+
+:where(.dwk-root) .tag-picker-bar[hidden] {
+  display: none;
+}
+
+:where(.dwk-root) .tag-picker-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: #f5d0fe;
+  font-size: 12px;
+}
+
+:where(.dwk-root) .tag-picker-count {
+  flex: 1;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+/* Top row: Undo | Redo as one group, Clear selection apart on the right. */
+:where(.dwk-root) .tag-picker-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+:where(.dwk-root) .tag-picker-history {
+  display: inline-flex;
+}
+
+:where(.dwk-root) .tag-picker-history button,
+:where(.dwk-root) .tag-picker-clear {
+  min-height: 28px;
+  padding: 3px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(148, 163, 184, 0.1);
+  color: #e2e8f0;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+:where(.dwk-root) .tag-picker-undo {
+  border-radius: 6px 0 0 6px;
+}
+
+:where(.dwk-root) .tag-picker-redo {
+  border-left: 0 !important;
+  border-radius: 0 6px 6px 0;
+}
+
+:where(.dwk-root) .tag-picker-clear {
+  border-color: #d946ef;
+  border-radius: 6px;
+  background: none;
+  color: #f5d0fe;
+}
+
+:where(.dwk-root) .tag-picker-history button:hover:not(:disabled),
+:where(.dwk-root) .tag-picker-clear:hover:not(:disabled) {
+  background: rgba(217, 70, 239, 0.2);
+}
+
+:where(.dwk-root) .tag-picker-history button:disabled,
+:where(.dwk-root) .tag-picker-clear:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+:where(.dwk-root) .tag-picker-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0 8px;
+}
+
+:where(.dwk-root) .tag-picker-empty {
+  color: #94a3b8;
+}
+
+:where(.dwk-root) .tag-picker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+:where(.dwk-root) .tag-picker-actions .tag-tree-bulk-btn {
+  flex: 1 1 40%;
+}
+
+:where(.dwk-root) .tag-picker-final {
+  width: 100%;
+  min-height: 32px;
+  margin-top: 8px;
+  border: 1px solid #d946ef;
+  border-radius: 6px;
+  background: rgba(217, 70, 239, 0.22);
+  color: #fdf4ff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+:where(.dwk-root) .tag-picker-final:hover {
+  background: rgba(217, 70, 239, 0.35);
+}

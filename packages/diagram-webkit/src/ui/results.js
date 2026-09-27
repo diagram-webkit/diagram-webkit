@@ -73,7 +73,7 @@ export function createResults(ctx) {
     if (!record) return;
     const fromKeyboard = Boolean(options.fromKeyboard);
     sv.highlightLine.clear();
-    const active = ctx.doc.activeElement;
+    const active = ctx.scope.activeElement;
     if (!fromKeyboard && active && active !== ctx.doc.body && active.classList && active.classList.contains("filter-result-item")) {
       active.blur();
     }

@@ -83,6 +83,7 @@ export function createLifecycle(ctx) {
     sv.pins.normalizePinnedHelpSlugs();
     sv.pinRings.render();
     sv.filter.indexTags();
+    sv.darkCanvas.render(sv.theme.getCurrentTheme() === "dark");
     if (sv.tagTree) sv.tagTree.initializeTagControls();
     if (sv.tagPicker) sv.tagPicker.initialize();
     // The panel is in its final state before anything is measured, and

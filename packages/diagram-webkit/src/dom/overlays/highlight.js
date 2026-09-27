@@ -145,5 +145,10 @@ export function createHighlight(ctx) {
     });
   }
 
-  return { apply, reposition, reset, elements: () => current };
+  // Copies again, after the cells changed colour (theme).
+  function redraw() {
+    if (current.length > 0) renderLayer();
+  }
+
+  return { apply, reposition, reset, redraw, elements: () => current };
 }

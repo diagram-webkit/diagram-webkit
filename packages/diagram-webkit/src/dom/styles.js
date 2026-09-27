@@ -1,6 +1,6 @@
 // The package CSS (and a definition's content.css) is adopted once per
-// document and released with the last instance, so mounting needs no <link>
-// and leaves no node behind.
+// document or shadow root and released with the last instance there, so
+// mounting needs no <link> and leaves no node behind.
 import runtimeCss from "../ui/styles/runtime.css?inline";
 import panelCss from "../ui/styles/panel.css?inline";
 import tooltipCss from "../ui/styles/tooltip.css?inline";
@@ -17,17 +17,17 @@ const adopted = new WeakMap();
  * Adopted sheets cascade after the document's own; the package selectors are
  * wrapped in :where(.dwk-root) so a page can still override them with more
  * specific rules. Later calls come later in the cascade.
- * @param {Document} doc
+ * @param {Document | ShadowRoot} scope
+ * @param {Window & typeof globalThis} win
  */
-export function adoptStyles(doc, cssText = CSS_TEXT) {
-  if (!adopted.has(doc)) adopted.set(doc, new Map());
-  const sheets = adopted.get(doc);
+export function adoptStyles(scope, win, cssText = CSS_TEXT) {
+  if (!adopted.has(scope)) adopted.set(scope, new Map());
+  const sheets = adopted.get(scope);
   let entry = sheets.get(cssText);
   if (!entry) {
-    const win = /** @type {Window & typeof globalThis} */ (doc.defaultView);
     const sheet = new win.CSSStyleSheet();
     sheet.replaceSync(cssText);
-    doc.adoptedStyleSheets = [...doc.adoptedStyleSheets, sheet];
+    scope.adoptedStyleSheets = [...scope.adoptedStyleSheets, sheet];
     entry = { sheet, count: 0 };
     sheets.set(cssText, entry);
   }
@@ -38,7 +38,7 @@ export function adoptStyles(doc, cssText = CSS_TEXT) {
     released = true;
     entry.count -= 1;
     if (entry.count > 0) return;
-    doc.adoptedStyleSheets = doc.adoptedStyleSheets.filter((sheet) => sheet !== entry.sheet);
+    scope.adoptedStyleSheets = scope.adoptedStyleSheets.filter((sheet) => sheet !== entry.sheet);
     sheets.delete(cssText);
   };
 }

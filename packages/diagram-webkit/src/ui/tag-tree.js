@@ -37,7 +37,6 @@ export function createTagTree(ctx) {
   // "Dim others" beside Show all / Hide all / Invert (tree groups).
   const dimButtons = new Set();
 
-  const label = (tag, meta) => (ctx.config.tagLabel ? ctx.config.tagLabel(tag, meta) : meta.label || tag);
   const elementCount = (count) => formatText(count === 1 ? texts.elementCountOne : texts.elementCountMany, { count });
 
   function isTagHidden(tag) {
@@ -166,7 +165,7 @@ export function createTagTree(ctx) {
   function renderFlatTagGroup(groupWrap, tags, signal) {
     const buttons = ctx.doc.createElement("div");
     buttons.className = "tag-group-buttons";
-    tags.forEach((tag) => buttons.appendChild(createTagToggle(tag, label(tag, model.getTagMeta(tag)), null, [], signal)));
+    tags.forEach((tag) => buttons.appendChild(createTagToggle(tag, ctx.tagLabel(tag), null, [], signal)));
     groupWrap.appendChild(buttons);
   }
 

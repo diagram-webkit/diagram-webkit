@@ -36,6 +36,11 @@ export interface DiagramEvents {
   elementactivate: { element: Element; slug: string; id: string | null };
 }
 
+// What defineDiagramElement registers.
+export interface DiagramElement extends HTMLElement {
+  readonly instance: DiagramInstance | null;
+}
+
 export interface DiagramInstance {
   readonly root: HTMLElement;
   readonly definition: DiagramDefinition;

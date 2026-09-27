@@ -260,6 +260,7 @@ export function createTagModel(config: TagsConfig) {
     if (style.color) inline += `color:${style.color};`;
     if (style.borderColor) inline += `border-color:${style.borderColor};`;
     if (style.borderWidth) inline += `border-width:${style.borderWidth};`;
+    if (style.borderStyle) inline += `border-style:${style.borderStyle};`;
     if (style.fontWeight) inline += `font-weight:${style.fontWeight};`;
     return inline;
   }

@@ -6,6 +6,7 @@ export * from "./texts";
 export * from "./annotations";
 export * from "./state";
 export * from "./presets";
+export * from "./dark";
 export * from "./definition";
 export * from "./validate";
 export * from "./semver";

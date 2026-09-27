@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "typecheck": "npm run typecheck -w diagram-webkit",
     "test": "npm run test -w diagram-webkit",
-    "e2e": "playwright test --project=features --project=embed --project=reveal",
+    "e2e": "playwright test --project=features --project=embed --project=reveal --project=examples",
     "check-examples": "node scripts/check-examples.mjs",
     "examples:install": "for d in examples/*/; do (cd \"$d\" && npm install --no-audit --no-fund) || exit 1; done",
     "standalone": "npm run build && npm --prefix examples/direct--standalone-app install --no-audit --no-fund --silent && npm --prefix examples/direct--standalone-app run dev",

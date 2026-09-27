@@ -43,6 +43,7 @@ import { adoptStyles } from "./styles.js";
 import { createTooltip } from "../ui/tooltip.js";
 import { createUi } from "../ui/app.js";
 import { createTheme } from "../ui/theme.js";
+import { createDarkCanvas } from "./dark-canvas.js";
 
 const EVENTS = new Set(["ready", "error", "statechange", "camerachange", "elementactivate"]);
 const DEFAULT_CAMERA = Object.freeze({ defaultAlign: ["left", "bottom"], maxZoom: 4 });
@@ -161,8 +162,11 @@ export function createInstance(container, definitionOrNone, opts = {}) {
     if (!Number.isFinite(opts.fade) || opts.fade < 0) throw new TypeError(`opts.fade must be a non-negative number of ms, got ${opts.fade}`);
     root.style.setProperty("--dwk-fade", `${opts.fade}ms`);
   }
-  const releaseStyles = adoptStyles(doc);
-  const releaseDiagramStyles = definition.content && definition.content.css ? adoptStyles(doc, definition.content.css) : () => {};
+  // A container in a shadow root (the custom element) gets the styles there.
+  const rootNode = container.getRootNode();
+  const scope = rootNode instanceof win.ShadowRoot ? rootNode : doc;
+  const releaseStyles = adoptStyles(scope, win);
+  const releaseDiagramStyles = definition.content && definition.content.css ? adoptStyles(scope, win, definition.content.css) : () => {};
   container.appendChild(root);
   const els = buildSkeleton(doc, root, texts, idPrefix);
 
@@ -228,6 +232,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
   const ctx = {
     doc,
     win,
+    scope,
     root,
     els,
     s,
@@ -254,6 +259,10 @@ export function createInstance(container, definitionOrNone, opts = {}) {
     },
     isInsideModal(target) {
       return Boolean(target.closest(".dwk-user-annotations-modal, .dwk-edit-annotation-modal, .dwk-help-dialog"));
+    },
+    // A tag's label: the tagLabel hook, else its meta label.
+    tagLabel(tag, meta = model.getTagMeta(tag)) {
+      return config.tagLabel ? config.tagLabel(tag, meta) : meta.label || tag;
     },
     annotationStyle(type) {
       return config.annotations.types[type] || null;
@@ -313,6 +322,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
   };
 
   const sv = ctx.services;
+  sv.darkCanvas = createDarkCanvas(ctx);
   sv.theme = createTheme(ctx);
   sv.geometry = createCameraGeometry(ctx);
   sv.camera = createCamera(ctx);
@@ -426,7 +436,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
         return {
           tag,
           parent: model.getTagParent(tag),
-          label: meta.label,
+          label: ctx.tagLabel(tag, meta),
           group: meta.group,
           description: model.getTagDescription(tag, { inherit: true }),
           count: (s.diagramTagElements.get(tag) || []).length,

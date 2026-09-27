@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multiple instances</title>
+    <style>
+      body { margin: 1rem; font-family: sans-serif; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+      figure { margin: 0; }
+      .slot { height: 300px; border: 1px solid #ccc; }
+    </style>
+  </head>
+  <body>
+    <h1>One diagram, three views</h1>
+    <div class="grid">
+      <figure><div class="slot" data-view="overview"></div><figcaption>Overview</figcaption></figure>
+      <figure><div class="slot" data-view="request-path"></div><figcaption>Request path</figcaption></figure>
+      <figure><div class="slot" data-view="data"></div><figcaption>Data layer</figcaption></figure>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

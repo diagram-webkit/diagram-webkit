@@ -269,10 +269,6 @@ body:has(> .dwk-root.dwk-app) {
   --pan-indicator-text: rgba(240, 249, 255, 1);
 }
 
-.dwk-root[data-theme="dark"] .dwk-main-image svg {
-  filter: invert(1) hue-rotate(175deg) saturate(1.5) brightness(1.4) !important;
-}
-
 :where(.dwk-root) [data-help],
 :where(.dwk-root) [data-tags] {
   /* --dwk-fade is set by the fade mount option. */

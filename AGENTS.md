@@ -24,13 +24,13 @@ diagram-webkit              engine: every piece of logic, UI and CSS (this repo)
 
 ```
 packages/diagram-webkit/
-  src/index.ts        mountDiagram, mountApp, standaloneDefinition, defineDiagram, PRESETS, DEFAULT_TEXTS, VERSION
+  src/index.ts        mountDiagram, mountApp, defineDiagramElement, standaloneDefinition, defineDiagram, PRESETS, DEFAULT_TEXTS, VERSION
   src/types.ts        public instance types (DiagramInstance, MountOptions, DiagramEvents, ...)
-  src/core/           pure TS, no DOM (lib ES2024): definition, presets, state, tags, help, html
+  src/core/           pure TS, no DOM (lib ES2024): definition, presets, state, tags, help, html, dark
                       sanitizer, annotations, validate, texts, version, semver, tag-tree-markdown,
                       codec/{url,camera,slide,json,params}
-  src/dom/            instance runtime (JS, checkJs): instance, context, lifecycle, loader, styles,
-                      camera*, input, filter, focus, pins, phases, help-index, tag-style,
+  src/dom/            instance runtime (JS, checkJs): instance, element, context, lifecycle, loader, styles,
+                      camera*, input, filter, focus, pins, phases, help-index, tag-style, dark-canvas,
                       overlays/*, annotations/*, local-source, embed-codec, svg-sanitize,
                       standalone, error-box
   src/ui/             app chrome (JS, checkJs): mount-app, app, panel, tag-tree, tag-picker, level-slider,
@@ -41,7 +41,7 @@ packages/diagram-webkit/
   src/tools/          Node, shipped as source: cli.js, vite-plugin.js, load-definition, local-engine, page-template, tag-tree-markdown
   test/               vitest (node; happy-dom where a DOM is needed); golden/ = reference outputs
 examples/             independent projects (see Examples)
-e2e/                  Playwright: embed/, features/ (F1-F33 on the app), reveal/; pages/ = test pages
+e2e/                  Playwright: embed/, features/ (F1-F33 on the app), reveal/, examples/; pages/ = test pages
 scripts/              check-examples.mjs, next-version.mjs (release)
 docs/                 usage, definition, state, features, api, url, reveal, standalone, tools, development, user-guide
 ```
@@ -58,7 +58,7 @@ npm run typecheck          # tsconfig.json + tsconfig.core.json (no DOM lib) + t
 npm test                   # vitest
 npm run examples:install && npm run check-examples
 npx playwright install chromium
-npm run e2e                # embed, features, reveal
+npm run e2e                # embed, features, reveal, examples
 npm run standalone         # standalone app, dev server
 npm run standalone:build   # single offline file: examples/direct--standalone-app/dist/index.html
 ```
@@ -69,7 +69,7 @@ npx playwright test e2e/reveal/deck.spec.ts -g "fragment"
 E2E_EMBED_ONLY=1 npx playwright test --project=embed                # no example servers
 ```
 
-e2e ports are 4100 (test pages), 4101 (app), 4102 (via deck) and 4103 (split deck). They are defined in `PORTS` in `playwright.config.ts`.
+e2e ports are 4100 (test pages), 4101 (app), 4102 (via deck), 4103 (split deck) and 4104-4106 (embed-minimal, custom-hooks, multi-instance). They are defined in `PORTS` in `playwright.config.ts`.
 
 CI (`.github/workflows/ci.yml`, Node LTS) runs lint, typecheck, unit, build, check-examples and e2e. Every step must stay green.
 
@@ -125,7 +125,8 @@ No path may point outside the repo. The only link to other checkouts is the othe
   - Use `@container dwk (...)` and not media queries, and `cqw`/`cqh` and not `vw`/`vh`.
   - State goes in classes or attributes on the root, never on `body`. The theme is `data-theme` on the root.
   - The root has `contain: layout`, which keeps fixed overlays inside it.
-  - Styles are adopted with `adoptedStyleSheets`, ref-counted per document. Definition CSS is `content.css`, a string.
+  - Styles are adopted with `adoptedStyleSheets`, ref-counted per root node (the document, or the shadow root of `defineDiagramElement`). Definition CSS is `content.css`, a string.
+  - Shadow DOM only through the custom element (`dom/element.js`); plain mounts stay in the light DOM. Read focus from `ctx.scope.activeElement`, not the document's; `isTypingTarget` looks through open shadow roots.
 - Performance: animate `opacity` and `transform`, never `filter`, on cells. Filter animations cut frame rates by about 5x. Set `will-change` only while a tween runs, through `geometry.holdLayer(key)`, because leaving it on blurs a zoomed diagram. Outline highlights are drawn on copies in `svg.dwk-highlight-layer` (above the whole diagram); the tag picker's selection glow is a static class on the cells themselves (`dom/overlays/selection.js`), so they keep their stacking, and pin rings are drawn in an SVG layer inside the transformed image.
 - With the `fade` mount option (the Reveal default is 400), changes run in two phases through `dom/phases.js`: out first, then in. Without it, changes apply at once, as the app does.
 - There is no frontend framework. The runtime is imperative SVG/DOM. `core/` and `reveal/` are TS, while `dom/` and `ui/` are JS checked by `tsconfig.js.json`.
@@ -141,7 +142,7 @@ Keep these stable. Changing any of them breaks links and embeds that already exi
 
 - **SVG contract** (draw.io File → Save as → SVG, or Export as SVG; properties from Edit Data / `Ctrl+M`): the cell properties become `data-cell-id`, `data-tags`, `data-help` and `data-slug` on the cell `<g>`. The attribute names can be changed in `definition.metadata`. The draw.io CLI export (`draw.io -x -f svg`) does **not** write these attributes.
 - **Labels:** draw.io writes them as `<switch><foreignObject width="100%" height="100%">…</foreignObject><text>fallback</text></switch>`. A cell's `getBBox()` therefore spans the whole diagram, and the fallback `<text>` is not rendered (0x0). Measure what a cell draws (its shapes, and the text inside the `foreignObject`; see `drawnClientRects` in `dom/camera-control.js`), never the cell's own box.
-- **Canvas:** the loader forces `color-scheme: light` on the SVG and gives it a white background when its own is transparent (draw.io saves `light-dark()` colours and a transparent background). The dark theme is the engine's filter.
+- **Canvas:** the loader forces `color-scheme: light` on the SVG and gives it a white background when its own is transparent (draw.io saves `light-dark()` colours and a transparent background). The dark theme rewrites the colours inline (`dom/dark-canvas.js`, the matrix in `core/dark.ts` gives the look of `invert(1) hue-rotate(175deg) saturate(1.5) brightness(1.4)`); only raster images get that filter. Never put a filter on the diagram: it costs a filter pass on every frame a cell animates.
 - **Tags:**
   - Tags are split on whitespace and commas.
   - The roles are regexes in `tags.roles`: `level-N` (the level is the max N, 0 if none), `css-X` (adds the class `custom-X`), `pri-N` (the lowest wins, then `info`).
@@ -209,6 +210,9 @@ Each example is a separate project with its own `package.json`, `node_modules` a
 - `direct--basic-diagram`: a small definition package with a full page. e2e uses it for app features. `example.svg` is saved from draw.io (File → Save as → SVG) and opens in draw.io for editing; there is no separate `.drawio` file.
 - `via--revealjs--on-basic-diagram` / `split--revealjs--on-basic-diagram`: the same deck through the two dependency paths. They must give identical states.
 - `direct--standalone-app`: no definition, built as a single offline `index.html` (Vite plugin `singleFile`).
+- `direct--embed-minimal`: a hand-written SVG (no draw.io) embedded in a page with the `embed` preset.
+- `via--custom-hooks--on-basic-diagram`: every definition hook (`parseHelp`, `tagLabel`, `renderAbout`, `renderFooter`).
+- `via--multi-instance--on-basic-diagram`: three instances of one definition, one view each.
 
 ## Writing a diagram package
 
@@ -245,4 +249,6 @@ npx diagram-webkit tag-tree METADATA.md --heading "Tag tree" --out config/tag-de
 
   Automatic on push to `main` (`.github/workflows/release.yml`, `scripts/next-version.mjs`): when the package changed since the published version, CI runs, the next patch version is committed back (`[skip ci]`), published and tagged `v<x.y.z>`. Don't bump versions by hand; write `[minor]` or `[major]` in a commit message for a bigger bump. Never publish by hand. Keep `bin` paths without `./` (newer npm drops them). `repository` in the package's `package.json` must stay `github.com/diagram-webkit/diagram-webkit`, or the provenance check fails. Links in the root README are absolute: it is also the npm page.
 
-- Open work: strip the SVG root `content` attribute (the embedded mxfile) in the build, make the dark theme work without `filter: invert`, add an optional custom element, convert `dom/` and `ui/` to TS, and add more examples (`direct--embed-minimal`, `via--custom-hooks--on-basic-diagram`, `via--multi-instance--on-basic-diagram`).
+- Open work:
+  - Strip draw.io's `content` attributes (the embedded model, on the root and every cell; about half of a large SVG) in the Vite plugin build and before `#svg=` encoding.
+  - Convert `dom/`, `ui/` and `adapters/` to strict TS once typescript-eslint supports TS 7, then switch ESLint to it and keep the restricted-globals rule for those folders. Type `ctx`, its state `s` and the services first (strict today: about 1,000 errors in the JS).

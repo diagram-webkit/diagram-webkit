@@ -70,8 +70,8 @@ const UI_KEYS = Object.freeze(["panelOpen", "tagTreeExpanded"] as const);
 const QUERY_KEYS = Object.freeze(["ids", "slugs", "tags"] as const);
 
 export class DiagramStateError extends Error {
-  constructor(path: string, message: string) {
-    super(`${path}: ${message}`);
+  constructor(path: string, message: string, options?: ErrorOptions) {
+    super(`${path}: ${message}`, options);
     this.name = "DiagramStateError";
   }
 }

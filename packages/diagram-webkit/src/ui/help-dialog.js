@@ -52,7 +52,7 @@ export function createHelpDialog(ctx) {
     const choices = availableTabs();
     if (choices.length === 0) return false;
     const wanted = tab && available(tab) ? tab : current && available(current) ? current : choices[0];
-    if (!isOpen()) returnFocus = ctx.doc.activeElement;
+    if (!isOpen()) returnFocus = ctx.scope.activeElement;
     // The links follow the view, so they are fresh on every open.
     if (sv.linkInfo) sv.linkInfo.render();
     dialog.style.display = "flex";
@@ -69,7 +69,7 @@ export function createHelpDialog(ctx) {
     // Keyboard users get focus back where it was. Opened with the mouse, it
     // is not moved back: the button would keep a focus ring after Esc.
     if (returnFocus && typeof returnFocus.focus === "function" && returnFocus.isConnected) returnFocus.focus({ preventScroll: true });
-    else if (dialog.contains(ctx.doc.activeElement)) /** @type {HTMLElement} */ (ctx.doc.activeElement).blur();
+    else if (dialog.contains(ctx.scope.activeElement)) /** @type {HTMLElement} */ (ctx.scope.activeElement).blur();
     returnFocus = null;
   }
 
@@ -124,7 +124,7 @@ export function createHelpDialog(ctx) {
     else if (event.key === "End") next = order[order.length - 1];
     if (!next) return false;
     event.preventDefault();
-    const onTab = ctx.doc.activeElement && ctx.doc.activeElement.classList.contains("help-tab");
+    const onTab = ctx.scope.activeElement && ctx.scope.activeElement.classList.contains("help-tab");
     select(next, { focus: onTab });
     return true;
   }

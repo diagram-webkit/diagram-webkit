@@ -141,6 +141,16 @@ diagram.on("elementactivate", ({ slug }) => console.log("clicked", slug));
 #diagram { width: 800px; height: 450px; } /* the container must have a size */
 ```
 
+As an element, isolated from the page CSS in a shadow root ([api.md](api.md#custom-element)):
+
+```js
+defineDiagramElement("my-diagram", definition, { features: "embed" });
+```
+
+```html
+<my-diagram view="overview" style="height: 450px"></my-diagram>
+```
+
 ## Extending a definition
 
 ```js

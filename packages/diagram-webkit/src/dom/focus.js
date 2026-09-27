@@ -38,7 +38,13 @@ export function createFocus(ctx) {
     sv.urlSync.updateURLState();
     // v= is what is on screen, so write it again once the camera has arrived.
     if (moveCamera && tags().length > 0) {
-      sv.cameraControl.apply({ focus: { tags: tags() } }, { transition: FOCUS_TRANSITION_MS }).then(() => sv.urlSync.updateURLState());
+      sv.cameraControl.apply({ focus: { tags: tags() } }, { transition: FOCUS_TRANSITION_MS }).then(
+        () => sv.urlSync.updateURLState(),
+        (error) => {
+          console.error("diagram-webkit: moving the camera to the focus failed:", error);
+          ctx.emit("error", error);
+        },
+      );
     }
   }
 

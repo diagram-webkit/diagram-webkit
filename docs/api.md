@@ -1,7 +1,7 @@
 # API
 
 ```js
-import { mountApp, mountDiagram, defineDiagram, standaloneDefinition } from "diagram-webkit"; // browser
+import { mountApp, mountDiagram, defineDiagram, defineDiagramElement, standaloneDefinition } from "diagram-webkit"; // browser
 import { ... } from "diagram-webkit/core";      // pure TS: codecs, state, tags, validate
 import { revealPlugin } from "diagram-webkit/reveal";
 import { diagramWebkit } from "diagram-webkit/tools/vite"; // Node
@@ -24,11 +24,27 @@ const app = await mountApp(document.body, definition); // same options; full pag
 const standalone = await mountApp(document.body);      // no definition: the reader opens a diagram (standalone.md)
 ```
 
-The container needs a size. Styles are scoped to `.dwk-root`, use container queries, and are adopted into the document once.
+The container needs a size. Styles are scoped to `.dwk-root`, use container queries, and are adopted once into the container's root node: the document, or a shadow root when the container is in one.
 
 Errors are shown, not just thrown: bad options or state put a red box with the details in the container before `mountDiagram` rejects; a load error shows inside the instance and rejects `ready`.
 
 Mounts that load the same SVG URL at the same time (Reveal print, per-slide mode) share one fetch and parse; each gets its own copy. Nothing is kept after loading.
+
+## Custom element
+
+```js
+defineDiagramElement("my-diagram", definition, { features: "embed" }); // options: features, fade, window
+```
+
+```html
+<my-diagram view="request-path" state='{"pins":["Cache"]}' style="height: 300px"></my-diagram>
+```
+
+- Mounts in an open shadow root: page CSS cannot reach the diagram. Default `height: 400px`; CSS on the element wins.
+- `view`, `state`, `state-url` resolve like the Reveal slide attributes: `baseState` ⊕ `views[view]` ⊕ `state-url` ⊕ `state`. A change replaces the view.
+- `element.instance`: the `DiagramInstance`, `null` until mounted and after removal. Removing the element destroys it; adding it again mounts a new one.
+- Errors: a red box in the element, `console.error`, and a `diagram-error` event (`event.detail`). A bad attribute leaves the last good view; fixing it applies.
+- Plain `mountDiagram` stays in the light DOM: Reveal, `mountApp` and host pages that style the diagram rely on that.
 
 ## Features
 

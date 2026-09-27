@@ -403,7 +403,7 @@ export function createTagPicker(ctx) {
   }
 
   function releaseTypingFocus() {
-    const active = ctx.doc.activeElement;
+    const active = ctx.scope.activeElement;
     if (isTypingTarget(active) && ctx.root.contains(active)) /** @type {HTMLElement} */ (active).blur();
   }
 

@@ -17,7 +17,10 @@ examples/
                                        incl. data-diagram-state-url (#/from-url)
   split--revealjs--on-basic-diagram/   same deck, importing diagram-webkit/reveal directly
   direct--standalone-app/              no definition: local mode, built as one offline index.html
-e2e/{embed,features,reveal}/           Playwright against the examples
+  direct--embed-minimal/               hand-written SVG embedded in a page, embed preset (e2e: 4104)
+  via--custom-hooks--on-basic-diagram/ parseHelp, tagLabel, renderAbout, renderFooter (e2e: 4105)
+  via--multi-instance--on-basic-diagram/ three instances of one definition on a page (e2e: 4106)
+e2e/{embed,features,reveal,examples}/  Playwright against the examples
 scripts/                               check-examples, next-version (release)
 ```
 
@@ -44,7 +47,7 @@ npx vitest run test/codec.test.ts                        # in packages/diagram-w
 npx playwright test e2e/reveal/deck.spec.ts -g "fragment"
 ```
 
-e2e ports: 4100 pages, 4101 app, 4102 via deck, 4103 split deck (`PORTS` in `playwright.config.ts`).
+e2e ports: 4100 pages, 4101 app, 4102 via deck, 4103 split deck, 4104-4106 the other examples (`PORTS` in `playwright.config.ts`).
 
 ## Rules
 

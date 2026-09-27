@@ -11,7 +11,10 @@ const PAN_KEYS = {
   ArrowDown: [0, 1],
 };
 
-export function isTypingTarget(target) {
+export function isTypingTarget(eventTarget) {
+  // A document listener sees a shadow host as the target; look inside.
+  let target = eventTarget;
+  while (target && target.shadowRoot && target.shadowRoot.activeElement) target = target.shadowRoot.activeElement;
   if (!target || target.nodeType !== 1) return false;
   if (target.isContentEditable) return true;
   const tag = target.tagName;

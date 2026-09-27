@@ -33,6 +33,7 @@ export function createTheme(ctx) {
   function applyTheme(theme, { persist = false } = {}) {
     currentTheme = theme === THEME_DARK ? THEME_DARK : THEME_LIGHT;
     ctx.root.dataset.theme = currentTheme;
+    ctx.services.darkCanvas.render(currentTheme === THEME_DARK);
     if (persist) ctx.storage.set(STORAGE_KEY, currentTheme);
     buttons.forEach(renderButton);
     ctx.notifyStateChange();

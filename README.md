@@ -50,7 +50,7 @@ npx diagram-webkit validate my-diagram.svg --definition definition.js
 
 - [docs/user-guide.md](https://github.com/diagram-webkit/diagram-webkit/blob/main/docs/user-guide.md): using the app and making a diagram in draw.io
 - [docs/README.md](https://github.com/diagram-webkit/diagram-webkit/blob/main/docs/README.md): index for developers (definition, state, features, API, URL parameters, reveal.js, standalone, tools, development)
-- [examples/](https://github.com/diagram-webkit/diagram-webkit/tree/main/examples): a definition package, two reveal.js decks, and the standalone app
+- [examples/](https://github.com/diagram-webkit/diagram-webkit/tree/main/examples): a definition package, two reveal.js decks, the standalone app, a minimal embed, definition hooks and several instances on one page
 
 ## Repository
 

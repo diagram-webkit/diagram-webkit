@@ -10,7 +10,7 @@ function example(folder: string, port: number) {
   };
 }
 
-export const PORTS = { app: 4101, via: 4102, split: 4103 } as const;
+export const PORTS = { app: 4101, via: 4102, split: 4103, embedMinimal: 4104, customHooks: 4105, multiInstance: 4106 } as const;
 
 export default defineConfig({
   testDir: "e2e",
@@ -26,11 +26,15 @@ export default defineConfig({
           example("direct--basic-diagram", PORTS.app),
           example("via--revealjs--on-basic-diagram", PORTS.via),
           example("split--revealjs--on-basic-diagram", PORTS.split),
+          example("direct--embed-minimal", PORTS.embedMinimal),
+          example("via--custom-hooks--on-basic-diagram", PORTS.customHooks),
+          example("via--multi-instance--on-basic-diagram", PORTS.multiInstance),
         ]),
   ],
   projects: [
     { name: "embed", testDir: "e2e/embed", use: { baseURL: "http://127.0.0.1:4100" } },
     { name: "features", testDir: "e2e/features", use: { baseURL: `http://127.0.0.1:${PORTS.app}` } },
     { name: "reveal", testDir: "e2e/reveal", use: { baseURL: `http://127.0.0.1:${PORTS.via}` } },
+    { name: "examples", testDir: "e2e/examples" },
   ],
 });

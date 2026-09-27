@@ -107,7 +107,7 @@ The selection stays after each action, so you can go back and forth. Only topics
 
 ### Dark theme
 
-The theme button at the top of the menu switches between light and dark. Your choice is remembered in this browser.
+The theme button at the top of the menu switches between light and dark. Your choice is remembered in this browser. The diagram's own colours are turned dark (light boxes become dark, dark text light, hues kept); highlights, pins and the tag picker glow keep their colours.
 
 ## Sharing
 

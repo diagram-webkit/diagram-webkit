@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   canonicalView,
+  DARK_FILTER_CSS,
+  darkCssColor,
+  darkRgb,
+  DiagramStateError,
   diffView,
   mergeView,
   normalizeState,
@@ -227,6 +231,13 @@ describe("slide codec", () => {
     expect(parseSlideSnippet(snippet)).toEqual(view);
   });
 
+  it("escapes a double quote in the view name", () => {
+    const views = { 'a"b': { state: { level: 0 } } };
+    const snippet = serializeSlide({ level: 0 }, {}, { viewName: 'a"b' });
+    expect(snippet).toContain('data-diagram-view="a&quot;b"');
+    expect(parseSlideSnippet(snippet, {}, views)).toEqual({ level: 0 });
+  });
+
   it("resolves named views and reports unknown ones", () => {
     const views = { overview: { title: "Overview", state: { camera: { fit: true as const }, level: 0 } } };
     expect(resolveSlideView(base, views, "overview", '{"pins":["Rbac"]}')).toEqual({
@@ -319,6 +330,7 @@ describe("state", () => {
     const json = stateToJson(state);
     expect(json).toBe('{"ui":{"panelOpen":true},"version":1,"view":{"camera":{"focus":{"tags":["X"]},"padding":0.1},"pins":["a","b"]}}');
     expect(stateFromJson(json).view).toEqual({ camera: { focus: { tags: ["X"] }, padding: 0.1 }, pins: ["a", "b"] });
+    expect(() => stateFromJson("{")).toThrow(DiagramStateError);
     expect(() => stateFromJson("{")).toThrow(/Invalid state JSON/);
   });
 });
@@ -380,5 +392,35 @@ describe("undo history", () => {
     const full = history();
     [1, 2, 3, 4, 5].forEach((n) => full.record(n));
     expect([full.undo(), full.undo(), full.undo(), full.undo()]).toEqual([4, 3, 2, null]);
+  });
+});
+
+describe("dark colours", () => {
+  // Pixels Chrome drew with the former filter (invert, hue-rotate 175deg,
+  // saturate 1.5, brightness 1.4) over these colours.
+  const chrome: [number[], number[]][] = [
+    [[255, 255, 255], [0, 0, 0]],
+    [[0, 0, 0], [255, 255, 255]],
+    [[218, 232, 252], [4, 39, 77]],
+    [[108, 142, 191], [90, 175, 255]],
+    [[255, 23, 68], [255, 153, 255]],
+    [[245, 245, 245], [14, 14, 14]],
+    [[214, 182, 86], [186, 96, 0]],
+    [[184, 84, 80], [255, 163, 172]],
+  ];
+
+  it("matches the filter", () => {
+    chrome.forEach(([light, dark]) => expect(darkRgb(light as [number, number, number])).toEqual(dark));
+  });
+
+  it("rewrites computed rgb/rgba values and leaves the rest", () => {
+    expect(darkCssColor("rgb(218, 232, 252)")).toBe("rgb(4, 39, 77)");
+    expect(darkCssColor("rgba(218, 232, 252, 0.5)")).toBe("rgba(4, 39, 77, 0.5)");
+    expect(darkCssColor("rgb(218 232 252 / 50%)")).toBe("rgba(4, 39, 77, 0.5)");
+    expect(darkCssColor("rgba(0, 0, 0, 0)")).toBeNull();
+    expect(darkCssColor("none")).toBeNull();
+    expect(darkCssColor('url("#gradient")')).toBeNull();
+    expect(darkCssColor("oklch(0.5 0.1 200)")).toBeNull();
+    expect(DARK_FILTER_CSS).toBe("invert(1) hue-rotate(175deg) saturate(1.5) brightness(1.4)");
   });
 });

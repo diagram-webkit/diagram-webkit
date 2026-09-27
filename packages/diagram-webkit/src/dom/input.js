@@ -68,7 +68,7 @@ export function createInput(ctx) {
     const coverZoom = s.coverZoom;
 
     if (ctx.services.highlightLine) ctx.services.highlightLine.clear();
-    const activeEl = ctx.doc.activeElement;
+    const activeEl = ctx.scope.activeElement;
     if (activeEl && activeEl !== ctx.doc.body && activeEl.classList && activeEl.classList.contains("filter-result-item")) {
       /** @type {HTMLElement} */ (activeEl).blur();
     }

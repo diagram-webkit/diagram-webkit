@@ -54,7 +54,7 @@ export function serializeSlide(
 ): string {
   const delta = slideDelta(view, base);
   const attrs = [
-    viewName ? ` ${SLIDE_ATTRS.view}="${escapeAttribute(viewName)}"` : "",
+    viewName ? ` ${SLIDE_ATTRS.view}="${escapeAttribute(viewName).replace(/"/g, "&quot;")}"` : "",
     Object.keys(delta).length > 0 ? ` ${SLIDE_ATTRS.state}='${escapeAttribute(stableStringify(delta))}'` : "",
   ].join("");
   const heading = title ? `\n  <h2>${escapeAttribute(title)}</h2>` : "";
@@ -91,6 +91,8 @@ export function parseStateUrlAttribute(
 export interface SlideStateSources {
   stateUrl?: string | null;
   maxAnnotations?: number;
+  // Attribute names in error messages (the custom element has its own).
+  names?: { view: string; state: string; stateUrl: string };
 }
 
 // base ⊕ views[name] ⊕ state URL ⊕ state JSON, as a complete view.
@@ -99,18 +101,18 @@ export function resolveSlideView(
   views: Readonly<Record<string, NamedView>>,
   viewName: string | null | undefined,
   stateAttr: string | null | undefined,
-  { stateUrl, maxAnnotations }: SlideStateSources = {},
+  { stateUrl, maxAnnotations, names = SLIDE_ATTRS }: SlideStateSources = {},
 ): DiagramView {
   let view = base;
   if (viewName) {
     const named = views[viewName];
     if (!named) {
-      throw new Error(`${SLIDE_ATTRS.view}="${viewName}": unknown view; known: ${Object.keys(views).join(", ") || "(none)"}`);
+      throw new Error(`${names.view}="${viewName}": unknown view; known: ${Object.keys(views).join(", ") || "(none)"}`);
     }
     view = mergeView(view, named.state);
   }
-  view = mergeView(view, parseStateUrlAttribute(stateUrl, SLIDE_ATTRS.stateUrl, maxAnnotations));
-  return normalizeView(mergeView(view, parseStateAttribute(stateAttr)));
+  view = mergeView(view, parseStateUrlAttribute(stateUrl, names.stateUrl, maxAnnotations));
+  return normalizeView(mergeView(view, parseStateAttribute(stateAttr, names.state)));
 }
 
 // Reads a snippet produced by serializeSlide back into its view.

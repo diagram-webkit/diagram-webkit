@@ -5,6 +5,7 @@
 /**
  * @typedef {object} Context
  * @property {Document} doc
+ * @property {Document | ShadowRoot} scope the container's root node: focus and adopted styles live here
  * @property {Window & typeof globalThis} win
  * @property {HTMLElement} root
  * @property {AbortSignal} signal

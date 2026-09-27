@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 160" width="420" height="160">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#333"/></marker>
+  </defs>
+  <g data-cell-id="client" data-tags="Network" data-slug="Client" data-help="Client&#10;Sends HTTPS requests.">
+    <rect x="20" y="50" width="110" height="60" rx="8" fill="#dae8fc" stroke="#6c8ebf" stroke-width="2"/>
+    <text x="75" y="85" text-anchor="middle" font-family="sans-serif" font-size="14">Client</text>
+  </g>
+  <g data-cell-id="request" data-tags="Network">
+    <path d="M130 80 H282" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+  </g>
+  <g data-cell-id="server" data-tags="Data level-1" data-slug="Server" data-help="Server&#10;Answers from its database.">
+    <rect x="290" y="50" width="110" height="60" rx="8" fill="#d5e8d4" stroke="#82b366" stroke-width="2"/>
+    <text x="345" y="85" text-anchor="middle" font-family="sans-serif" font-size="14">Server</text>
+  </g>
+</svg>

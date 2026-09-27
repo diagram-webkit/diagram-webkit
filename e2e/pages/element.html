@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>custom element</title>
+    <style>
+      body { margin: 0; font-family: sans-serif; }
+      /* Page CSS that would break a diagram in the light DOM. */
+      svg, button { display: none !important; }
+      div { background: magenta !important; }
+      basic-diagram, basic-diagram-app { width: 600px; height: 400px; margin: 20px; border: 1px solid #999; }
+    </style>
+  </head>
+  <body>
+    <basic-diagram id="embed" view="request-path"></basic-diagram>
+    <basic-diagram-app id="app"></basic-diagram-app>
+    <script type="module" src="./element.js"></script>
+  </body>
+</html>

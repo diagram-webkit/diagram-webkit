@@ -116,6 +116,8 @@ export function createLoader(ctx) {
     if (!svgEl || svgEl.nodeName.toLowerCase() !== "svg") throw new DiagramLoadError("Loaded diagram is not a valid SVG");
 
     ctx.els.image.replaceChildren(svgEl);
+    // As authored, for saving the view (view-export.js): the rest is ours.
+    ctx.s.svgRootAttrs = { style: svgEl.getAttribute("style"), preserveAspectRatio: svgEl.getAttribute("preserveAspectRatio") };
     svgEl.setAttribute("preserveAspectRatio", "xMinYMin meet");
     svgEl.style.display = "block";
     svgEl.style.width = "100%";

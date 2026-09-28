@@ -38,6 +38,7 @@ import { STARTING_CLASS } from "./lifecycle.js";
 import { createHighlightLine } from "./overlays/highlight-line.js";
 import { createPinRings } from "./overlays/pins.js";
 import { createLineOverlays } from "./overlays/line-overlays.js";
+import { createViewExport } from "./view-export.js";
 import { createPulse } from "./overlays/pulse.js";
 import { createPins } from "./pins.js";
 import { adoptStyles } from "./styles.js";
@@ -81,6 +82,7 @@ function resolveConfig(definition) {
       license: content.license || "",
       repository: content.repository || "",
       footer: { links: [], version: "", ...(content.footer || {}) },
+      downloads: content.downloads || null,
     },
     storage: { namespace: (definition.storage && definition.storage.namespace) || definition.id },
     parseHelp: hooks.parseHelp || parseHelpContent,
@@ -346,6 +348,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
   sv.pins = createPins(ctx);
   sv.pinRings = createPinRings(ctx);
   sv.lineOverlays = createLineOverlays(ctx);
+  sv.viewExport = createViewExport(ctx);
   sv.pulse = createPulse(ctx);
   sv.highlight = createHighlight(ctx);
   sv.focus = createFocus(ctx);

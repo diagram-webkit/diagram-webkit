@@ -81,5 +81,24 @@ export function createDarkCanvas(ctx) {
     ctx.services.highlight.redraw();
   }
 
-  return { render };
+  // For a copy of the diagram (view-export.js): its colours as in the light
+  // theme. copyOf maps each diagram element to its copy.
+  function lightenCopy(copyOf) {
+    if (!dark) return;
+    (overrides || []).forEach(({ element, prop, inline, priority }) => {
+      const copy = copyOf.get(element);
+      if (!copy) return;
+      if (inline) copy.style.setProperty(prop, inline, priority);
+      else copy.style.removeProperty(prop);
+    });
+    unstyled.forEach((element) => {
+      const copy = copyOf.get(element);
+      if (copy && copy.style.length === 0) copy.removeAttribute("style");
+    });
+    copyOf.forEach((copy, element) => {
+      if (element.matches && element.matches(IMAGES)) copy.style.removeProperty("filter");
+    });
+  }
+
+  return { render, lightenCopy };
 }

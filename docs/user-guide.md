@@ -270,6 +270,18 @@ npx diagram-webkit render my-diagram.drawio.svg --out my-diagram.svg
 
 `diagram-webkit validate` reports an `overlay` without a matching `overlay-definition` (`unknown-overlay`), a name defined twice (`duplicate-overlay-definition`), and an `overlay-definition` that is not exactly one name (`overlay-definition-format`).
 
+### Downloading the diagram
+
+A diagram can offer downloads in its About box (`content.downloads`, [definition.md](definition.md)):
+
+| Row | What you get |
+| --- | --- |
+| draw.io original | the source; opens and can be edited in draw.io, but without the bands |
+| Full diagram | the rendered SVG: everything, no filters, bands included; not a draw.io file |
+| This view | made by the page when you click: the cells your level, topics and search show, their bands, your pins and notes, always in the light theme; not a draw.io file |
+
+"This view" keeps each note's title and text as a tooltip (`<title>`) in the file.
+
 ### Help text
 
 The first line of `help` is the title. Everything after it is the explanation:

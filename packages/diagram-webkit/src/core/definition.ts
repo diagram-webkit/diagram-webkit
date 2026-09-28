@@ -16,6 +16,11 @@ export interface FooterLink {
   paren?: boolean;
 }
 
+export interface DownloadFile {
+  url: string;
+  name?: string;
+}
+
 export interface DefinitionInput {
   id: string;
   requires?: string;
@@ -50,6 +55,10 @@ export interface DefinitionInput {
     // The diagram's own CSS (custom-* classes, colours); adopted with the
     // package CSS.
     css?: string;
+    // The About tab's download table, one row per key given: the draw.io
+    // source, the rendered SVG, and the view as it is on screen (built in the
+    // browser). name: the file name to save as.
+    downloads?: { drawio?: DownloadFile; full?: DownloadFile; view?: { name?: string } };
   };
   storage?: { namespace?: string };
   features?: FeaturesSpec;
@@ -134,6 +143,13 @@ const SCHEMA: Spec = {
         footer: { fields: { links: "array", version: "string" } },
         texts: { record: "string" },
         css: "string",
+        downloads: {
+          fields: {
+            drawio: { fields: { url: "string", name: "string" } },
+            full: { fields: { url: "string", name: "string" } },
+            view: { fields: { name: "string" } },
+          },
+        },
       },
     },
     storage: { fields: { namespace: "string" } },
@@ -289,6 +305,10 @@ function finalize(raw: Record<string, unknown>): DiagramDefinition {
   const texts = (raw.content as { texts?: Record<string, string> } | undefined)?.texts;
   const unknownTexts = Object.keys(texts || {}).filter((key) => !(key in DEFAULT_TEXTS));
   if (unknownTexts.length > 0) fail("definition.content.texts", `unknown keys ${unknownTexts.join(", ")}`);
+  const downloads = (raw.content as { downloads?: Record<string, { url?: string }> } | undefined)?.downloads || {};
+  (["drawio", "full"] as const).forEach((key) => {
+    if (downloads[key] && !downloads[key].url) fail(`definition.content.downloads.${key}.url`, "required");
+  });
 
   const definition: Record<string, unknown> = {
     ...raw,

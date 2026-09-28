@@ -34,12 +34,20 @@ export function createUi(ctx) {
   // The diagram's own name: its label if the definition set one, else the page title.
   const siteName = () =>
     texts.diagramLabel !== DEFAULT_TEXTS.diagramLabel ? texts.diagramLabel : (content.page && content.page.title) || texts.diagramLabel;
+  // content.downloads, in table order: draw.io source, rendered, this view.
+  const downloads = content.downloads || {};
+  const downloadRows = [
+    downloads.drawio && { title: texts.downloadDrawioTitle, description: texts.downloadDrawioDescription, href: downloads.drawio.url, name: downloads.drawio.name },
+    downloads.full && { title: texts.downloadFullTitle, description: texts.downloadFullDescription, href: downloads.full.url, name: downloads.full.name },
+    downloads.view && { title: texts.downloadViewTitle, description: texts.downloadViewDescription },
+  ].filter(Boolean);
   const aboutHtml =
     features.about && content.about
       ? aboutMarkup(texts, {
           name: texts.aboutTitle !== DEFAULT_TEXTS.aboutTitle ? texts.aboutTitle : siteName(),
           description: content.page.description,
           html: hooks.renderAbout ? hooks.renderAbout(content.about) : content.about,
+          downloads: downloadRows,
           version: content.footer.version,
           license: content.license,
           maintainer: content.page.author,
@@ -93,6 +101,8 @@ export function createUi(ctx) {
     sv.helpDialog = createHelpDialog(ctx);
     sv.helpDialog.initialize();
     if (helpTabs.includes("settings")) createSettings(ctx);
+    const saveView = helpTabs.includes("about") && sv.helpDialog.panel("about").querySelector('[data-role="download-view"]');
+    if (saveView) saveView.addEventListener("click", () => sv.viewExport.download(), { signal: ctx.signal });
   }
   if (features.linkInfo) sv.linkInfo = createLinkInfo(ctx);
   if (features.shortcuts || features.input.keyboard) {

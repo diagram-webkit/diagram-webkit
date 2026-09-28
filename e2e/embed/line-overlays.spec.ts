@@ -153,6 +153,67 @@ test("lineOverlays: false draws nothing; development mode applies definition.dev
   expect(await mountAndRead(page, `${extended} return w.mountDiagram(slot, def, { mode: "production" });`)).toMatchObject({ layers: 0 });
 });
 
+test("About lists the downloads; This view saves filters, bands, pins and notes, in the light theme", async ({ page }) => {
+  await page.goto("/line-overlays.html");
+  await waitReady(page);
+  const setup = `
+    const def = w.definition.extend({ content: { about: "<p>About</p>", downloads: {
+      drawio: { url: "./line-overlays.svg", name: "d.drawio.svg" },
+      full: { url: "./line-overlays.svg", name: "d.svg" },
+      view: { name: "d-view.svg" },
+    } } });
+    return w.mountDiagram(slot, def, { features: { preset: "embed", about: true }, initialState: { view: {
+      hiddenTags: ["Flow.Out"], pins: ["Box"], theme: "dark",
+      annotations: [
+        { x: 0.4, y: 0.3, type: "user-info", title: "Here", description: "a point" },
+        { x: 0.2, y: 0.2, type: "area-important", title: "Zone", description: "", shape: "rectangle", widthRel: 0.1, heightRel: 0.08 },
+        { x: 0.1, y: 0.1, x2: 0.3, y2: 0.2, type: "arrow-success", title: "", description: "" },
+      ],
+    } } });`;
+  await mountAndRead(page, setup);
+  await settle(page, 400);
+  const rows = await page.evaluate(() =>
+    Array.from(document.querySelectorAll("body > div:last-of-type .about-downloads tr")).map((row) => {
+      const link = row.querySelector("a");
+      return [row.querySelector("th")!.textContent, link ? link.getAttribute("download") : row.querySelector("button")!.dataset.role];
+    }),
+  );
+  expect(rows).toEqual([
+    ["draw.io original", "d.drawio.svg"],
+    ["Full diagram", "d.svg"],
+    ["This view", "download-view"],
+  ]);
+
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.evaluate(() => (document.querySelector("body > div:last-of-type [data-role=download-view]") as HTMLButtonElement).click()),
+  ]);
+  expect(download.suggestedFilename()).toBe("d-view.svg");
+  const saved = fs.readFileSync(await download.path(), "utf8");
+  expect(saved).toMatch(/^<\?xml version="1.0" encoding="UTF-8"\?>\n<!-- This view of line-overlays, saved /);
+  expect(saved).not.toContain("content=");
+  expect(saved).not.toContain('id="cell-out"');
+  expect(saved).not.toContain("!important");
+  expect(saved).not.toContain("width: 100%");
+  const counts = await page.evaluate((text) => {
+    const svg = new DOMParser().parseFromString(text, "image/svg+xml").documentElement;
+    return {
+      bands: svg.querySelectorAll(".dwk-line-overlay-band").length,
+      pins: svg.querySelectorAll(".dwk-view-pins circle").length,
+      notes: Array.from(svg.querySelectorAll(".dwk-view-annotations > g")).map((g) => g.getAttribute("class")),
+      titles: Array.from(svg.querySelectorAll(".dwk-view-annotations title")).map((t) => t.textContent),
+      viewBox: svg.getAttribute("viewBox"),
+    };
+  }, saved);
+  expect(counts).toEqual({
+    bands: 2,
+    pins: 2,
+    notes: ["dwk-view-point", "dwk-view-area", "dwk-view-arrow"],
+    titles: ["Here\n\na point", "Zone"],
+    viewBox: "0 0 400 300",
+  });
+});
+
 // e2e/pages/box-arrows.svg: one line from box1 to box4 with arrow-at-each-box,
 // under box2 (a rect) and box3 (an ellipse), both drawn after it and filled.
 // No arrow: the filled container before it, a priority marker (pri-1) over it.

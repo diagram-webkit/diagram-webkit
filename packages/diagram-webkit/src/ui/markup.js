@@ -85,9 +85,23 @@ function modal(prefix, name, closeName, title, body, contentClass = "") {
 // tabs: ordered subset of HELP_TABS.
 export const HELP_TABS = Object.freeze(["open", "about", "links", "url", "shortcuts", "settings"]);
 
-// The About tab: name and description, the definition's own text, then the
-// facts that apply.
-// about: { name, description, html, version, license, maintainer, repository, builtWith }
+// The About tab's download table. rows: [{ title, description, href, name }];
+// a row without href is "this view", saved by the page (data-role="download-view").
+function downloadsMarkup(t, rows) {
+  if (rows.length === 0) return "";
+  const action = (row) =>
+    row.href
+      ? `<a class="link-info-action" href="${escapeHTML(row.href)}" download="${escapeHTML(row.name || "")}">${escapeHTML(t.downloadAction)}</a>`
+      : `<button type="button" class="link-info-action" data-role="download-view">${escapeHTML(t.downloadAction)}</button>`;
+  const body = rows
+    .map((row) => `<tr><th scope="row">${escapeHTML(row.title)}</th><td>${escapeHTML(row.description)}</td><td>${action(row)}</td></tr>`)
+    .join("");
+  return `<section class="about-downloads"><h4>${escapeHTML(t.downloadsTitle)}</h4><table>${body}</table></section>`;
+}
+
+// The About tab: name and description, the definition's own text, the
+// downloads, then the facts that apply.
+// about: { name, description, html, downloads, version, license, maintainer, repository, builtWith }
 export function aboutMarkup(t, about) {
   const out = (href, text) => `<a href="${escapeHTML(href)}" target="_blank" rel="noopener">${escapeHTML(text)}</a>`;
   const repoLabel = (href) => href.replace(/^https?:\/\//, "").replace(/\/$/, "");
@@ -102,7 +116,7 @@ export function aboutMarkup(t, about) {
   const factList = facts.length
     ? `<dl class="about-facts">${facts.map(([term, value]) => `<div><dt>${escapeHTML(term)}</dt><dd>${value}</dd></div>`).join("")}</dl>`
     : "";
-  return `${header}<div class="about-text">${about.html}</div>${factList}`;
+  return `${header}<div class="about-text">${about.html}</div>${downloadsMarkup(t, about.downloads || [])}${factList}`;
 }
 
 // The Settings tab. debug: { on, toggle } - toggle: a reload can change it.

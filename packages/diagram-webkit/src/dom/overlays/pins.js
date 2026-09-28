@@ -141,10 +141,18 @@ export function createPinRings(ctx) {
     });
   }
 
+  // The rings on screen, in diagram user units (view-export.js).
+  function drawnRings() {
+    return Array.from(rings.values())
+      .filter((entry) => entry.ring.style.display !== "none")
+      .map(({ cx, cy, r }) => ({ cx, cy, r }));
+  }
+
   return {
     render,
     reposition,
     scheduleReposition,
+    drawnRings,
     hasIndicatorFor: (element) => rings.has(element),
   };
 }

@@ -451,6 +451,59 @@
   margin-top: 4px;
 }
 
+:where(.dwk-root) .about-downloads {
+  margin: 22px 0 0;
+}
+
+:where(.dwk-root) .about-downloads h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+:where(.dwk-root) .about-downloads table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+:where(.dwk-root) .about-downloads th,
+:where(.dwk-root) .about-downloads td {
+  padding: 8px 10px 8px 0;
+  border-top: 1px solid var(--help-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+:where(.dwk-root) .about-downloads th {
+  white-space: nowrap;
+}
+
+:where(.dwk-root) .about-downloads td:last-child {
+  padding-right: 0;
+  text-align: right;
+}
+
+:where(.dwk-root) .about-downloads .link-info-action {
+  display: inline-block;
+  color: inherit;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+@container dwk (max-width: 520px) {
+  :where(.dwk-root) .about-downloads tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+
+  :where(.dwk-root) .about-downloads td:nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
 :where(.dwk-root) .about-facts {
   display: flex;
   flex-wrap: wrap;

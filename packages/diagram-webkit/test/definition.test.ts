@@ -146,6 +146,15 @@ describe("presets", () => {
   });
 });
 
+describe("content.downloads", () => {
+  it("needs a url for files and nothing for this view", () => {
+    const withDownloads = defineDiagram({ id: "d", content: { downloads: { drawio: { url: "./d.drawio.svg", name: "d.drawio.svg" }, view: {} } } });
+    expect(withDownloads.content!.downloads!.view).toEqual({});
+    expect(() => defineDiagram({ id: "d", content: { downloads: { full: { name: "d.svg" } as never } } })).toThrow(/content\.downloads\.full\.url: required/);
+    expect(() => defineDiagram({ id: "d", content: { downloads: { other: {} } as never } })).toThrow(/downloads\.other: unknown key/);
+  });
+});
+
 describe("development mode", () => {
   const rendered = defineDiagram({
     id: "modes",

@@ -93,6 +93,11 @@ export default defineDiagram({
     },
     texts: { diagramLabel: "My diagram" }, // override UI strings; unknown keys throw
     css: ".custom-edge { stroke-dasharray: 4 2; }",         // adopted with the engine CSS
+    downloads: {                        // About tab: a download table, one row per key (texts: download*)
+      drawio: { url: new URL("./d.drawio.svg", import.meta.url).href, name: "d.drawio.svg" }, // the draw.io source
+      full: { url: new URL("./d.svg", import.meta.url).href, name: "d.svg" },  // rendered (tools.md#render)
+      view: { name: "d-view.svg" },     // "This view": built in the browser from what is on screen
+    },                                  // name: file name to save as (Vite hashes asset names); url required
   },
 
   storage: { namespace: "my-diagram" }, // localStorage key prefix; default: id

@@ -145,12 +145,13 @@ Any draw.io SVG can be opened. It becomes much more useful when you add three th
 | `help` | the explanation shown on hover and found by search | `Load balancer` + a description on the next lines |
 | `slug` | a short, stable name, so the part can be pinned and linked to | `LoadBalancer` |
 
-More, for lines, draw on top of them ([Lines: overlays](#lines-overlays)):
+More, for lines, draw on top of them ([Lines: overlays](#lines-overlays), [Lines: an arrow at each box](#lines-an-arrow-at-each-box)):
 
 | Property | What it does | Example |
 | --- | --- | --- |
 | `overlay-definition` | this line's look defines an overlay | `egress` |
 | `overlay` | draw these overlays along this line | `egress` or `egress,ingress` |
+| `arrow-at-each-box` | on a line: repeat its arrowhead at every box it passes under. On a box: always (`true`) or never (`false`) an arrow here | `true` |
 | `overlay-destination` | on a box: bands end or start here, never pass through | `true` |
 
 ### Adding properties
@@ -242,6 +243,21 @@ Keep in mind:
 - If two joined lines carry a different number of overlays (`egress` against `egress,ingress`), the band makes a small sideways step at the join. Give lines of one flow the same overlays.
 - Curved lines are followed; line jumps (draw.io's arcs where lines cross) are drawn straight.
 
+### Lines: an arrow at each box
+
+One line through a row of boxes, drawn under them, reads `---box1---box2---box3--->box4`: only the end has an arrow. With `arrow-at-each-box = true` on the line, it reads `--->box1--->box2--->box3--->box4`, and stays one line:
+
+```
+line   tags: Api   arrow-at-each-box: true      (drawn under box1..box3, arrow at the end)
+```
+
+- The arrowhead is a copy of the line's own end arrow (shape, size, colour), turned along the line, with its tip on the box's edge. Rectangles and ellipses are exact; other shapes use their bounding rectangle.
+- Each arrow shows while its box and the line show. Hide `box2` (its tags, its level) and its arrow goes: the line runs on to `box3` as if `box2` were never there. That is the point: no extra short lines per box, whatever the boxes' tags.
+- Which boxes: the ones the line passes **under**, that is drawn after it (on top of it in draw.io: Arrange → To Front, or simply added later) and filled. Not: the boxes the line starts and ends at (they have its own arrowheads), boxes without a fill (the line shows through), containers the line lies in (drawn before it), and markers: shapes with a priority or info tag (`pri-1`, `info`), such as the coloured circles and `?` boxes placed on lines.
+- `arrow-at-each-box` on a box overrides that: `true` gives it an arrow even as a marker or without a fill, `false` never.
+- A line without an arrowhead has nothing to repeat (a warning in the browser console). With an arrow only at the start, the line counts as running the other way.
+- `validate` reports a value other than `true` or `false` (`arrow-at-each-box-format`).
+
 ### Help text
 
 The first line of `help` is the title. Everything after it is the explanation:
@@ -329,6 +345,8 @@ For the curious; nothing here is needed to use it.
 | Two overlay bands swap sides at a box | The lines on each side list the overlays in orders that disagree, seen along their arrows. Swap the order in `overlay` on one of them. |
 | A band passes through a box it should end at | Set `overlay-destination = true` on the box. |
 | An overlay band stops at a box | The next line does not leave that box (it arrives at it too), or has no `overlay` with the same name. |
+| No arrow at a box on an `arrow-at-each-box` line | The box is drawn before the line (bring it to the front in draw.io), has no fill, or is a marker (`pri-N`, `info`). Set `arrow-at-each-box = true` on the box to force one. |
+| An arrow at a box where none belongs | Set `arrow-at-each-box = false` on that box. |
 | A tag cannot be shown again | Its parent is hidden. Show the parent (the menu says which). |
 | Something is missing | Check the level and the hidden tags in the menu, or press **Clear all filters**. |
 | Pictures are gone | They pointed to the internet. Put the pictures into the diagram itself. |

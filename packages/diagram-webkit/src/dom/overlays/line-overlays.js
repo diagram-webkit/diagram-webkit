@@ -1,10 +1,11 @@
 // What the engine draws along lines: overlay bands (overlay=<name>, styled
 // like the line with overlay-definition=<name>; drawn on top of the whole
-// diagram, except the cells with a slug, which stay above them). Each band
-// follows the visibility, fade and dim of the lines it belongs to.
-// core/line-overlays.ts has the geometry, svg-geometry.js reads it from
-// attributes.
+// diagram, except the cells with a slug, which stay above them) and box
+// arrows (arrow-at-each-box, box-arrows.js). Each follows the visibility,
+// fade and dim of the cells it belongs to. core/line-overlays.ts has the
+// geometry, svg-geometry.js reads it from attributes.
 import { LineOverlayError, layoutOverlays, parseOverlayNames } from "../../core/line-overlays";
+import { BOX_ARROW_CLASS, drawBoxArrows } from "./box-arrows.js";
 import { CELL_TYPE_ATTR, cellName, readBoxes, readLine, rootMatrix, warn } from "./svg-geometry.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -23,10 +24,10 @@ const LINES_ATTR = "data-lines";
 // each side) and they overlap instead. Their ends stay where they are.
 const SEAM_OVERLAP = 0.5;
 const ABOVE_CLASS = "dwk-above-overlays";
-const DRAWN = `.${LAYER_CLASS}`;
+const DRAWN = `.${LAYER_CLASS}, .${BOX_ARROW_CLASS}`;
 
-// data-lines for the lines a band follows; null when an id cannot go in a
-// space-separated list.
+// data-lines for the cells a band or arrow follows; null when an id cannot go
+// in a space-separated list.
 const linesAttr = (ids) => (ids.every((id) => id && !/\s/.test(id)) ? ids.join(" ") : null);
 
 // Definition name -> the path whose look the bands copy, in diagram order.
@@ -157,15 +158,25 @@ function raiseSlugCells(svg, metadata, layer) {
 }
 
 /**
- * Draws the bands into `svg`. Returns them, each with the lines it follows.
+ * Draws the bands and the box arrows into `svg`. Returns what was drawn, each
+ * with the cells it follows.
  * @param {SVGSVGElement} svg
  * @param {import("../../core/validate").MetadataAttrs} metadata
+ * @param {import("../../core/tags").TagModel} model the diagram's tags (markers: priority and info tags)
  */
-export function drawAll(svg, metadata) {
-  if (svg.querySelector(DRAWN)) throw new LineOverlayError("the SVG already has its line overlays");
-  const bands = drawBands(svg, metadata, readBoxes(svg, metadata));
+export function drawAll(svg, metadata, model) {
+  if (svg.querySelector(DRAWN)) throw new LineOverlayError("the SVG already has its line overlays and box arrows");
+  const boxes = readBoxes(svg, metadata);
+  const bands = drawBands(svg, metadata, boxes);
+  // Asked for every line and box pair: once per box.
+  const markers = new Map();
+  const isMarker = (cell) => {
+    if (!markers.has(cell)) markers.set(cell, model.getPrimarySeverityTag(model.parseTags(cell.getAttribute(metadata.tagsAttr))) !== null);
+    return markers.get(cell);
+  };
+  const arrows = drawBoxArrows(svg, metadata, boxes, linesAttr, isMarker);
   if (bands) raiseSlugCells(svg, metadata, bands.layer);
-  return { layer: bands && bands.layer, bands: bands ? bands.bands : [] };
+  return { layer: bands && bands.layer, bands: bands ? bands.bands : [], arrows };
 }
 
 /** @param {import("../context").Context & Record<string, any>} ctx */
@@ -177,7 +188,7 @@ export function createLineOverlays(ctx) {
     return /** @type {SVGSVGElement | null} */ (ctx.els.image.querySelector(":scope > svg"));
   }
 
-  // A band shows while all of its lines show, at the lowest of their
+  // A band or arrow shows while all of its cells show, at the lowest of their
   // opacities, and counts as highlighted only when all of them are.
   function cellState(cell, svg) {
     let hidden = false;
@@ -222,7 +233,8 @@ export function createLineOverlays(ctx) {
   function render() {
     const svg = diagramSvg();
     if (!svg || !ctx.features.lineOverlays) return;
-    marks = drawAll(svg, ctx.config.metadata).bands;
+    const drawn = drawAll(svg, ctx.config.metadata, ctx.model);
+    marks = [...drawn.bands, ...drawn.arrows];
     if (marks.length === 0) return;
     sync();
     observe(svg);

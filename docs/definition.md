@@ -22,6 +22,7 @@ export default defineDiagram({
     slugAttr: "data-slug",
     overlayAttr: "data-overlay",                      // line overlays: names on a line
     overlayDefinitionAttr: "data-overlay-definition", // line overlays: the line that defines one
+    arrowAtEachBoxAttr: "data-arrow-at-each-box",     // box arrows: on a line, and per box
     overlayDestinationAttr: "data-overlay-destination", // line overlays: a box bands end at, never pass
   },
 

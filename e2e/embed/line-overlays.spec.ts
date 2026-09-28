@@ -115,3 +115,51 @@ test("lineOverlays: false draws nothing", async ({ page }) => {
   expect(await mountAndRead(page, `${off} return w.mountDiagram(slot, def);`)).toMatchObject({ layers: 0 });
 });
 
+// e2e/pages/box-arrows.svg: one line from box1 to box4 with arrow-at-each-box,
+// under box2 (a rect) and box3 (an ellipse), both drawn after it and filled.
+// No arrow: the filled container before it, a priority marker (pri-1) over it.
+// An arrow though unfilled: the frame, which says arrow-at-each-box=true.
+async function boxArrows(page: Page, scope = "#mount") {
+  return page.evaluate((root) => {
+    const svg = document.querySelector(`${root} .dwk-main-image > svg`) as SVGSVGElement;
+    return Array.from(svg.querySelectorAll<SVGGElement>(".dwk-box-arrow")).map((group) => {
+      const head = group.querySelector("path") as SVGPathElement;
+      const m = DOMMatrix.fromMatrix((head.transform.baseVal.consolidate() as SVGTransform).matrix);
+      // The copied head's tip, (418.88, 100) in its own coordinates, in the line's group.
+      const tip = m.transformPoint({ x: 418.88, y: 100 });
+      return {
+        lines: group.getAttribute("data-lines"),
+        tip: [Math.round(tip.x * 100) / 100, Math.round(tip.y * 100) / 100],
+        after: (group.previousElementSibling as Element).id || (group.previousElementSibling as Element).className.baseVal,
+        display: group.style.display,
+      };
+    });
+  }, scope);
+}
+
+test("arrow-at-each-box: an arrowhead where the line enters each box over it, shown with that box", async ({ page }) => {
+  const warnings: string[] = [];
+  page.on("console", (message) => message.type() === "warning" && warnings.push(message.text()));
+  await page.goto("/line-overlays.html?svg=box-arrows");
+  await waitReady(page);
+  expect(warnings).toEqual([]);
+  // As draw.io places its own arrows, the drawn tip touches the edge: the
+  // outline's tip stops 0.5 / sin(atan(3.5 / 7)) = 1.12 before it, the 1 px
+  // stroke's miter covering the rest. Edges: box2's left (x 150), box3's
+  // ellipse (centre 300,100, rx 30, ry 20) met at y 100.5, where the line runs
+  // (draw.io's translate(0.5,0.5)): x = 300 - 30 * sqrt(1 - (0.5 / 20)^2), and
+  // the frame's left (x 340).
+  expect(await boxArrows(page)).toEqual([
+    { lines: "cell-line cell-box2", tip: [148.88, 100.5], after: "cell-line", display: "" },
+    { lines: "cell-line cell-box3", tip: [268.89, 100.5], after: "dwk-box-arrow", display: "" },
+    { lines: "cell-line cell-frame", tip: [338.88, 100.5], after: "dwk-box-arrow", display: "" },
+  ]);
+
+  await page.evaluate(() => (window as any).instance.setState({ view: { hiddenTags: ["B2"] } }));
+  await settle(page, 300);
+  expect((await boxArrows(page)).map((arrow) => arrow.display)).toEqual(["none", "", ""]);
+  await page.evaluate(() => (window as any).instance.setState({ view: { hiddenTags: ["Flow"] } }));
+  await settle(page, 300);
+  expect((await boxArrows(page)).map((arrow) => arrow.display)).toEqual(["none", "none", "none"]);
+});
+

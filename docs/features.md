@@ -21,7 +21,7 @@ Every key, with both presets written out. Source: `PRESETS` in `src/core/presets
   resultLocate: "click",    // search results: "click" = click/tap/Enter centres the element at the current zoom
                             //   (the entry glows on hover; the diagram stays put) | "hover" = hover and keyboard
                             //   focus already show it
-  lineOverlays: true,       // draw line overlays (data-overlay) on load
+  lineOverlays: true,       // draw line overlays (data-overlay) and box arrows (data-arrow-at-each-box) on load
                             //   (user-guide.md#lines-overlays)
   input: {
     wheel: true,            // wheel / trackpad zoom

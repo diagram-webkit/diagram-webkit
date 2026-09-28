@@ -12,6 +12,8 @@ export interface MetadataAttrs {
   // the overlay a line's look defines.
   overlayAttr: string;
   overlayDefinitionAttr: string;
+  // An arrowhead where the line enters each box that covers it.
+  arrowAtEachBoxAttr: string;
   // A box overlays go to and from, never through.
   overlayDestinationAttr: string;
 }
@@ -23,6 +25,7 @@ export const DEFAULT_METADATA_ATTRS: MetadataAttrs = Object.freeze({
   slugAttr: "data-slug",
   overlayAttr: "data-overlay",
   overlayDefinitionAttr: "data-overlay-definition",
+  arrowAtEachBoxAttr: "data-arrow-at-each-box",
   overlayDestinationAttr: "data-overlay-destination",
 });
 
@@ -34,6 +37,7 @@ export interface Cell {
   // Optional for callers that build cells by hand; extractCells sets both.
   overlays?: string[];
   overlayDefinition?: string | null;
+  arrowAtEachBox?: string | null;
   overlayDestination?: string | null;
 }
 
@@ -81,7 +85,7 @@ export function extractCells(svgText: string, attrs: MetadataAttrs = DEFAULT_MET
     const ownId = values[attrs.idAttr] ?? null;
     const inheritedId = ownId ?? [...idStack].reverse().find((id) => id !== null) ?? null;
     if (ownId !== null) lastId = ownId;
-    if ([attrs.tagsAttr, attrs.helpAttr, attrs.overlayAttr, attrs.overlayDefinitionAttr, attrs.overlayDestinationAttr].some((name) => name in values)) {
+    if ([attrs.tagsAttr, attrs.helpAttr, attrs.overlayAttr, attrs.overlayDefinitionAttr, attrs.arrowAtEachBoxAttr, attrs.overlayDestinationAttr].some((name) => name in values)) {
       cells.push({
         id: inheritedId ?? values.id ?? lastId ?? `#${cells.length}`,
         tags: (values[attrs.tagsAttr] || "").split(/[\s,]+/).filter(Boolean),
@@ -89,6 +93,7 @@ export function extractCells(svgText: string, attrs: MetadataAttrs = DEFAULT_MET
         slug: values[attrs.slugAttr] ?? null,
         overlays: parseOverlayNames(values[attrs.overlayAttr]),
         overlayDefinition: values[attrs.overlayDefinitionAttr]?.trim() ?? null,
+        arrowAtEachBox: values[attrs.arrowAtEachBoxAttr] ?? null,
         overlayDestination: values[attrs.overlayDestinationAttr] ?? null,
       });
     }
@@ -156,7 +161,7 @@ function validateOverlays(cells: readonly Cell[]): Issue[] {
     }
   });
   cells.forEach((cell) => {
-    ([["overlay-destination", cell.overlayDestination]] as const).forEach(([name, value]) => {
+    ([["arrow-at-each-box", cell.arrowAtEachBox], ["overlay-destination", cell.overlayDestination]] as const).forEach(([name, value]) => {
       if (value !== null && value !== undefined && parseFlag(value) === null) {
         issues.push({ level: "error", code: `${name}-format`, cell: cell.id, message: `${name} must be true or false, got "${value}"` });
       }

@@ -23,7 +23,7 @@ export interface Features {
   // How a search result shows where its element is: on click/tap/Enter, or
   // already on hover and keyboard focus (which moves the camera).
   resultLocate: "click" | "hover";
-  // Draw line overlays (data-overlay) when the diagram is loaded.
+  // Draw line overlays (data-overlay) and box arrows when the diagram is loaded.
   lineOverlays: boolean;
 }
 

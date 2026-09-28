@@ -68,7 +68,7 @@ All fields: [definition.md](definition.md).
 
 ## SVG authoring (draw.io)
 
-Cell properties `tags`, `slug`, `help`, `overlay`, `overlay-definition` (draw.io Edit Data, `Ctrl+M`) end up in the SVG as `data-*` attributes (names configurable in `metadata`). Save with draw.io File → Save as → SVG; the draw.io CLI export (`drawio -x -f svg`) does not write them.
+Cell properties `tags`, `slug`, `help`, `overlay`, `overlay-definition`, `arrow-at-each-box` (draw.io Edit Data, `Ctrl+M`) end up in the SVG as `data-*` attributes (names configurable in `metadata`). Save with draw.io File → Save as → SVG; the draw.io CLI export (`drawio -x -f svg`) does not write them.
 
 ```xml
 <g data-cell-id="lb"
@@ -97,6 +97,14 @@ Cell properties `tags`, `slug`, `help`, `overlay`, `overlay-definition` (draw.io
   another leaves (arrows = direction), and are drawn on top in g.dwk-line-overlays;
   cells with a data-slug are moved above them (g.dwk-above-overlays).
 -->
+
+<!-- box arrows: the line's arrowhead repeated where it enters each box drawn over it -->
+<g data-cell-id="chain" data-tags="Api" data-arrow-at-each-box="true" type="edge">
+<!--
+  On a line: true = an arrow at each filled, non-marker box after it in the SVG.
+  On a box: true = always an arrow here, false = never. Markers: priority or info tag.
+  Each arrow (g.dwk-box-arrow, right after the line) shows while the line and its box show.
+-->
 ```
 
 ```sh
@@ -104,7 +112,7 @@ npx diagram-webkit validate my-diagram.svg --definition definition.js
 # codes: unknown-tag, missing-ancestor, tag-depth, duplicate-slug, missing-slug,
 #        slug-format (PascalCase, max 20), slug-without-help, unknown-slug/-id (in views),
 #        unknown-overlay, duplicate-overlay-definition, overlay-definition-format,
-#        overlay-destination-format
+#        arrow-at-each-box-format
 ```
 
 ## Full page

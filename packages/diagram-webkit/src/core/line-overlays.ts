@@ -18,8 +18,8 @@ export function parseOverlayNames(value: string | null | undefined): string[] {
   return Array.from(new Set(`${value || ""}`.split(/[\s,]+/).filter(Boolean)));
 }
 
-// A true/false property (overlay-destination): "true" or "false" in any
-// case, else null.
+// A true/false property (arrow-at-each-box, overlay-destination): "true" or
+// "false" in any case, else null.
 export function parseFlag(value: string | null | undefined): boolean | null {
   const text = `${value ?? ""}`.trim().toLowerCase();
   return text === "true" ? true : text === "false" ? false : null;
@@ -53,6 +53,13 @@ export interface Box {
   ellipse?: boolean;
   // overlay-destination: bands go to and from it, never through it.
   destination?: boolean;
+}
+
+// Where a line enters a box that covers it, for an arrowhead there.
+export interface BoxEntry {
+  box: string;
+  tip: Point;
+  dir: Point;
 }
 
 // An arrowhead as drawn: its outline (root coordinates, in path order) and
@@ -401,6 +408,28 @@ function entryOn(p: Point, q: Point, box: Box): number | null {
     else exit = Math.min(exit, t);
   }
   return enter > 0 && enter <= exit ? enter : null;
+}
+
+// Every place, in order along the line, where it enters one of `boxes` (the
+// boxes that cover it). The boxes it starts or ends at are left out: its own
+// arrowheads are there.
+export function boxEntries(points: readonly Point[], boxes: readonly Box[]): BoxEntry[] {
+  const start = points[0];
+  const end = points[points.length - 1];
+  const found: (BoxEntry & { at: number })[] = [];
+  boxes
+    .filter((box) => !inBox(box, start, BORDER_REACH) && !inBox(box, end, BORDER_REACH))
+    .forEach((box) => {
+      for (let index = 1; index < points.length; index++) {
+        const p = points[index - 1];
+        const q = points[index];
+        if (distance(p, q) < EPSILON) continue;
+        const t = entryOn(p, q, box);
+        if (t === null) continue;
+        found.push({ box: box.id, tip: along(p, sub(q, p), t), dir: unit(sub(q, p)), at: index - 1 + t });
+      }
+    });
+  return found.sort((a, b) => a.at - b.at).map(({ box, tip, dir }) => ({ box, tip, dir }));
 }
 
 // A band's way through a box: from where it arrives at `a` along `aDir`

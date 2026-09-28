@@ -1,6 +1,8 @@
 import { defineDiagram, mountDiagram } from "diagram-webkit";
 
-const definition = defineDiagram({ id: "line-overlays", source: { production: new URL("./line-overlays.svg", import.meta.url).href } });
+// ?svg=box-arrows: another test diagram from this folder.
+const name = new URLSearchParams(location.search).get("svg") || "line-overlays";
+const definition = defineDiagram({ id: "line-overlays", source: { production: new URL(`./${name}.svg`, import.meta.url).href } });
 mountDiagram(document.getElementById("mount"), definition, { features: "embed" }).then(
   (instance) => {
     window.instance = instance;

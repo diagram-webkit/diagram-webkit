@@ -1,7 +1,7 @@
 // Reading draw.io geometry from attributes (path data, shape attributes,
-// transforms), not from layout: cells may already be display:none. Used by
-// the line overlays.
-import { LineOverlayError, boundsOf, centreLine, extendToArrowTips, parseFlag, pathVertices } from "../../core/line-overlays";
+// transforms), not from layout: cells may already be display:none. Shared by
+// the line overlays and the box arrows.
+import { LineOverlayError, arrowheadsAtEnds, boundsOf, centreLine, extendToArrowTips, parseFlag, pathVertices } from "../../core/line-overlays";
 
 // draw.io writes type="edge" / type="vertex" on every cell.
 export const CELL_TYPE_ATTR = "type";
@@ -66,10 +66,19 @@ function shapePoints(shape) {
   }
 }
 
+// A shape covers what is under it unless it has no paint inside.
+function isFilled(shape) {
+  if (shape.localName === "image") return true;
+  if (shape.localName === "line" || shape.localName === "polyline") return false;
+  const fill = (shape.style.getPropertyValue("fill") || shape.getAttribute("fill") || "black").trim();
+  const opacity = shape.getAttribute("fill-opacity") ?? shape.style.getPropertyValue("fill-opacity");
+  return fill !== "none" && fill !== "transparent" && !(opacity !== null && opacity !== "" && Number.parseFloat(opacity) === 0);
+}
+
 /**
  * The drawn outline of every box (draw.io vertex), without its label: a
  * label's foreignObject spans the whole diagram.
- * @returns {{ element: Element, box: import("../../core/line-overlays").Box }[]}
+ * @returns {{ element: Element, box: import("../../core/line-overlays").Box, filled: boolean }[]}
  */
 export function readBoxes(svg, metadata) {
   const boxes = [];
@@ -93,7 +102,7 @@ export function readBoxes(svg, metadata) {
       if (flag === null) warn(`overlay-destination on ${cellName(cell, metadata)} ignored: must be true or false, got "${destination}"`);
       else box.destination = flag;
     }
-    boxes.push({ element: cell, box });
+    boxes.push({ element: cell, box, filled: shapes.some(isFilled) });
   });
   return boxes;
 }
@@ -109,13 +118,15 @@ function strokeOf(path, svg) {
 
 /**
  * Centre line from drawn arrow tip to drawn arrow tip, in root coordinates,
- * and which ends have an arrowhead.
- * @returns {{ points: import("../../core/line-overlays").LinePoint[], arrows: { start: boolean, end: boolean } }}
+ * which ends have an arrowhead, and the paths that draw them.
+ * @returns {{ points: import("../../core/line-overlays").LinePoint[], arrows: { start: boolean, end: boolean }, heads: { start: SVGPathElement[], end: SVGPathElement[] } }}
  */
 export function readLine(element, svg) {
   const [linePath, ...headPaths] = /** @type {SVGPathElement[]} */ (Array.from(element.querySelectorAll("path")));
   if (!linePath) throw new LineOverlayError("no path to follow");
   const centre = centreLine(linePath.getAttribute("d") || "").map(toRoot(linePath, svg));
   const headPoints = headPaths.map((path) => ({ points: pathVertices(path.getAttribute("d") || "").flat().map(toRoot(path, svg)), ...strokeOf(path, svg) }));
-  return extendToArrowTips(centre, headPoints);
+  const { points, arrows } = extendToArrowTips(centre, headPoints);
+  const at = arrowheadsAtEnds(centre[0], centre[centre.length - 1], headPoints);
+  return { points, arrows, heads: { start: at.start.map((index) => headPaths[index]), end: at.end.map((index) => headPaths[index]) } };
 }

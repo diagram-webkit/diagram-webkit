@@ -67,7 +67,8 @@ body:has(> .dwk-root.dwk-app) {
 
 /* Line overlays follow their lines (overlays/line-overlays.js); no filter:
    the bands are translucent already. */
-.dwk-root.dwk-dim-others .dwk-main-image .dwk-line-overlay-band:not(.dwk-line-overlay-target) {
+.dwk-root.dwk-dim-others .dwk-main-image .dwk-line-overlay-band:not(.dwk-line-overlay-target),
+.dwk-root.dwk-dim-others .dwk-main-image .dwk-box-arrow:not(.dwk-line-overlay-target) {
   opacity: 0.2;
 }
 
@@ -281,9 +282,10 @@ body:has(> .dwk-root.dwk-app) {
   transition: opacity var(--dwk-fade, 0.12s) ease;
 }
 
-/* Bands along lines with an overlay (overlays/line-overlays.js): they fade
-   with their lines and never take the pointer from the diagram. */
-:where(.dwk-root) .dwk-line-overlay-band {
+/* Bands along lines with an overlay, and box arrows (overlays/line-overlays.js):
+   they fade with their cells and never take the pointer from the diagram. */
+:where(.dwk-root) .dwk-line-overlay-band,
+:where(.dwk-root) .dwk-box-arrow {
   transition: opacity var(--dwk-fade, 0.12s) ease;
   pointer-events: none;
 }
@@ -323,7 +325,8 @@ body:has(> .dwk-root.dwk-app) {
 @starting-style {
   :where(.dwk-root.dwk-loaded) [data-help],
   :where(.dwk-root.dwk-loaded) [data-tags],
-  :where(.dwk-root.dwk-loaded) .dwk-line-overlay-band {
+  :where(.dwk-root.dwk-loaded) .dwk-line-overlay-band,
+  :where(.dwk-root.dwk-loaded) .dwk-box-arrow {
     opacity: 0;
   }
 }

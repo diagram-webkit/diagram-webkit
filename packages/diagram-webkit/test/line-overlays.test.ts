@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   JOIN_RADIUS,
   LineOverlayError,
+  boxEntries,
   parseFlag,
   centreLine,
   extendToArrowTips,
@@ -191,8 +192,42 @@ describe("layoutOverlays", () => {
   });
 });
 
-describe("parseFlag", () => {
-  it("reads true/false properties", () => {
+describe("boxEntries", () => {
+  // A line from x=0 to x=400 at y=50, under three boxes; it ends at the last.
+  const line = [{ x: 0, y: 50 }, { x: 400, y: 50 }];
+  const rect = (id: string, x1: number, x2: number, ellipse = false): Box => ({ id, x1, y1: 30, x2, y2: 70, ellipse });
+
+  it("finds where the line enters each box, in order, tip at the edge", () => {
+    const entries = boxEntries(line, [rect("b2", 200, 260), rect("b1", 100, 160), rect("end", 380, 440)]);
+    expect(entries).toEqual([
+      { box: "b1", tip: { x: 100, y: 50 }, dir: { x: 1, y: 0 } },
+      { box: "b2", tip: { x: 200, y: 50 }, dir: { x: 1, y: 0 } },
+    ]);
+  });
+
+  it("is exact on ellipses", () => {
+    // Centre (130, 50), rx 30: entered at x=100; off-centre it is inside the bounds.
+    const centre = boxEntries(line, [rect("e", 100, 160, true)])[0].tip;
+    expect([centre.x, centre.y]).toEqual([expect.closeTo(100, 6), 50]);
+    const high = boxEntries([{ x: 0, y: 40 }, { x: 400, y: 40 }], [rect("e", 100, 160, true)])[0].tip;
+    expect(high.x).toBeCloseTo(130 - 30 * Math.sqrt(1 - (10 / 20) ** 2), 6);
+  });
+
+  it("leaves out the boxes the line starts or ends at, and lines that only touch", () => {
+    expect(boxEntries(line, [rect("start", -20, 40), rect("end", 380, 440)])).toEqual([]);
+    expect(boxEntries([{ x: 0, y: 30 }, { x: 400, y: 30 }], [{ id: "above", x1: 100, y1: 0, x2: 160, y2: 29 }])).toEqual([]);
+  });
+
+  it("counts every entry of a line that comes back into a box", () => {
+    const zigzag = [{ x: 0, y: 50 }, { x: 300, y: 50 }, { x: 300, y: 150 }, { x: 0, y: 150 }, { x: 0, y: 250 }];
+    const tall = { id: "tall", x1: 100, y1: 30, x2: 200, y2: 170 };
+    expect(boxEntries(zigzag, [tall]).map((entry) => [entry.tip, entry.dir])).toEqual([
+      [{ x: 100, y: 50 }, { x: 1, y: 0 }],
+      [{ x: 200, y: 150 }, { x: -1, y: 0 }],
+    ]);
+  });
+
+  it("reads the property", () => {
     expect([parseFlag("true"), parseFlag(" TRUE "), parseFlag("false"), parseFlag("yes"), parseFlag(null)]).toEqual([true, true, false, null, null]);
   });
 });

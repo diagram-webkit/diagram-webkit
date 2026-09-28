@@ -32,6 +32,7 @@ describe("extractCells", () => {
       slug: "DbAccess",
       overlays: [],
       overlayDefinition: null,
+      arrowAtEachBox: null,
       overlayDestination: null,
     });
   });
@@ -39,8 +40,8 @@ describe("extractCells", () => {
   it("decodes entities and handles quoting", () => {
     const cells = extractCells(`<svg><g data-cell-id="a"><g data-tags='x &amp; y' data-help="T&#10;&lt;b&gt;&#x41;&quot;"/></g><g data-tags="z"></g></svg>`);
     expect(cells).toEqual([
-      { id: "a", tags: ["x", "&", "y"], help: 'T\n<b>A"', slug: null, overlays: [], overlayDefinition: null, overlayDestination: null },
-      { id: "a", tags: ["z"], help: null, slug: null, overlays: [], overlayDefinition: null, overlayDestination: null },
+      { id: "a", tags: ["x", "&", "y"], help: 'T\n<b>A"', slug: null, overlays: [], overlayDefinition: null, arrowAtEachBox: null, overlayDestination: null },
+      { id: "a", tags: ["z"], help: null, slug: null, overlays: [], overlayDefinition: null, arrowAtEachBox: null, overlayDestination: null },
     ]);
   });
 });
@@ -75,15 +76,16 @@ describe("validateCells", () => {
   });
 
   it("reports overlay problems", () => {
-    const cell = (id: string, overlays: string[], overlayDefinition: string | null, overlayDestination: string | null = null) => ({ id, tags: [], help: null, slug: null, overlays, overlayDefinition, overlayDestination });
+    const cell = (id: string, overlays: string[], overlayDefinition: string | null, arrowAtEachBox: string | null = null, overlayDestination: string | null = null) => ({ id, tags: [], help: null, slug: null, overlays, overlayDefinition, arrowAtEachBox, overlayDestination });
     const issues = validateCells(
-      [cell("legend-a", [], "egress"), cell("legend-b", [], "egress"), cell("legend-c", [], "a,b"), cell("line", ["egress", "ingress"], null), cell("end", [], null, "maybe"), cell("end-ok", [], null, "false")],
+      [cell("legend-a", [], "egress"), cell("legend-b", [], "egress"), cell("legend-c", [], "a,b"), cell("line", ["egress", "ingress"], null), cell("arrows", [], null, "yes"), cell("ok", [], null, "True"), cell("end", [], null, null, "maybe"), cell("end-ok", [], null, null, "false")],
       model,
     );
     expect(issues.map(({ code, cell }) => [code, cell])).toEqual([
       ["overlay-definition-format", "legend-c"],
       ["duplicate-overlay-definition", undefined],
       ["unknown-overlay", "line"],
+      ["arrow-at-each-box-format", "arrows"],
       ["overlay-destination-format", "end"],
     ]);
   });

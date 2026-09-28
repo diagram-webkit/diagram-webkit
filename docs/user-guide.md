@@ -365,6 +365,7 @@ For the curious; nothing here is needed to use it.
 | "Could not load …" for a link | The site does not allow reading the file from other pages, or you are offline. Download the file and open it. |
 | "The diagram in this link could not be read" | The link was cut off, often by a chat tool. Ask for the file, or a shorter link (fewer annotations). |
 | No tags in the menu, no help on hover | The SVG has no `data-tags` / `data-help`. See [Saving as SVG](#saving-as-svg). |
+| "Warnings in the developer console" in the top left corner (while developing) | Open the browser's developer console: the engine says there what it left out and why (`diagram-webkit: line overlay: …`). Fix it in draw.io and reload. |
 | No overlay band | The property must be `overlay` on the line itself (Edit Data), not inside `tags`, and a line with `overlay-definition` of the same name must exist. The browser console (`diagram-webkit: line overlay: …`) says what was skipped. |
 | Two overlay bands swap sides at a box | The lines on each side list the overlays in orders that disagree, seen along their arrows. Swap the order in `overlay` on one of them. |
 | A band passes through a box it should end at | Set `overlay-destination = true` on the box. |

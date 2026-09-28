@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { settle, waitReady } from "../helpers";
+import { listenerCounts, settle, waitReady } from "../helpers";
 
 const REPO = path.resolve(import.meta.dirname, "../..");
 const CLI = path.join(REPO, "packages/diagram-webkit/src/tools/cli.js");
@@ -276,3 +276,36 @@ test("render draws the box arrows in, and an instance does not draw them again",
   expect(arrows).toBe(3);
 });
 
+test("development mode: a small notice when something is logged to the console", async ({ page }) => {
+  await page.goto("/line-overlays.html");
+  await waitReady(page);
+  const before = await listenerCounts(page);
+  const broken = fs.readFileSync(SOURCE, "utf8").replace('data-overlay="egress,ingress"', 'data-overlay="nope"');
+  const notice = () => page.evaluate(() => {
+    const element = document.querySelector("body > div:last-of-type .dwk-dev-notice") as HTMLElement | null;
+    return element ? { text: element.textContent, hidden: element.hidden } : null;
+  });
+
+  await mountAndRead(page, `return w.mountDiagram(slot, w.definition, { features: "embed", mode: "production", source: { svgText: ${JSON.stringify(broken)} } });`);
+  await settle(page);
+  expect(await notice()).toBeNull();
+
+  await mountAndRead(page, `return w.mountDiagram(slot, w.definition, { features: "embed", mode: "development", source: { svgText: ${JSON.stringify(broken)} } });`);
+  await settle(page);
+  expect(await notice()).toEqual({ text: "Warnings in the developer console×", hidden: false });
+  await page.evaluate(() => (document.querySelector("body > div:last-of-type .dwk-dev-notice button") as HTMLButtonElement).click());
+  expect(await notice()).toMatchObject({ hidden: true });
+  await page.evaluate(() => console.warn("something new"));
+  await settle(page);
+  expect(await notice()).toMatchObject({ hidden: false });
+
+  // Gone with the instance: the console is the page's own again, no listeners left.
+  const restored = await page.evaluate(() => {
+    const w = window as any;
+    const wrapped = console.warn;
+    w.second.destroy();
+    return console.warn !== wrapped;
+  });
+  expect(restored).toBe(true);
+  expect(await listenerCounts(page)).toEqual(before);
+});

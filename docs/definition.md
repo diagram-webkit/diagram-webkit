@@ -138,7 +138,7 @@ Fields merged over the definition, like `extend`, when the page runs in developm
 - served by the Vite plugin's dev server (`vite` / `npm run dev`): the plugin writes `<meta name="diagram-webkit-mode" content="development">`, which `mountDiagram` reads;
 - or `mountDiagram(el, definition, { mode: "development" })` (`"production"` forces the other way).
 
-A build (`vite build`) and every other page is production. Any definition field except `id` and `development` itself; no `null` removals. `extend` keeps and merges `development` like any other object. `definitionForMode(definition, mode)` returns the definition as it applies in a mode.
+A build (`vite build`) and every other page is production. In development mode, anything logged with `console.warn`/`console.error` while the diagram is mounted (the engine reports a band or arrow it leaves out there), and any uncaught error, shows a small notice in the top left corner: "Warnings in the developer console". It can be dismissed, comes back on the next new message, and is gone after a reload that logs nothing (texts `devWarnings`, `devWarningsDismiss`). Any definition field except `id` and `development` itself; no `null` removals. `extend` keeps and merges `development` like any other object. `definitionForMode(definition, mode)` returns the definition as it applies in a mode.
 
 Typical use, a diagram that publishes a rendered SVG ([tools.md](tools.md#render)) and edits a draw.io source:
 

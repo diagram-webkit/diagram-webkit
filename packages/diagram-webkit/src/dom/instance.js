@@ -39,6 +39,7 @@ import { createHighlightLine } from "./overlays/highlight-line.js";
 import { createPinRings } from "./overlays/pins.js";
 import { createLineOverlays } from "./overlays/line-overlays.js";
 import { createViewExport } from "./view-export.js";
+import { createDevNotice } from "./dev-notice.js";
 import { createPulse } from "./overlays/pulse.js";
 import { createPins } from "./pins.js";
 import { adoptStyles } from "./styles.js";
@@ -334,6 +335,8 @@ export function createInstance(container, definitionOrNone, opts = {}) {
   };
 
   const sv = ctx.services;
+  // First, so nothing logged while loading is missed.
+  if (mode === "development") sv.devNotice = createDevNotice(ctx);
   sv.darkCanvas = createDarkCanvas(ctx);
   sv.theme = createTheme(ctx);
   sv.geometry = createCameraGeometry(ctx);

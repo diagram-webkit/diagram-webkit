@@ -207,6 +207,8 @@ export const DEFAULT_TEXTS = Object.freeze({
   downloadViewTitle: "This view",
   downloadViewDescription: "What you see now: the level and topics you chose, your search, pins and notes. Does not open in draw.io.",
   downloadViewFailed: "Could not save this view",
+  devWarnings: "Warnings in the developer console",
+  devWarningsDismiss: "Dismiss",
   controlsPointer: "Mouse and touch",
   controlsKeyboard: "Keyboard",
   ctlZoom: "Zoom",

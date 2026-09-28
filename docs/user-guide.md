@@ -256,7 +256,19 @@ line   tags: Api   arrow-at-each-box: true      (drawn under box1..box3, arrow a
 - Which boxes: the ones the line passes **under**, that is drawn after it (on top of it in draw.io: Arrange → To Front, or simply added later) and filled. Not: the boxes the line starts and ends at (they have its own arrowheads), boxes without a fill (the line shows through), containers the line lies in (drawn before it), and markers: shapes with a priority or info tag (`pri-1`, `info`), such as the coloured circles and `?` boxes placed on lines.
 - `arrow-at-each-box` on a box overrides that: `true` gives it an arrow even as a marker or without a fill, `false` never.
 - A line without an arrowhead has nothing to repeat (a warning in the browser console). With an arrow only at the start, the line counts as running the other way.
-- `validate` reports a value other than `true` or `false` (`arrow-at-each-box-format`).
+- Drawn in by `diagram-webkit render` too ([below](#overlays-in-the-svg-file-itself)); `validate` reports a value other than `true` or `false` (`arrow-at-each-box-format`).
+
+### Overlays in the SVG file itself
+
+The bands (and the arrows at boxes) are drawn when the diagram opens here. Opened anywhere else (a browser tab, GitHub, an image viewer), the draw.io SVG has no bands, though its legend names them. For a file that shows everything, render it:
+
+```sh
+npx diagram-webkit render my-diagram.drawio.svg --out my-diagram.svg
+```
+
+`my-diagram.svg` then has the bands and box arrows drawn in and is about half the size (draw.io's model is left out). It no longer opens in draw.io as a diagram: keep editing `my-diagram.drawio.svg` (draw.io recognises the `.drawio.svg` name) and render again after changes, or let CI do it. diagram-webkit opens both; with the rendered one it uses the bands in the file and does not draw them again. Details: [tools.md](tools.md#render).
+
+`diagram-webkit validate` reports an `overlay` without a matching `overlay-definition` (`unknown-overlay`), a name defined twice (`duplicate-overlay-definition`), and an `overlay-definition` that is not exactly one name (`overlay-definition-format`).
 
 ### Help text
 

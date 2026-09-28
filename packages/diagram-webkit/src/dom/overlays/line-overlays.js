@@ -4,9 +4,16 @@
 // arrows (arrow-at-each-box, box-arrows.js). Each follows the visibility,
 // fade and dim of the cells it belongs to. core/line-overlays.ts has the
 // geometry, svg-geometry.js reads it from attributes.
+//
+// drawAll() draws into an <svg>; the `render` CLI uses it to write a finished
+// SVG, marked data-dwk-rendered, in which each band and arrow names its cells
+// in data-lines (their ids). An instance uses those as they are and only
+// connects their visibility; it never draws them again.
 import { LineOverlayError, layoutOverlays, parseOverlayNames } from "../../core/line-overlays";
+import { DEFAULT_TAGS_CONFIG, createTagModel } from "../../core/tags";
+import { DEFAULT_METADATA_ATTRS } from "../../core/validate";
 import { BOX_ARROW_CLASS, drawBoxArrows } from "./box-arrows.js";
-import { CELL_TYPE_ATTR, cellName, readBoxes, readLine, rootMatrix, warn } from "./svg-geometry.js";
+import { CELL_TYPE_ATTR, byId, cellName, readBoxes, readLine, rootMatrix, warn } from "./svg-geometry.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const LAYER_CLASS = "dwk-line-overlays";
@@ -23,6 +30,7 @@ const LINES_ATTR = "data-lines";
 // along a curved meeting line. This much wider (in diagram units, half on
 // each side) and they overlap instead. Their ends stay where they are.
 const SEAM_OVERLAP = 0.5;
+const RENDERED_ATTR = "data-dwk-rendered";
 const ABOVE_CLASS = "dwk-above-overlays";
 const DRAWN = `.${LAYER_CLASS}, .${BOX_ARROW_CLASS}`;
 
@@ -165,7 +173,7 @@ function raiseSlugCells(svg, metadata, layer) {
  * @param {import("../../core/tags").TagModel} model the diagram's tags (markers: priority and info tags)
  */
 export function drawAll(svg, metadata, model) {
-  if (svg.querySelector(DRAWN)) throw new LineOverlayError("the SVG already has its line overlays and box arrows");
+  if (svg.hasAttribute(RENDERED_ATTR) || svg.querySelector(DRAWN)) throw new LineOverlayError("the SVG already has its line overlays and box arrows (rendered)");
   const boxes = readBoxes(svg, metadata);
   const bands = drawBands(svg, metadata, boxes);
   // Asked for every line and box pair: once per box.
@@ -177,6 +185,36 @@ export function drawAll(svg, metadata, model) {
   const arrows = drawBoxArrows(svg, metadata, boxes, linesAttr, isMarker);
   if (bands) raiseSlugCells(svg, metadata, bands.layer);
   return { layer: bands && bands.layer, bands: bands ? bands.bands : [], arrows };
+}
+
+/**
+ * Public: draws the line overlays and box arrows into an SVG that is in a
+ * document, and marks it rendered, for writing out a finished SVG (the
+ * `render` CLI). metadata and tags: as definition.metadata and
+ * definition.tags (the tag roles tell markers apart).
+ * @param {SVGSVGElement} svg
+ * @param {{ metadata?: Partial<import("../../core/validate").MetadataAttrs>, tags?: Record<string, any> }} [options]
+ * @returns {{ overlays: string[], bands: number, arrows: number }}
+ */
+export function renderLineOverlays(svg, options = {}) {
+  const tags = options.tags || {};
+  const model = createTagModel({ ...DEFAULT_TAGS_CONFIG, ...tags, roles: { ...DEFAULT_TAGS_CONFIG.roles, ...(tags.roles || {}) } });
+  const drawn = drawAll(svg, { ...DEFAULT_METADATA_ATTRS, ...(options.metadata || {}) }, model);
+  svg.setAttribute(RENDERED_ATTR, "");
+  const overlays = drawn.layer ? Array.from(drawn.layer.children, (group) => group.getAttribute("data-overlay") || "") : [];
+  return { overlays, bands: drawn.bands.length, arrows: drawn.arrows.length };
+}
+
+// Bands and arrows already rendered into the SVG, with the cells their
+// data-lines name; null when the SVG is not a rendered one.
+function readRendered(svg) {
+  if (!svg.hasAttribute(RENDERED_ATTR)) return null;
+  return Array.from(svg.querySelectorAll(`.${BAND_CLASS}, .${BOX_ARROW_CLASS}`)).map((element) => {
+    const ids = (element.getAttribute(LINES_ATTR) || "").split(/\s+/).filter(Boolean);
+    const lines = ids.map((id) => byId(svg, id)).filter(Boolean);
+    if (ids.length === 0 || lines.length !== ids.length) warn(`a rendered band or arrow follows no cell (${LINES_ATTR}="${ids.join(" ")}"): always shown`);
+    return { element: /** @type {SVGElement} */ (element), lines };
+  });
 }
 
 /** @param {import("../context").Context & Record<string, any>} ctx */
@@ -229,12 +267,17 @@ export function createLineOverlays(ctx) {
   }
 
   // Once per loaded diagram, before the filter first hides anything and
-  // before the dark theme reads the colours; when features.lineOverlays is on.
+  // before the dark theme reads the colours. What a rendered SVG holds is
+  // used as it is; otherwise it is drawn when features.lineOverlays is on.
   function render() {
     const svg = diagramSvg();
-    if (!svg || !ctx.features.lineOverlays) return;
-    const drawn = drawAll(svg, ctx.config.metadata, ctx.model);
-    marks = [...drawn.bands, ...drawn.arrows];
+    if (!svg) return;
+    const rendered = readRendered(svg);
+    if (rendered) marks = rendered;
+    else if (ctx.features.lineOverlays) {
+      const drawn = drawAll(svg, ctx.config.metadata, ctx.model);
+      marks = [...drawn.bands, ...drawn.arrows];
+    }
     if (marks.length === 0) return;
     sync();
     observe(svg);

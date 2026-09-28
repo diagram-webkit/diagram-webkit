@@ -2,11 +2,13 @@
 // diagram-webkit validate <svg> [--definition <file>]
 // diagram-webkit url-to-slide "<url>" [--definition <file>] [--title <text>]
 // diagram-webkit tag-tree <markdown> [--heading <text>]
+// diagram-webkit render <draw.io svg> --out <svg> [--definition <file>]
 //
 // With DIAGRAM_WEBKIT_DIR set, the CLI of that checkout runs instead (it uses
 // the checkout's dist/: run `npm run build` there after engine changes).
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import path from "node:path";
 import { parseArgs } from "node:util";
 import {
   createTagModel,
@@ -19,12 +21,14 @@ import {
   validateViews,
 } from "diagram-webkit/core";
 import { localCounterpart, localEngineDir } from "./local-engine.js";
+import { RenderError, renderSvg } from "./render.js";
 import { readTagTreeMarkdown, writeTagTreeModule } from "./tag-tree-markdown.js";
 
 const USAGE = `usage:
   diagram-webkit validate <svg> [--definition <file>]
   diagram-webkit url-to-slide "<url>" [--definition <file>] [--title <text>]
-  diagram-webkit tag-tree <markdown> [--heading <text>] [--out <module.js>]`;
+  diagram-webkit tag-tree <markdown> [--heading <text>] [--out <module.js>]
+  diagram-webkit render <draw.io svg> --out <svg> [--definition <file>]`;
 
 async function definitionFrom(file) {
   if (!file) return null;
@@ -63,6 +67,34 @@ async function urlToSlide(rawUrl, options) {
   return 0;
 }
 
+// The finished SVG: line overlays and box arrows drawn in, draw.io's model removed. Needs
+// Playwright with Chromium.
+async function render(file, options) {
+  if (!options.out) {
+    console.error(`render: --out is required\n${USAGE}`);
+    return 2;
+  }
+  if (path.resolve(options.out) === path.resolve(file)) {
+    console.error("render: --out must not be the source: the result is no longer a draw.io file");
+    return 2;
+  }
+  const definition = await definitionFrom(options.definition);
+  const metadata = (definition && definition.metadata) || {};
+  const tags = (definition && definition.tags) || {};
+  let result;
+  try {
+    result = await renderSvg(fs.readFileSync(file, "utf8"), { metadata, tags, sourceName: path.basename(file) });
+  } catch (error) {
+    if (!(error instanceof RenderError)) throw error;
+    console.error(error.message);
+    return 1;
+  }
+  fs.writeFileSync(options.out, result.svg);
+  const overlays = result.overlays.length > 0 ? result.overlays.join(", ") : "none";
+  console.log(`${options.out}: ${result.bands} bands (overlays: ${overlays}), ${result.arrows} box arrows, ${Math.round(result.svg.length / 1024)} KiB`);
+  return 0;
+}
+
 function tagTree(file, options) {
   const heading = options.heading || "Tag tree";
   if (options.out) {
@@ -98,6 +130,8 @@ async function main(argv) {
       return urlToSlide(target, values);
     case "tag-tree":
       return tagTree(target, values);
+    case "render":
+      return render(target, values);
     default:
       console.error(`unknown command: ${command}\n${USAGE}`);
       return 2;

@@ -1,5 +1,13 @@
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { settle, waitReady } from "../helpers";
+
+const REPO = path.resolve(import.meta.dirname, "../..");
+const CLI = path.join(REPO, "packages/diagram-webkit/src/tools/cli.js");
+const SOURCE = path.join(REPO, "e2e/pages/line-overlays.svg");
 
 // e2e/pages/line-overlays.svg: legend lines define egress and ingress
 // (data-overlay-definition); line "in" arrives at the box from the left, "out"
@@ -108,6 +116,31 @@ async function mountAndRead(page: Page, script: string) {
   }, script);
 }
 
+test("render writes a finished SVG, and an instance uses its bands without drawing them again", async ({ page }) => {
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "dwk-render-")), "rendered.svg");
+  const log = execFileSync(process.execPath, [CLI, "render", SOURCE, "--out", out], { encoding: "utf8", env: { ...process.env, DIAGRAM_WEBKIT_DIR: "" } });
+  expect(log).toContain("6 bands (overlays: egress, ingress), 0 box arrows");
+  const rendered = fs.readFileSync(out, "utf8");
+  expect(rendered).toMatch(/^<\?xml version="1.0" encoding="UTF-8"\?>\n<!-- Rendered by diagram-webkit render from line-overlays.svg/);
+  expect(rendered).not.toContain("content=");
+  expect(rendered).toContain('data-overlay="egress,ingress"');
+  expect(rendered.match(/data-lines="cell-in cell-out"/g)).toHaveLength(2);
+
+  await page.goto("/line-overlays.html");
+  await waitReady(page);
+  const drawn = (await bands(page)).map((band) => band.d);
+  const reused = await mountAndRead(page, `return w.mountDiagram(slot, w.definition, { features: "embed", source: { svgText: ${JSON.stringify(rendered)} } });`);
+  // The rendered layer as it is: one layer, the same bands as drawn at runtime.
+  expect(reused).toEqual({ layers: 1, bands: drawn });
+
+  await page.evaluate(() => (window as any).second.setState({ view: { hiddenTags: ["Flow.Out"] } }));
+  await settle(page, 300);
+  const displays = await page.evaluate(() =>
+    Array.from(document.querySelectorAll<SVGPathElement>("body > div:last-of-type .dwk-line-overlay-band")).map((band) => band.style.display),
+  );
+  expect(displays).toEqual(["", "none", "none", "", "none", "none"]);
+});
+
 test("lineOverlays: false draws nothing", async ({ page }) => {
   await page.goto("/line-overlays.html");
   await waitReady(page);
@@ -161,5 +194,19 @@ test("arrow-at-each-box: an arrowhead where the line enters each box over it, sh
   await page.evaluate(() => (window as any).instance.setState({ view: { hiddenTags: ["Flow"] } }));
   await settle(page, 300);
   expect((await boxArrows(page)).map((arrow) => arrow.display)).toEqual(["none", "none", "none"]);
+});
+
+test("render draws the box arrows in, and an instance does not draw them again", async ({ page }) => {
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "dwk-render-")), "rendered.svg");
+  const log = execFileSync(process.execPath, [CLI, "render", path.join(REPO, "e2e/pages/box-arrows.svg"), "--out", out], { encoding: "utf8", env: { ...process.env, DIAGRAM_WEBKIT_DIR: "" } });
+  expect(log).toContain("0 bands (overlays: none), 3 box arrows");
+  const rendered = fs.readFileSync(out, "utf8");
+  expect(rendered).toContain("data-dwk-rendered");
+  await page.goto("/line-overlays.html?svg=box-arrows");
+  await waitReady(page);
+  const reused = await mountAndRead(page, `return w.mountDiagram(slot, w.definition, { features: "embed", source: { svgText: ${JSON.stringify(rendered)} } });`);
+  expect(reused.layers).toBe(0);
+  const arrows = await page.evaluate(() => document.querySelectorAll("body > div:last-of-type .dwk-box-arrow").length);
+  expect(arrows).toBe(3);
 });
 

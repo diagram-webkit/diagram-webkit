@@ -1,7 +1,7 @@
 # API
 
 ```js
-import { mountApp, mountDiagram, defineDiagram, defineDiagramElement, standaloneDefinition } from "diagram-webkit"; // browser
+import { mountApp, mountDiagram, defineDiagram, defineDiagramElement, standaloneDefinition, renderLineOverlays } from "diagram-webkit"; // browser
 import { ... } from "diagram-webkit/core";      // pure TS: codecs, state, tags, validate
 import { revealPlugin } from "diagram-webkit/reveal";
 import { diagramWebkit } from "diagram-webkit/tools/vite"; // Node
@@ -29,6 +29,15 @@ The container needs a size. Styles are scoped to `.dwk-root`, use container quer
 Errors are shown, not just thrown: bad options or state put a red box with the details in the container before `mountDiagram` rejects; a load error shows inside the instance and rejects `ready`.
 
 Mounts that load the same SVG URL at the same time (Reveal print, per-slide mode) share one fetch and parse; each gets its own copy. Nothing is kept after loading.
+
+## Line overlays into an SVG
+
+```js
+// svg: an <svg> in a document with a window (not an inert DOMParser one); it need not be visible
+const { overlays, bands, arrows } = renderLineOverlays(svg, { metadata: definition.metadata, tags: definition.tags }); // ["egress"], 6, 5
+```
+
+Draws the bands for `data-overlay` lines (`g.dwk-line-overlays`) and the box arrows for `data-arrow-at-each-box` lines (`g.dwk-box-arrow`) into the SVG, the same way an instance does, and marks it `data-dwk-rendered`, for writing out a finished file. Throws if the SVG is rendered already. The `render` CLI wraps it ([tools.md](tools.md#render)). An instance that loads such an SVG uses those bands and does not draw them again.
 
 ## Custom element
 

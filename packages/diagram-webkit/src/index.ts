@@ -1,5 +1,6 @@
 export * from "./core/index";
 export { mountDiagram } from "./dom/instance.js";
+export { renderLineOverlays } from "./dom/overlays/line-overlays.js";
 export { mountApp } from "./ui/mount-app.js";
 export { standaloneDefinition } from "./dom/standalone.js";
 export { defineDiagramElement, ELEMENT_ATTRS, ELEMENT_ERROR_EVENT } from "./dom/element.js";

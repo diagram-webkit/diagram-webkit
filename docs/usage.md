@@ -115,6 +115,15 @@ npx diagram-webkit validate my-diagram.svg --definition definition.js
 #        arrow-at-each-box-format
 ```
 
+### Source and rendered SVG
+
+With line overlays, the draw.io file alone lacks the bands. Keep the draw.io file as the source and publish a rendered one:
+
+```
+my-diagram.drawio.svg   edited in draw.io
+my-diagram.svg          npx diagram-webkit render my-diagram.drawio.svg --out my-diagram.svg (bands in, draw.io model out)
+```
+
 ## Full page
 
 ```html

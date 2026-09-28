@@ -12,6 +12,7 @@
 // checkout (local-engine.js). The plugin itself stays the installed one: a
 // plugin from the checkout would bring its own copy of Vite.
 import path from "node:path";
+import { MODE_META_NAME } from "diagram-webkit/core";
 import { searchForWorkspaceRoot } from "vite";
 import { loadDefinition } from "./load-definition.js";
 import { localEngineAliases, localEngineDir } from "./local-engine.js";
@@ -33,6 +34,7 @@ function localEngineConfig(engineDir, userConfig) {
 
 function createPlugin(options, engineDir) {
   let root = process.cwd();
+  let command = "build";
   let pagePromise = null;
 
   const resolve = (file) => path.resolve(root, file);
@@ -103,6 +105,7 @@ function createPlugin(options, engineDir) {
     },
     configResolved(config) {
       root = config.root;
+      command = config.command;
       if (engineDir) config.logger.info(`diagram-webkit: local engine ${engineDir}`);
       // Before anything imports the generated module.
       syncTagTree();
@@ -118,7 +121,10 @@ function createPlugin(options, engineDir) {
       order: "pre",
       async handler(html) {
         const page = await loadPage();
-        return { html: applyPageDocument(html, page), tags: pageTags(page) };
+        // The dev server is development mode: mountDiagram applies the
+        // definition's `development` fields.
+        const mode = command === "serve" ? [{ tag: "meta", attrs: { name: MODE_META_NAME, content: "development" }, injectTo: "head" }] : [];
+        return { html: applyPageDocument(html, page), tags: [...pageTags(page), ...mode] };
       },
     },
   };

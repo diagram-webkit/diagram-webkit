@@ -1,5 +1,5 @@
 import type { Rect } from "./core/codec/camera";
-import type { DiagramDefinition } from "./core/definition";
+import type { DefinitionMode, DiagramDefinition } from "./core/definition";
 import type { FeaturesSpec } from "./core/presets";
 import type { DiagramState, DiagramView, ElementQuery } from "./core/state";
 
@@ -9,6 +9,10 @@ export interface MountOptions {
   ownerDocument?: Document;
   source?: { url: string } | { svgText: string } | { svg: SVGSVGElement };
   debug?: boolean;
+  // Which of the definition's modes applies ("development" merges its
+  // `development` fields). Default: the page's <meta name="diagram-webkit-mode">,
+  // else "production".
+  mode?: DefinitionMode;
   // ms for cell show/hide, dim and highlight changes. Default: 120 ms show/hide, instant dim/highlight.
   fade?: number;
 }

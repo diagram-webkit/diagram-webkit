@@ -15,6 +15,8 @@ const diagram = await mountDiagram(container, definition, {
   initialState: { view: { level: 1 }, ui: { panelOpen: false } }, // over definition.baseState (and URL, with urlSync)
   source: { url: "./other.svg" },  // or { svgText } or { svg: SVGSVGElement }; default: definition.source
   debug: false,                 // use source.debug; app default: ?debug in the URL
+  mode: "development",          // apply definition.development; default: the page's
+                                //   <meta name="diagram-webkit-mode"> (Vite dev server), else "production"
   fade: 400,                    // ms per phase: leaving cells and highlight fade out, then new cells
                                 //   and the new highlight fade in. Default: 120 ms show/hide, no phases
   ownerDocument: iframe.contentDocument,

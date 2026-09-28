@@ -141,11 +141,16 @@ test("render writes a finished SVG, and an instance uses its bands without drawi
   expect(displays).toEqual(["", "none", "none", "", "none", "none"]);
 });
 
-test("lineOverlays: false draws nothing", async ({ page }) => {
+test("lineOverlays: false draws nothing; development mode applies definition.development", async ({ page }) => {
   await page.goto("/line-overlays.html");
   await waitReady(page);
-  const off = `const def = w.definition.extend({ features: { preset: "embed", lineOverlays: false } });`;
-  expect(await mountAndRead(page, `${off} return w.mountDiagram(slot, def);`)).toMatchObject({ layers: 0 });
+  const extended = `const def = w.definition.extend({ features: { preset: "embed", lineOverlays: false }, development: { features: { lineOverlays: true } } });`;
+  expect(await mountAndRead(page, `${extended} return w.mountDiagram(slot, def);`)).toMatchObject({ layers: 0 });
+  expect(await mountAndRead(page, `${extended} return w.mountDiagram(slot, def, { mode: "development" });`)).toMatchObject({ layers: 1 });
+  // The Vite plugin's dev server marks the page.
+  const marked = `const meta = document.createElement("meta"); meta.name = "diagram-webkit-mode"; meta.content = "development"; document.head.appendChild(meta);`;
+  expect(await mountAndRead(page, `${extended} ${marked} return w.mountDiagram(slot, def);`)).toMatchObject({ layers: 1 });
+  expect(await mountAndRead(page, `${extended} return w.mountDiagram(slot, def, { mode: "production" });`)).toMatchObject({ layers: 0 });
 });
 
 // e2e/pages/box-arrows.svg: one line from box1 to box4 with arrow-at-each-box,

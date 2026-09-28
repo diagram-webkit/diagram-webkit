@@ -14,6 +14,7 @@
  * @property {import("../core/presets").Features} features
  * @property {import("../core/texts").Texts} texts
  * @property {import("../core/tags").TagModel} model
+ * @property {import("../core/definition").DefinitionMode} mode the definition's mode in use
  * @property {Record<string, any>} services
  * @property {(name: string) => HTMLElement} el
  * @property {(name: string) => HTMLElement | null} maybeEl

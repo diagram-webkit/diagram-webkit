@@ -111,6 +111,11 @@ export default defineDiagram({
     renderFooter: ({ links, version }) => "<footer>...</footer>",
     tagLabel: (tag, meta) => meta.label,
   },
+
+  development: {                        // merged over the rest in development mode (below)
+    source: { production: new URL("./my-diagram.drawio.svg", import.meta.url).href },
+    features: { lineOverlays: true },
+  },
 });
 ```
 
@@ -119,6 +124,31 @@ UI text keys: `DEFAULT_TEXTS` in `packages/diagram-webkit/src/core/texts.ts`.
 ```js
 import { DEFAULT_TEXTS } from "diagram-webkit";
 Object.keys(DEFAULT_TEXTS); // loading, loadError, searchPlaceholder, levelTitle, aboutTitle, ...
+```
+
+## development
+
+Fields merged over the definition, like `extend`, when the page runs in development mode:
+
+- served by the Vite plugin's dev server (`vite` / `npm run dev`): the plugin writes `<meta name="diagram-webkit-mode" content="development">`, which `mountDiagram` reads;
+- or `mountDiagram(el, definition, { mode: "development" })` (`"production"` forces the other way).
+
+A build (`vite build`) and every other page is production. Any definition field except `id` and `development` itself; no `null` removals. `extend` keeps and merges `development` like any other object. `definitionForMode(definition, mode)` returns the definition as it applies in a mode.
+
+Typical use, a diagram that publishes a rendered SVG ([tools.md](tools.md#render)) and edits a draw.io source:
+
+```js
+const rendered = new URL("./my-diagram.svg", import.meta.url).href;        // bands drawn in, no draw.io model
+const source = new URL("./my-diagram.drawio.svg", import.meta.url).href;   // what draw.io opens
+
+defineDiagram({
+  source: { production: rendered, debug: rendered },
+  features: { preset: "app", lineOverlays: false },          // the rendered SVG has the bands
+  development: {
+    source: { production: source, debug: source },           // edits show on reload, no render step
+    features: { lineOverlays: true },
+  },
+});
 ```
 
 ## extend

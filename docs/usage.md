@@ -124,6 +124,8 @@ my-diagram.drawio.svg   edited in draw.io
 my-diagram.svg          npx diagram-webkit render my-diagram.drawio.svg --out my-diagram.svg (bands in, draw.io model out)
 ```
 
+The definition loads the rendered file, and the source in development mode: [definition.md](definition.md#development).
+
 ## Full page
 
 ```html

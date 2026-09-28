@@ -52,7 +52,7 @@ Generate a module rather than importing `METADATA.md?raw`: `?raw` does not work 
 
 `--definition` supplies `metadata` (attribute names) and `tags` (the tag roles that tell markers apart). Needs Playwright with Chromium in the project (`npm i -D playwright` or `@playwright/test`, then `npx playwright install chromium`) and a built engine (`dist/`; with `DIAGRAM_WEBKIT_DIR`, `npm run build` in the checkout). Any warning while drawing (a band left out, an unknown overlay) fails the command with exit 1, so a broken band never lands in a committed file.
 
-An instance that loads a rendered SVG (`data-dwk-rendered`) uses its bands and arrows as they are (connected to their lines for show, hide, fade and dim) and never draws them again, whatever `features.lineOverlays` says. The usual setup: keep `my-diagram.drawio.svg` as the source and publish `my-diagram.svg`.
+An instance that loads a rendered SVG (`data-dwk-rendered`) uses its bands and arrows as they are (connected to their lines for show, hide, fade and dim) and never draws them again, whatever `features.lineOverlays` says. The usual setup: keep `my-diagram.drawio.svg` as the source, publish `my-diagram.svg`, and switch the source per mode ([definition.md](definition.md#development)).
 
 CI that renders and commits back:
 
@@ -88,6 +88,8 @@ export default defineConfig({
   ],
 });
 ```
+
+Dev server (`vite`): the plugin adds `<meta name="diagram-webkit-mode" content="development">`, so `mountDiagram` applies the definition's `development` fields ([definition.md](definition.md#development)). `vite build` output has no such tag.
 
 `DIAGRAM_WEBKIT_DIR=<checkout>`: the plugin resolves `diagram-webkit` to that checkout's source, and the CLI runs that checkout's CLI ([development.md](development.md#developing-a-diagram-against-a-local-checkout)).
 

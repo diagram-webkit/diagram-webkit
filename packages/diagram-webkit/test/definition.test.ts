@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defineDiagram, isDiagramDefinition, PRESETS, resolveFeatures, satisfies, VERSION } from "../src/core";
+import { defineDiagram, definitionForMode, isDiagramDefinition, PRESETS, resolveFeatures, satisfies, VERSION } from "../src/core";
 
 const base = defineDiagram({
   id: "base",
@@ -143,6 +143,38 @@ describe("presets", () => {
     expect(PRESETS.app.feedback).toBe("page");
     expect([PRESETS.app.lineOverlays, embed.lineOverlays]).toEqual([true, true]);
     expect(() => resolveFeatures({ lineOverlays: "yes" } as never)).toThrow(/lineOverlays: expected a boolean/);
+  });
+});
+
+describe("development mode", () => {
+  const rendered = defineDiagram({
+    id: "modes",
+    source: { production: "./diagram.svg" },
+    features: { lineOverlays: false },
+    development: { source: { production: "./diagram.drawio.svg" }, features: { lineOverlays: true } },
+  });
+
+  it("merges the development fields in development mode only", () => {
+    expect(definitionForMode(rendered, "production")).toBe(rendered);
+    const dev = definitionForMode(rendered, "development");
+    expect(dev.source).toEqual({ production: "./diagram.drawio.svg" });
+    expect(dev.features.lineOverlays).toBe(true);
+    expect(dev.development).toBeUndefined();
+    expect(definitionForMode(defineDiagram({ id: "plain" }), "development").id).toBe("plain");
+    expect(() => definitionForMode(rendered, "staging" as never)).toThrow(/mode: expected "production" or "development"/);
+  });
+
+  it("is kept and merged by extend", () => {
+    const extended = rendered.extend({ development: { content: { about: "dev" } } });
+    expect(definitionForMode(extended, "development").content!.about).toBe("dev");
+    expect(definitionForMode(extended, "development").source).toEqual({ production: "./diagram.drawio.svg" });
+  });
+
+  it("validates like the definition, without id or nested modes", () => {
+    expect(() => defineDiagram({ id: "x", development: { id: "y" } as never })).toThrow(/definition\.development\.id: unknown key/);
+    expect(() => defineDiagram({ id: "x", development: { development: {} } as never })).toThrow(/definition\.development\.development: unknown key/);
+    expect(() => defineDiagram({ id: "x", development: { source: { production: 1 } } as never })).toThrow(/definition\.development\.source\.production: expected a string/);
+    expect(() => defineDiagram({ id: "x", development: { features: { lineOverlay: true } } as never })).toThrow(/lineOverlay/);
   });
 });
 

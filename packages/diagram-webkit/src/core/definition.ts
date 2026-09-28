@@ -55,6 +55,10 @@ export interface DefinitionInput {
   features?: FeaturesSpec;
   baseState?: DiagramView;
   views?: Record<string, { title?: string; state: DiagramView }>;
+  // Merged over the rest (like extend) when the page runs in development
+  // mode: served by the diagram-webkit Vite plugin's dev server, or
+  // mountDiagram's mode option. No null removals here.
+  development?: Omit<DefinitionOverride, "id" | "development">;
   hooks?: {
     parseHelp?: HelpParser;
     renderAbout?: (html: string) => string;
@@ -89,6 +93,7 @@ type Spec =
   | "features"
   | "view"
   | "views"
+  | "development"
   | { record: Spec }
   | { fields: Record<string, Spec> };
 
@@ -136,8 +141,20 @@ const SCHEMA: Spec = {
     baseState: "view",
     views: "views",
     hooks: { fields: { parseHelp: "function", renderAbout: "function", renderFooter: "function", tagLabel: "function" } },
+    development: "development",
   },
 };
+
+// Everything a definition has, except what cannot change per mode.
+const DEVELOPMENT_SCHEMA: Spec = {
+  fields: Object.fromEntries(Object.entries((SCHEMA as { fields: Record<string, Spec> }).fields).filter(([key]) => key !== "id" && key !== "development")),
+};
+
+export type DefinitionMode = "production" | "development";
+// <meta name="diagram-webkit-mode" content="development">: written by the
+// Vite plugin's dev server; mountDiagram's default mode.
+export const MODE_META_NAME = "diagram-webkit-mode";
+export const DEFINITION_MODES: readonly DefinitionMode[] = Object.freeze(["production", "development"]);
 
 const DEFINITION = Symbol.for("diagram-webkit.definition");
 
@@ -186,6 +203,9 @@ function validate(value: unknown, spec: Spec, path: string): void {
       return;
     case "view":
       normalizeView(value, path);
+      return;
+    case "development":
+      validate(value, DEVELOPMENT_SCHEMA, path);
       return;
     case "views":
       if (!isPlainObject(value)) fail(path, "expected an object");
@@ -290,6 +310,14 @@ function finalize(raw: Record<string, unknown>): DiagramDefinition {
 export function defineDiagram(input: DefinitionInput): DiagramDefinition {
   if (!isPlainObject(input)) fail("definition", "expected an object");
   return finalize(cloneDeep(input) as unknown as Record<string, unknown>);
+}
+
+// The definition as it applies in `mode`: with its `development` fields
+// merged in for development.
+export function definitionForMode(definition: DiagramDefinition, mode: DefinitionMode): DiagramDefinition {
+  if (!DEFINITION_MODES.includes(mode)) fail("mode", `expected "production" or "development", got ${JSON.stringify(mode)}`);
+  if (mode !== "development" || !definition.development) return definition;
+  return definition.extend({ ...definition.development, development: null } as DefinitionOverride);
 }
 
 export function isDiagramDefinition(value: unknown): value is DiagramDefinition {

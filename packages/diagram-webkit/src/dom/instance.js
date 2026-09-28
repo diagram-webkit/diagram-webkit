@@ -5,7 +5,7 @@ import { DEFAULT_ANNOTATION_TYPES, DEFAULT_MAX_ANNOTATIONS } from "../core/annot
 import { serializeSlide } from "../core/codec/slide";
 import { stateToJson } from "../core/codec/json";
 import { urlToState } from "../core/codec/url";
-import { isDiagramDefinition } from "../core/definition";
+import { MODE_META_NAME, definitionForMode, isDiagramDefinition } from "../core/definition";
 import { parseHelpContent } from "../core/help";
 import { DEFAULT_HTML_WHITELIST, processUserDescription } from "../core/html";
 import { resolveFeatures } from "../core/presets";
@@ -91,6 +91,12 @@ function resolveConfig(definition) {
   };
 }
 
+// The mode the page was served in (the Vite plugin's dev server marks it).
+function pageMode(doc) {
+  const meta = doc.querySelector(`meta[name="${MODE_META_NAME}"]`);
+  return meta && meta.getAttribute("content") === "development" ? "development" : "production";
+}
+
 function resolveSource(config, opts, debug) {
   if (opts.source) {
     if (typeof opts.source !== "object" || !("url" in opts.source || "svgText" in opts.source || "svg" in opts.source)) {
@@ -126,17 +132,19 @@ function buildSkeleton(doc, root, texts, idPrefix) {
 /**
  * @param {HTMLElement} container
  * @param {any} [definitionOrNone] omitted: the standalone app (the reader opens a diagram)
- * @param {{ features?: any, initialState?: any, ownerDocument?: Document, source?: any, debug?: boolean, fade?: number, app?: boolean }} [opts]
+ * @param {{ features?: any, initialState?: any, ownerDocument?: Document, source?: any, debug?: boolean, mode?: import("../core/definition").DefinitionMode, fade?: number, app?: boolean }} [opts]
  */
 export function createInstance(container, definitionOrNone, opts = {}) {
   // No definition at all is the standalone app: no diagram, the reader brings one.
-  const definition = definitionOrNone === undefined || definitionOrNone === null ? standaloneDefinition() : definitionOrNone;
-  if (!isDiagramDefinition(definition)) {
+  const given = definitionOrNone === undefined || definitionOrNone === null ? standaloneDefinition() : definitionOrNone;
+  if (!isDiagramDefinition(given)) {
     throw new TypeError("mountDiagram: definition must be created with defineDiagram()");
   }
   if (!container || container.nodeType !== 1) throw new TypeError("mountDiagram: container must be an element");
 
   const doc = opts.ownerDocument || container.ownerDocument;
+  const mode = opts.mode ?? pageMode(doc);
+  const definition = definitionForMode(given, mode);
   const win = /** @type {Window & typeof globalThis} */ (doc.defaultView);
   if (!win) throw new Error("mountDiagram: the container's document has no window");
 
@@ -242,6 +250,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
     texts,
     model,
     idPrefix,
+    mode,
     // The standalone app (dom/standalone.js), or a site built on it with extend().
     standalone: definition.id === STANDALONE_ID,
     signal: controller.signal,

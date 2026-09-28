@@ -141,6 +141,8 @@ describe("presets", () => {
     expect([embed.annotations, embed.tooltips, embed.copySlide, embed.feedback]).toEqual(["render", true, false, "container"]);
     expect(PRESETS.app.annotations).toBe("edit");
     expect(PRESETS.app.feedback).toBe("page");
+    expect([PRESETS.app.lineOverlays, embed.lineOverlays]).toEqual([true, true]);
+    expect(() => resolveFeatures({ lineOverlays: "yes" } as never)).toThrow(/lineOverlays: expected a boolean/);
   });
 });
 

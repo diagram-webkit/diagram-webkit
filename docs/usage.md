@@ -68,7 +68,7 @@ All fields: [definition.md](definition.md).
 
 ## SVG authoring (draw.io)
 
-Cell properties `tags`, `slug`, `help` (draw.io Edit Data, `Ctrl+M`) end up in the SVG as `data-*` attributes (names configurable in `metadata`). Save with draw.io File → Save as → SVG; the draw.io CLI export (`drawio -x -f svg`) does not write them.
+Cell properties `tags`, `slug`, `help`, `overlay`, `overlay-definition` (draw.io Edit Data, `Ctrl+M`) end up in the SVG as `data-*` attributes (names configurable in `metadata`). Save with draw.io File → Save as → SVG; the draw.io CLI export (`drawio -x -f svg`) does not write them.
 
 ```xml
 <g data-cell-id="lb"
@@ -84,12 +84,27 @@ Cell properties `tags`, `slug`, `help` (draw.io Edit Data, `Ctrl+M`) end up in t
   data-slug  stable name for pins, highlight and links
   data-help  first line = title, rest = body (tooltip and search)
 -->
+
+<!-- line overlays: translucent bands along lines (user-guide.md#lines-overlays) -->
+<g data-cell-id="legend-egress" data-tags="legend" data-overlay-definition="egress" type="edge">
+<g data-cell-id="pod-to-gw" data-tags="Network Network.Egress" data-overlay="egress,ingress" type="edge">
+<!--
+  data-overlay-definition  one name; the line's first <path> is the look of that overlay
+  data-overlay             names, comma- or space-separated; order across the line: the first on the
+                           left looking along the arrow (both or no arrows: as drawn, start to end)
+  data-overlay-destination on a box: "true" = bands end or start there, none is joined through it
+  Bands run arrow tip to arrow tip, are joined inside a box where one line arrives and
+  another leaves (arrows = direction), and are drawn on top in g.dwk-line-overlays;
+  cells with a data-slug are moved above them (g.dwk-above-overlays).
+-->
 ```
 
 ```sh
 npx diagram-webkit validate my-diagram.svg --definition definition.js
 # codes: unknown-tag, missing-ancestor, tag-depth, duplicate-slug, missing-slug,
-#        slug-format (PascalCase, max 20), slug-without-help, unknown-slug/-id (in views)
+#        slug-format (PascalCase, max 20), slug-without-help, unknown-slug/-id (in views),
+#        unknown-overlay, duplicate-overlay-definition, overlay-definition-format,
+#        overlay-destination-format
 ```
 
 ## Full page

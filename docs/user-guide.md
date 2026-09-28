@@ -145,6 +145,14 @@ Any draw.io SVG can be opened. It becomes much more useful when you add three th
 | `help` | the explanation shown on hover and found by search | `Load balancer` + a description on the next lines |
 | `slug` | a short, stable name, so the part can be pinned and linked to | `LoadBalancer` |
 
+More, for lines, draw on top of them ([Lines: overlays](#lines-overlays)):
+
+| Property | What it does | Example |
+| --- | --- | --- |
+| `overlay-definition` | this line's look defines an overlay | `egress` |
+| `overlay` | draw these overlays along this line | `egress` or `egress,ingress` |
+| `overlay-destination` | on a box: bands end or start here, never pass through | `true` |
+
 ### Adding properties
 
 1. Select a shape, a line or a text in draw.io.
@@ -193,6 +201,47 @@ Give a part inside a box at least the level of the box, and a line at least the 
 | `pri-1`, `pri-2`, … `info` | a priority or kind. Shown as its own tags; a site built on diagram-webkit can give them colours and labels. |
 | `css-<name>` | adds the CSS class `custom-<name>` to the part, for sites that bring their own styles |
 
+### Lines: overlays
+
+An overlay is a wide, translucent band drawn along lines, for example to show the way traffic comes in (ingress, red) and goes out (egress, blue). You draw the look once; diagram-webkit draws the bands along the lines, all the way to the arrow tips and joined through the boxes in between.
+
+**1. Define the look** with one line, usually in the legend. Draw it exactly as the band should look (colour, width, dashes, opacity; for example width 12 at 20 % opacity) and give it the property:
+
+```
+overlay-definition   egress
+```
+
+**2. Mark the lines** the band should follow:
+
+```
+overlay   egress
+```
+
+Two or more bands on one line: `egress,ingress` (commas or spaces).
+
+**3. Save** as SVG. The legend line stays as drawn; every marked line gets a band.
+
+How the bands are drawn:
+
+- **Look.** Everything is copied from the definition line: colour, dark-theme colour, width, dashes. Change the legend line, and every band follows, so the legend always matches.
+- **Ends.** A band runs to the tip of the line's arrow, so it reaches the box the arrow points at.
+- **Direction.** Arrows give the direction of the flow: a line with an arrow at one end flows towards it. A line with arrows at both ends, or none, takes its direction from the lines it meets: first it continues a line that arrives at the same box, then any line it touches. This is worked out per overlay, so one line with arrows at both ends can carry two flows the opposite way: ingress in towards a box, egress out of it.
+- **Joins.** Where one marked line arrives at a box and another leaves it, their bands are joined inside the box: one corner when the lines are at right angles, a straight crossing or a U-turn through the box's centre line when they are parallel. Line ends at the same point (within 4 px) are joined too. Two lines that both arrive at a box, or both leave it, are not joined: that is not a flow through the box. Only bands of the same overlay are joined.
+- **Branches.** A line arriving at a box with several lines leaving it is joined to each of them, so a flow can fork (git → image-builder → registry, internet, scanner).
+- **Several overlays** on one line lie side by side, together centred on the line: two bands touch at the line, three have the middle one on the line. The order is the order in `overlay`: the first on the left, looking the way the line's arrow points. For a line with arrows at both ends, or none, that is looking from where the line starts in draw.io to where it ends; if the sides come out the wrong way round, swap the order. `egress,ingress` and `ingress,egress` put the same bands on opposite sides.
+- **Together and apart.** Bands that go the same way through a box stay side by side and turn concentrically: the outer one wider, the inner one tighter, no gap. Bands that share a line and then part (ingress on to one line, egress to another) run side by side up to the box's centre line and turn off there, each straight to its own line.
+- **Destinations.** A box with `overlay-destination = true` is where a flow ends or starts: bands go to it and from it, but no band is joined through it, and flows do not take their direction from each other there. Use it for a box several flows point at (a process, a service) that is not a way through.
+- **On top.** Bands are drawn over the whole diagram, boxes included, so a flow reads as one band through the boxes it passes. Only the parts with a `slug` (the markers that carry help: circles, `?`) stay above them: they are lifted above the bands, keeping their place and their order among themselves, so a marker can then also lie above a box that came after it in draw.io.
+- **Visibility.** A band is shown, hidden, faded and dimmed with its line. A join shows only while both of its lines do.
+- **Boxes** are draw.io shapes (not their labels). A line end counts as arriving at the smallest shape whose border it touches.
+
+Keep in mind:
+
+- Only lines can have overlays; on a shape the property is ignored with a warning in the browser console.
+- Remove old hand-drawn bands from the diagram; they are not replaced automatically.
+- If two joined lines carry a different number of overlays (`egress` against `egress,ingress`), the band makes a small sideways step at the join. Give lines of one flow the same overlays.
+- Curved lines are followed; line jumps (draw.io's arcs where lines cross) are drawn straight.
+
 ### Help text
 
 The first line of `help` is the title. Everything after it is the explanation:
@@ -231,9 +280,9 @@ The file starts with `<!-- Do not edit this file with editors other than draw.io
 
 If the diagram contains pictures, they must be inside the file. Pictures that point elsewhere on the internet are removed when the diagram is opened here.
 
-Check the result: open the `.svg` in a text editor and search for `data-tags`. Your properties should appear as `data-tags="…"`, `data-help="…"` and `data-slug="…"`. If they do not, update draw.io; the properties are what everything else builds on.
+Check the result: open the `.svg` in a text editor and search for `data-tags`. Your properties should appear as `data-tags="…"`, `data-help="…"` and `data-slug="…"` (and `data-overlay="…"`, `data-overlay-definition="…"`). If they do not, update draw.io; the properties are what everything else builds on.
 
-For a thorough check, the command line tool reports unknown tags, missing parents, duplicate or missing slugs, and more:
+For a thorough check, the command line tool reports unknown tags, missing parents, duplicate or missing slugs, overlays without a definition, and more:
 
 ```sh
 npx diagram-webkit validate my-diagram.svg
@@ -261,6 +310,7 @@ At level 0 you see the user and the web app. Level 1 adds the load balancer and 
 For the curious; nothing here is needed to use it.
 
 - **The SVG is the diagram.** draw.io writes your properties onto each part as `data-tags`, `data-help` and `data-slug`. diagram-webkit reads them, builds the tag tree, the levels and the search index, and shows or hides parts by changing their visibility. Nothing is redrawn; you see draw.io's own drawing.
+- **Overlays** are the one thing drawn on top: once, when the diagram opens, from the lines' own path data. They are added to the SVG as copies of the definition line's path, one group per overlay, with the transparency on the group so overlapping bands do not get darker.
 - **Opening a diagram** reads the file in the browser (file picker, drag and drop, or a fetch of the link you gave). It is parsed in an isolated document first, where nothing in it can run.
 - **Cleaning.** Before a diagram you opened is shown, scripts, event handlers, `javascript:` links, embedded frames and forms are removed, and so are references to anything outside the file (images, fonts, stylesheets on other servers). Help text is limited to simple formatting and links. A diagram from someone else can therefore not run code in your browser or reveal that you opened it.
 - **The address is the state.** Position, level, filters, search, pins and annotations are written to the address as you go (`?v=…&filter-level=…&pins=…`), so the address is always a link to what you see.
@@ -275,6 +325,10 @@ For the curious; nothing here is needed to use it.
 | "Could not load …" for a link | The site does not allow reading the file from other pages, or you are offline. Download the file and open it. |
 | "The diagram in this link could not be read" | The link was cut off, often by a chat tool. Ask for the file, or a shorter link (fewer annotations). |
 | No tags in the menu, no help on hover | The SVG has no `data-tags` / `data-help`. See [Saving as SVG](#saving-as-svg). |
+| No overlay band | The property must be `overlay` on the line itself (Edit Data), not inside `tags`, and a line with `overlay-definition` of the same name must exist. The browser console (`diagram-webkit: line overlay: …`) says what was skipped. |
+| Two overlay bands swap sides at a box | The lines on each side list the overlays in orders that disagree, seen along their arrows. Swap the order in `overlay` on one of them. |
+| A band passes through a box it should end at | Set `overlay-destination = true` on the box. |
+| An overlay band stops at a box | The next line does not leave that box (it arrives at it too), or has no `overlay` with the same name. |
 | A tag cannot be shown again | Its parent is hidden. Show the parent (the menu says which). |
 | Something is missing | Check the level and the hidden tags in the menu, or press **Clear all filters**. |
 | Pictures are gone | They pointed to the internet. Put the pictures into the diagram itself. |

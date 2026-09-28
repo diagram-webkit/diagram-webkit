@@ -82,6 +82,8 @@ export function createLifecycle(ctx) {
     sv.helpIndex.initializeSvgPropertyAnnotations();
     sv.pins.normalizePinnedHelpSlugs();
     sv.pinRings.render();
+    // Before the filter hides lines and before the dark theme reads colours.
+    sv.lineOverlays.render();
     sv.filter.indexTags();
     sv.darkCanvas.render(sv.theme.getCurrentTheme() === "dark");
     if (sv.tagTree) sv.tagTree.initializeTagControls();

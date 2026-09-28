@@ -3,7 +3,7 @@
 ## CLI
 
 ```sh
-# Check SVG metadata against the definition: tags, slugs, views pointing at missing cells.
+# Check SVG metadata against the definition: tags, slugs, overlays, views pointing at missing cells.
 # Exit 1 on errors.
 npx diagram-webkit validate my-diagram.svg --definition definition.js
 # warning: missing-ancestor [lb]: Network.Ingress without its parent Network

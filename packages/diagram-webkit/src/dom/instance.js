@@ -37,6 +37,7 @@ import { renderErrorBox } from "./error-box.js";
 import { STARTING_CLASS } from "./lifecycle.js";
 import { createHighlightLine } from "./overlays/highlight-line.js";
 import { createPinRings } from "./overlays/pins.js";
+import { createLineOverlays } from "./overlays/line-overlays.js";
 import { createPulse } from "./overlays/pulse.js";
 import { createPins } from "./pins.js";
 import { adoptStyles } from "./styles.js";
@@ -335,6 +336,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
   sv.filter = createFilter(ctx);
   sv.pins = createPins(ctx);
   sv.pinRings = createPinRings(ctx);
+  sv.lineOverlays = createLineOverlays(ctx);
   sv.pulse = createPulse(ctx);
   sv.highlight = createHighlight(ctx);
   sv.focus = createFocus(ctx);

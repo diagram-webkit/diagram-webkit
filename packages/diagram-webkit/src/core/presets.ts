@@ -23,6 +23,8 @@ export interface Features {
   // How a search result shows where its element is: on click/tap/Enter, or
   // already on hover and keyboard focus (which moves the camera).
   resultLocate: "click" | "hover";
+  // Draw line overlays (data-overlay) when the diagram is loaded.
+  lineOverlays: boolean;
 }
 
 export type FeaturesOverride = Partial<Omit<Features, "input">> & { input?: Partial<InputFeatures> };
@@ -46,6 +48,7 @@ export const PRESETS: Readonly<Record<PresetName, Readonly<Features>>> = Object.
     copySlide: true,
     feedback: "page",
     resultLocate: "click",
+    lineOverlays: true,
   }),
   embed: Object.freeze({
     panel: false,
@@ -61,6 +64,7 @@ export const PRESETS: Readonly<Record<PresetName, Readonly<Features>>> = Object.
     copySlide: false,
     feedback: "container",
     resultLocate: "click",
+    lineOverlays: true,
   }),
 });
 

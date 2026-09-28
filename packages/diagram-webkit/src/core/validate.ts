@@ -1,5 +1,6 @@
 import type { NamedView } from "./codec/slide";
 import type { DiagramView, ElementQuery } from "./state";
+import { parseFlag, parseOverlayNames } from "./line-overlays";
 import type { TagModel } from "./tags";
 
 export interface MetadataAttrs {
@@ -7,6 +8,12 @@ export interface MetadataAttrs {
   tagsAttr: string;
   helpAttr: string;
   slugAttr: string;
+  // Line overlays (core/line-overlays.ts): the overlays a line carries, and
+  // the overlay a line's look defines.
+  overlayAttr: string;
+  overlayDefinitionAttr: string;
+  // A box overlays go to and from, never through.
+  overlayDestinationAttr: string;
 }
 
 export const DEFAULT_METADATA_ATTRS: MetadataAttrs = Object.freeze({
@@ -14,6 +21,9 @@ export const DEFAULT_METADATA_ATTRS: MetadataAttrs = Object.freeze({
   tagsAttr: "data-tags",
   helpAttr: "data-help",
   slugAttr: "data-slug",
+  overlayAttr: "data-overlay",
+  overlayDefinitionAttr: "data-overlay-definition",
+  overlayDestinationAttr: "data-overlay-destination",
 });
 
 export interface Cell {
@@ -21,6 +31,10 @@ export interface Cell {
   tags: string[];
   help: string | null;
   slug: string | null;
+  // Optional for callers that build cells by hand; extractCells sets both.
+  overlays?: string[];
+  overlayDefinition?: string | null;
+  overlayDestination?: string | null;
 }
 
 export interface Issue {
@@ -67,12 +81,15 @@ export function extractCells(svgText: string, attrs: MetadataAttrs = DEFAULT_MET
     const ownId = values[attrs.idAttr] ?? null;
     const inheritedId = ownId ?? [...idStack].reverse().find((id) => id !== null) ?? null;
     if (ownId !== null) lastId = ownId;
-    if (attrs.tagsAttr in values || attrs.helpAttr in values) {
+    if ([attrs.tagsAttr, attrs.helpAttr, attrs.overlayAttr, attrs.overlayDefinitionAttr, attrs.overlayDestinationAttr].some((name) => name in values)) {
       cells.push({
         id: inheritedId ?? values.id ?? lastId ?? `#${cells.length}`,
         tags: (values[attrs.tagsAttr] || "").split(/[\s,]+/).filter(Boolean),
         help: values[attrs.helpAttr] ?? null,
         slug: values[attrs.slugAttr] ?? null,
+        overlays: parseOverlayNames(values[attrs.overlayAttr]),
+        overlayDefinition: values[attrs.overlayDefinitionAttr]?.trim() ?? null,
+        overlayDestination: values[attrs.overlayDestinationAttr] ?? null,
       });
     }
     if (!match[3]) idStack.push(ownId);
@@ -116,6 +133,39 @@ export function validateCells(cells: readonly Cell[], model: TagModel): Issue[] 
     if (ids.length > 1) {
       issues.push({ level: "error", code: "duplicate-slug", message: `slug ${slug} used by ${ids.join(", ")}` });
     }
+  });
+  issues.push(...validateOverlays(cells));
+  return issues;
+}
+
+function validateOverlays(cells: readonly Cell[]): Issue[] {
+  const issues: Issue[] = [];
+  const definitions = new Map<string, string[]>();
+  cells.forEach((cell) => {
+    if (cell.overlayDefinition === null || cell.overlayDefinition === undefined) return;
+    const names = parseOverlayNames(cell.overlayDefinition);
+    if (names.length !== 1) {
+      issues.push({ level: "error", code: "overlay-definition-format", cell: cell.id, message: `overlay-definition must be one name, got "${cell.overlayDefinition}"` });
+      return;
+    }
+    definitions.set(names[0], [...(definitions.get(names[0]) || []), cell.id]);
+  });
+  definitions.forEach((ids, name) => {
+    if (ids.length > 1) {
+      issues.push({ level: "error", code: "duplicate-overlay-definition", message: `overlay-definition ${name} on ${ids.join(", ")}` });
+    }
+  });
+  cells.forEach((cell) => {
+    ([["overlay-destination", cell.overlayDestination]] as const).forEach(([name, value]) => {
+      if (value !== null && value !== undefined && parseFlag(value) === null) {
+        issues.push({ level: "error", code: `${name}-format`, cell: cell.id, message: `${name} must be true or false, got "${value}"` });
+      }
+    });
+    (cell.overlays || []).forEach((name) => {
+      if (!definitions.has(name)) {
+        issues.push({ level: "error", code: "unknown-overlay", cell: cell.id, message: `overlay ${name}: no line has overlay-definition ${name}` });
+      }
+    });
   });
   return issues;
 }

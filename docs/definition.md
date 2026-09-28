@@ -20,6 +20,9 @@ export default defineDiagram({
     tagsAttr: "data-tags",
     helpAttr: "data-help",
     slugAttr: "data-slug",
+    overlayAttr: "data-overlay",                      // line overlays: names on a line
+    overlayDefinitionAttr: "data-overlay-definition", // line overlays: the line that defines one
+    overlayDestinationAttr: "data-overlay-destination", // line overlays: a box bands end at, never pass
   },
 
   tags: {

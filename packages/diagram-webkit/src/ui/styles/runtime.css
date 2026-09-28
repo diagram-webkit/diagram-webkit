@@ -65,6 +65,12 @@ body:has(> .dwk-root.dwk-app) {
   filter: grayscale(0.6);
 }
 
+/* Line overlays follow their lines (overlays/line-overlays.js); no filter:
+   the bands are translucent already. */
+.dwk-root.dwk-dim-others .dwk-main-image .dwk-line-overlay-band:not(.dwk-line-overlay-target) {
+  opacity: 0.2;
+}
+
 :where(.dwk-root) .mobile-go-to-indicator.dwk-pulse-persistent {
   animation: dwk-go-to-pulse 3s ease-out infinite;
 }
@@ -275,6 +281,13 @@ body:has(> .dwk-root.dwk-app) {
   transition: opacity var(--dwk-fade, 0.12s) ease;
 }
 
+/* Bands along lines with an overlay (overlays/line-overlays.js): they fade
+   with their lines and never take the pointer from the diagram. */
+:where(.dwk-root) .dwk-line-overlay-band {
+  transition: opacity var(--dwk-fade, 0.12s) ease;
+  pointer-events: none;
+}
+
 /* Copies of the highlighted cells, drawn over the diagram (highlight.js).
    Fades with --dwk-fade (fade mount option); instant without. */
 :where(.dwk-root) .dwk-highlight-layer {
@@ -309,7 +322,8 @@ body:has(> .dwk-root.dwk-app) {
 /* Cells shown again after display:none fade in from transparent. */
 @starting-style {
   :where(.dwk-root.dwk-loaded) [data-help],
-  :where(.dwk-root.dwk-loaded) [data-tags] {
+  :where(.dwk-root.dwk-loaded) [data-tags],
+  :where(.dwk-root.dwk-loaded) .dwk-line-overlay-band {
     opacity: 0;
   }
 }

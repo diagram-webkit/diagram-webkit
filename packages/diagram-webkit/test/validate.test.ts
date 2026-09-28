@@ -30,14 +30,17 @@ describe("extractCells", () => {
       tags: ["pri-1", "Data"],
       help: "Database access\nOnly the web app may connect.\nCredentials come from a secret store.",
       slug: "DbAccess",
+      overlays: [],
+      overlayDefinition: null,
+      overlayDestination: null,
     });
   });
 
   it("decodes entities and handles quoting", () => {
     const cells = extractCells(`<svg><g data-cell-id="a"><g data-tags='x &amp; y' data-help="T&#10;&lt;b&gt;&#x41;&quot;"/></g><g data-tags="z"></g></svg>`);
     expect(cells).toEqual([
-      { id: "a", tags: ["x", "&", "y"], help: 'T\n<b>A"', slug: null },
-      { id: "a", tags: ["z"], help: null, slug: null },
+      { id: "a", tags: ["x", "&", "y"], help: 'T\n<b>A"', slug: null, overlays: [], overlayDefinition: null, overlayDestination: null },
+      { id: "a", tags: ["z"], help: null, slug: null, overlays: [], overlayDefinition: null, overlayDestination: null },
     ]);
   });
 });
@@ -61,6 +64,28 @@ describe("validateCells", () => {
     expect(issues.map((issue) => issue.code).sort()).toEqual(
       ["duplicate-slug", "missing-ancestor", "missing-slug", "slug-format", "slug-without-help", "tag-depth"].sort(),
     );
+  });
+
+  it("reads overlay properties", () => {
+    const cells = extractCells(`<svg><g data-cell-id="a" data-tags="legend" data-overlay-definition="egress"/><g data-cell-id="b" data-overlay="egress, ingress egress"/></svg>`);
+    expect(cells.map(({ id, overlays, overlayDefinition }) => ({ id, overlays, overlayDefinition }))).toEqual([
+      { id: "a", overlays: [], overlayDefinition: "egress" },
+      { id: "b", overlays: ["egress", "ingress"], overlayDefinition: null },
+    ]);
+  });
+
+  it("reports overlay problems", () => {
+    const cell = (id: string, overlays: string[], overlayDefinition: string | null, overlayDestination: string | null = null) => ({ id, tags: [], help: null, slug: null, overlays, overlayDefinition, overlayDestination });
+    const issues = validateCells(
+      [cell("legend-a", [], "egress"), cell("legend-b", [], "egress"), cell("legend-c", [], "a,b"), cell("line", ["egress", "ingress"], null), cell("end", [], null, "maybe"), cell("end-ok", [], null, "false")],
+      model,
+    );
+    expect(issues.map(({ code, cell }) => [code, cell])).toEqual([
+      ["overlay-definition-format", "legend-c"],
+      ["duplicate-overlay-definition", undefined],
+      ["unknown-overlay", "line"],
+      ["overlay-destination-format", "end"],
+    ]);
   });
 
   it("derived ancestors are not required", () => {

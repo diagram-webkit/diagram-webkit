@@ -91,7 +91,7 @@ export default defineConfig({
 
 Dev server (`vite`): the plugin adds `<meta name="diagram-webkit-mode" content="development">`, so `mountDiagram` applies the definition's `development` fields ([definition.md](definition.md#development)). `vite build` output has no such tag.
 
-`DIAGRAM_WEBKIT_DIR=<checkout>`: the plugin resolves `diagram-webkit` to that checkout's source, and the CLI runs that checkout's CLI ([development.md](development.md#developing-a-diagram-against-a-local-checkout)).
+`DIAGRAM_WEBKIT_DIR=<checkout>`: the plugin resolves `diagram-webkit` to that checkout's source and runs that checkout's plugin hooks, and the CLI runs that checkout's CLI ([development.md](development.md#developing-a-diagram-against-a-local-checkout)).
 
 ## Node helpers
 

@@ -70,7 +70,8 @@ npm run validate   # the checkout's CLI
 ```
 
 - The Vite plugin (`diagramWebkit()` in the project's `vite.config.js`) resolves `diagram-webkit`, `/core` and `/reveal` to the checkout's `src/`. No build needed for browser code.
-- Node code uses the checkout's `dist/`: the CLI and the definition load for `<head>`. Run `npm run build` here after changing `core/` or `tools/`.
+- The plugin's own hooks come from the checkout too (`src/tools/vite-plugin-core.js`), as the CLI does: the installed `vite-plugin.js` loads the checkout's core and passes in the project's Vite (`searchForWorkspaceRoot`, `runnerImport`), so no second Vite is loaded. `diagramWebkit()` then returns a Promise of the plugin, which Vite accepts. Keep `vite-plugin-core.js` and `definition-loader.js` free of `vite` imports; `createPlugin(options, engineDir, host)` is the contract between an installed entry and a checkout. Installed engines before 0.1.6 do not hand over yet: there the plugin is the installed one.
+- Node code uses the checkout's `dist/`: the CLI, the plugin (via `diagram-webkit/core`) and the definition load for `<head>`. Run `npm run build` here after changing `core/` or `tools/`.
 - The installed package stays in the project's `package.json`; unset the variable to go back to it.
 - A deck that depends on a diagram package works the same way when its `vite.config.js` has `diagramWebkit()`: the alias covers every import of `diagram-webkit`, including the ones inside the diagram package.
 

@@ -38,7 +38,7 @@ packages/diagram-webkit/
                       feedback, layout, markup, annotation-editor/*, styles/*.css
   src/adapters/       storage.js (localStorage), url-sync.js (history/location)
   src/reveal/         reveal.js plugin (TS): plugin, stage, slots, print, debug-overlay
-  src/tools/          Node, shipped as source: cli.js, vite-plugin.js, render, load-definition, local-engine, page-template, tag-tree-markdown
+  src/tools/          Node, shipped as source: cli.js, vite-plugin.js (entry) + vite-plugin-core.js, render, load-definition + definition-loader, local-engine, page-template, tag-tree-markdown
   test/               vitest (node; happy-dom where a DOM is needed); golden/ = reference outputs
 examples/             independent projects (see Examples)
 e2e/                  Playwright: embed/, features/ (F1-F33 on the app), reveal/, examples/; pages/ = test pages
@@ -240,7 +240,7 @@ npx diagram-webkit tag-tree METADATA.md --heading "Tag tree" --out config/tag-de
 ```
 
 - Import only JS from a definition. `?raw` and CSS imports break when a consumer's Vite pre-bundles the package. Put CSS in `content.css` as a string, and generate a module for tag descriptions.
-- Develop a diagram package against a local engine with `DIAGRAM_WEBKIT_DIR=<checkout>` (e.g. in the diagram project's `.envrc`). The Vite plugin (`diagramWebkit()` in its `vite.config.js`) then resolves `diagram-webkit` to the checkout's `src/`, so engine edits hot-reload; the CLI and the definition load in Node use the checkout's `dist/` (`npm run build` there). Code: `src/tools/local-engine.js`; docs: `docs/development.md`.
+- Develop a diagram package against a local engine with `DIAGRAM_WEBKIT_DIR=<checkout>` (e.g. in the diagram project's `.envrc`). The Vite plugin (`diagramWebkit()` in its `vite.config.js`) then resolves `diagram-webkit` to the checkout's `src/`, so engine edits hot-reload, and runs the checkout's plugin hooks (`vite-plugin-core.js`, handed the project's Vite; never import `vite` there or in `definition-loader.js`); the CLI, the plugin and the definition load in Node use the checkout's `dist/` (`npm run build` there). Code: `src/tools/local-engine.js`; docs: `docs/development.md`.
 - The SVG is fetched at runtime. A deck that uses a `link:`/`file:` package must add the package's real path to `server.fs.allow` (see `docs/tools.md`).
 - Decks must pin a version of the diagram package and never load a mutable SVG URL such as `raw…/main`.
 

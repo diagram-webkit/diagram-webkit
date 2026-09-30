@@ -33,6 +33,8 @@ export default defineConfig({
   test: {
     include: ["test/**/*.test.ts"],
     environment: "node",
+    // src/tools import the package's own core, which resolves to dist/; tests run before the build.
+    alias: { "diagram-webkit/core": path.resolve(__dirname, "src/core/index.ts") },
     coverage: {
       provider: "v8",
       include: ["src/core/**/*.ts"],

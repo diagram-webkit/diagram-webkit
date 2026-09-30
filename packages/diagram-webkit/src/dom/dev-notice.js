@@ -7,6 +7,7 @@
 const NOTICE_CLASS = "dwk-dev-notice";
 const SVG_NS = "http://www.w3.org/2000/svg";
 // A warning triangle with "!", 16 x 16.
+/** @type {Array<[string, Record<string, string>]>} */
 const ICON = [
   ["path", { d: "M8 1.5 15 14H1z", class: "dwk-dev-notice-sign" }],
   ["path", { d: "M8 6v4", class: "dwk-dev-notice-mark" }],

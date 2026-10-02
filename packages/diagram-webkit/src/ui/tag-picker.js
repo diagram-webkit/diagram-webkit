@@ -22,11 +22,12 @@ const TAG_ATTR = "data-picker-tag";
 // Time to move from a part onto its tooltip. Hovering another part
 // replaces the tooltip at once, so this never makes hovering feel slow.
 export const TAG_PICKER_HIDE_DELAY_MS = 450;
-// 1-9 pick the first nine topics of the open tooltip. Not Ctrl+1-9: that
-// switches browser tabs on Windows and Linux. So that the digits reach the
-// picker, a text field gives up its focus when a tooltip opens.
-const MAX_NUMBERED = 9;
-const PICK_KEY = /^(?:Digit|Numpad)([1-9])$/;
+// 1-9, then a-z, pick the topics of the open tooltip in order. Not Ctrl+key:
+// Ctrl+1-9 switches browser tabs on Windows and Linux. So that the keys
+// reach the picker, a text field gives up its focus when a tooltip opens.
+// event.code: the same physical keys on every layout.
+export const PICK_KEYS = Object.freeze([..."123456789abcdefghijklmnopqrstuvwxyz"]);
+const PICK_CODE = /^(?:Digit|Numpad)([1-9])$|^Key([A-Z])$/;
 // Undo steps kept; level changes this close together are one step (a drag).
 export const TAG_PICKER_HISTORY_LIMIT = 200;
 const LEVEL_MERGE_MS = 1000;
@@ -79,7 +80,7 @@ export function createTagPicker(ctx) {
   function tagLine(tags) {
     const buttons = tags
       .map((tag, index) => {
-        const key = index < MAX_NUMBERED ? ` [${index + 1}]` : "";
+        const key = index < PICK_KEYS.length ? ` [${PICK_KEYS[index]}]` : "";
         return `<button type="button" class="tooltip-picker-tag" ${TAG_ATTR}="${escapeHTML(tag)}" aria-pressed="false">${escapeHTML(tag)}${key}</button>`;
       })
       .join("");
@@ -271,6 +272,8 @@ export function createTagPicker(ctx) {
     else releaseTypingFocus();
     if (on) resetHistory();
     writeUrl();
+    // Internal tags are in the tree only while the mode is on.
+    if (sv.tagTree) sv.tagTree.initializeTagControls();
     refresh();
     modeListeners.forEach((listener) => listener(on));
   }
@@ -487,10 +490,10 @@ export function createTagPicker(ctx) {
       return true;
     }
     if (on && handleHistoryKey(event)) return true;
-    const pick = PICK_KEY.exec(event.code);
+    const pick = PICK_CODE.exec(event.code);
     if (!on || !pick || event.ctrlKey || event.metaKey || event.altKey || isTypingTarget(event.target)) return false;
     const line = openTooltipLine();
-    const chip = line ? /** @type {HTMLElement | undefined} */ (line.querySelectorAll(`[${TAG_ATTR}]`)[Number(pick[1]) - 1]) : undefined;
+    const chip = line ? /** @type {HTMLElement | undefined} */ (line.querySelectorAll(`[${TAG_ATTR}]`)[PICK_KEYS.indexOf((pick[1] || pick[2]).toLowerCase())]) : undefined;
     if (!chip) return false;
     event.preventDefault();
     toggle(chip.dataset.pickerTag);

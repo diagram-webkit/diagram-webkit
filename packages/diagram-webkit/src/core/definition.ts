@@ -25,7 +25,7 @@ export interface DefinitionInput {
   id: string;
   requires?: string;
   source?: { production?: string; debug?: string; svgText?: string };
-  metadata?: { idAttr?: string; tagsAttr?: string; helpAttr?: string; slugAttr?: string; overlayAttr?: string; overlayDefinitionAttr?: string; arrowAtEachBoxAttr?: string; overlayDestinationAttr?: string };
+  metadata?: { idAttr?: string; tagsAttr?: string; helpAttr?: string; slugAttr?: string; overlayAttr?: string; overlayDefinitionAttr?: string; overlayTagsAttr?: string; arrowAtEachBoxAttr?: string; overlayDestinationAttr?: string };
   tags?: {
     separator?: string;
     roles?: Partial<TagRoles>;
@@ -111,11 +111,11 @@ const SCHEMA: Spec = {
     id: "string",
     requires: "string",
     source: { fields: { production: "string", debug: "string", svgText: "string" } },
-    metadata: { fields: { idAttr: "string", tagsAttr: "string", helpAttr: "string", slugAttr: "string", overlayAttr: "string", overlayDefinitionAttr: "string", arrowAtEachBoxAttr: "string", overlayDestinationAttr: "string" } },
+    metadata: { fields: { idAttr: "string", tagsAttr: "string", helpAttr: "string", slugAttr: "string", overlayAttr: "string", overlayDefinitionAttr: "string", overlayTagsAttr: "string", arrowAtEachBoxAttr: "string", overlayDestinationAttr: "string" } },
     tags: {
       fields: {
         separator: "string",
-        roles: { fields: { level: "string", cssClass: "string", priority: "string", severityFallback: "stringArray" } },
+        roles: { fields: { level: "string", cssClass: "string", priority: "string", internal: "string", severityFallback: "stringArray" } },
         deriveAncestors: "boolean",
         defaultGroup: "string",
         groups: "array",

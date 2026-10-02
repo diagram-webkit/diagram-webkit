@@ -180,6 +180,13 @@ describe("tag picker", () => {
     expect(model.pickerHiddenTags("hide-others", ["Network.Ingress", "Data"], tags, visibility([]))).toEqual(["Network.Egress", "Api"]);
   });
 
+  it("hide-others leaves internal tags as they are unless selected", () => {
+    const all = [...tags, "_", "_.Frame", "_.Frame.Pod"];
+    const shown = new Map(all.map((tag) => [tag, tag !== "_.Frame.Pod"]));
+    expect(model.pickerHiddenTags("hide-others", ["Api"], all, shown)).toEqual(["Network", "Network.Ingress", "Network.Egress", "Data", "Data.Cache", "_.Frame.Pod"]);
+    expect(model.pickerHiddenTags("hide-others", ["_.Frame"], all, shown)).toEqual(["Network", "Network.Ingress", "Network.Egress", "Data", "Data.Cache", "Api"]);
+  });
+
   it("show unhides the selected, its parents and children, and nothing else", () => {
     // Network hidden hides its branch; showing Ingress keeps Egress hidden.
     expect(model.pickerHiddenTags("show", ["Network.Ingress"], tags, visibility(["Network", "Api"]))).toEqual(["Network.Egress", "Api"]);

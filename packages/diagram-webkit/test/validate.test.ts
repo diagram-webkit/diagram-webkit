@@ -32,6 +32,7 @@ describe("extractCells", () => {
       slug: "DbAccess",
       overlays: [],
       overlayDefinition: null,
+      overlayTags: [],
       arrowAtEachBox: null,
       overlayDestination: null,
     });
@@ -40,8 +41,8 @@ describe("extractCells", () => {
   it("decodes entities and handles quoting", () => {
     const cells = extractCells(`<svg><g data-cell-id="a"><g data-tags='x &amp; y' data-help="T&#10;&lt;b&gt;&#x41;&quot;"/></g><g data-tags="z"></g></svg>`);
     expect(cells).toEqual([
-      { id: "a", tags: ["x", "&", "y"], help: 'T\n<b>A"', slug: null, overlays: [], overlayDefinition: null, arrowAtEachBox: null, overlayDestination: null },
-      { id: "a", tags: ["z"], help: null, slug: null, overlays: [], overlayDefinition: null, arrowAtEachBox: null, overlayDestination: null },
+      { id: "a", tags: ["x", "&", "y"], help: 'T\n<b>A"', slug: null, overlays: [], overlayDefinition: null, overlayTags: [], arrowAtEachBox: null, overlayDestination: null },
+      { id: "a", tags: ["z"], help: null, slug: null, overlays: [], overlayDefinition: null, overlayTags: [], arrowAtEachBox: null, overlayDestination: null },
     ]);
   });
 });
@@ -88,6 +89,19 @@ describe("validateCells", () => {
       ["arrow-at-each-box-format", "arrows"],
       ["overlay-destination-format", "end"],
     ]);
+  });
+
+  it("reads and checks overlay-tags", () => {
+    const cells = extractCells(`<svg><g data-cell-id="a" data-tags="legend" data-overlay-definition="ingress" data-overlay-tags="_ _.Traffic _.Traffic.Ingress"/><g data-cell-id="b" data-tags="X" data-overlay-tags="_.Traffic"/></svg>`);
+    expect(cells.map(({ id, overlayTags }) => [id, overlayTags])).toEqual([
+      ["a", ["_", "_.Traffic", "_.Traffic.Ingress"]],
+      ["b", ["_.Traffic"]],
+    ]);
+    expect(validateCells(cells, model).map(({ code, cell }) => [code, cell])).toEqual([
+      ["missing-ancestor", "b"],
+      ["overlay-tags-without-definition", "b"],
+    ]);
+    expect(validateViews({ x: { title: "x", state: { hiddenTags: ["_.Traffic.Ingress"] } } }, undefined, cells)).toEqual([]);
   });
 
   it("derived ancestors are not required", () => {
@@ -146,6 +160,16 @@ describe("tag model extras", () => {
   it("hidden tags for onlyTags keep ancestors and descendants", () => {
     const all = ["Network", "Network.Egress", "Network.Egress.Gateway", "Api", "Api.Rbac", "level-1", "css-x", "info"];
     expect(tagModel.hiddenTagsForOnly(["Network.Egress"], all)).toEqual(["Api", "Api.Rbac", "info"]);
+  });
+
+  it("internal tags (_) are left alone by onlyTags and kept out of badges", () => {
+    const all = ["Network", "Api", "_", "_.Frame", "_.Frame.Pod", "_Other"];
+    expect(tagModel.isInternalTag("_.Frame.Pod")).toBe(true);
+    expect(tagModel.isInternalTag("_")).toBe(true);
+    expect(tagModel.isInternalTag("_Other")).toBe(false);
+    expect(tagModel.hiddenTagsForOnly(["Network"], all)).toEqual(["Api", "_Other"]);
+    expect(tagModel.getSortedVisibleTags(["level-1", "Api", "_", "_.Frame", "_.Frame.Pod"])).toEqual(["Api"]);
+    expect(tagModel.isTagSetVisible(["Api", "_.Frame.Pod"], new Map([["_.Frame.Pod", false]]))).toBe(false);
   });
 
   it("hidden ancestor and panel style", () => {

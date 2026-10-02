@@ -222,7 +222,7 @@ export const DEFAULT_TEXTS = Object.freeze({
   ctlMenu: "Search, and filter by detail level and topic",
   ctlMenuHow: "The menu button, bottom right",
   shortcutTabs: "Switch tabs in this dialog",
-  shortcutPickTag: "Tag picker mode: select the topic marked [1], [2], … in the open tooltip",
+  shortcutPickTag: "Tag picker mode: select the topic marked [1] … [9], [a] … [z] in the open tooltip",
   shortcutPickUndo: "Tag picker mode: undo, redo",
   metaBuiltWith: "Built with",
   metaUserGuide: "User guide",
@@ -231,7 +231,7 @@ export const DEFAULT_TEXTS = Object.freeze({
   settingsIntro: "Settings that change how the diagram behaves. Each one is part of the address, so a link keeps it.",
   tagPickerSetting: "Tag picker mode",
   tagPickerSettingDescription:
-    "For working out which topics a view (a slide, say) should show. Hover a part of the diagram and click its topics to select them (or press its number; the search field then gives up the keyboard), or use select in the menu's tag tree. Selected parts glow magenta, the focus glows yellow. The menu gets a bar to focus, show or hide the selected topics. Levels and priorities are left alone. Make final turns the mode off and takes it out of the address; the focus and hidden topics stay.",
+    "For working out which topics a view (a slide, say) should show. Hover a part of the diagram and click its topics to select them (or press its key, 1-9 then a-z; the search field then gives up the keyboard), or use select in the menu's tag tree. Selected parts glow magenta, the focus glows yellow. The menu gets a bar to focus, show or hide the selected topics. Levels and priorities are left alone. Make final turns the mode off and takes it out of the address; the focus and hidden topics stay.",
   tagPickerUnavailable: "Needs a mouse or trackpad: not available on touch screens.",
   debugSettingTitle: "Debug",
   debugSettingDescription:

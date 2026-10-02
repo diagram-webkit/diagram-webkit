@@ -17,7 +17,7 @@ import { CELL_TYPE_ATTR, byId, cellName, readBoxes, readLine, rootMatrix, warn }
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const LAYER_CLASS = "dwk-line-overlays";
-const GROUP_CLASS = "dwk-line-overlay";
+export const GROUP_CLASS = "dwk-line-overlay";
 const BAND_CLASS = "dwk-line-overlay-band";
 const TARGET_CLASS = "dwk-line-overlay-target";
 const HIGHLIGHT_TARGET_CLASS = "dwk-highlight-target";
@@ -38,10 +38,13 @@ const DRAWN = `.${LAYER_CLASS}, .${BOX_ARROW_CLASS}`;
 // in a space-separated list.
 const linesAttr = (ids) => (ids.every((id) => id && !/\s/.test(id)) ? ids.join(" ") : null);
 
-// Definition name -> the path whose look the bands copy, in diagram order.
+// Definition name -> the path whose look the bands copy, in diagram order,
+// and the tags the bands carry (overlay-tags on the definition line).
 function readDefinitions(svg, metadata) {
   /** @type {Map<string, SVGPathElement>} */
   const definitions = new Map();
+  /** @type {Map<string, string>} */
+  const tags = new Map();
   svg.querySelectorAll(`[${metadata.overlayDefinitionAttr}]`).forEach((element) => {
     const value = element.getAttribute(metadata.overlayDefinitionAttr);
     const names = parseOverlayNames(value);
@@ -50,9 +53,13 @@ function readDefinitions(svg, metadata) {
     if (names.length !== 1) warn(`overlay-definition on ${name} ignored: must be one name, got "${value}"`);
     else if (!path) warn(`overlay-definition ${names[0]} on ${name} ignored: no line to take the look from`);
     else if (definitions.has(names[0])) warn(`overlay-definition ${names[0]} on ${name} ignored: already defined`);
-    else definitions.set(names[0], path);
+    else {
+      definitions.set(names[0], path);
+      const own = (element.getAttribute(metadata.overlayTagsAttr) || "").trim();
+      if (own) tags.set(names[0], own);
+    }
   });
-  return definitions;
+  return { definitions, tags };
 }
 
 function readLines(svg, definitions, metadata) {
@@ -89,11 +96,14 @@ function opacityOf(element) {
   }, 1);
 }
 
-function overlayGroup(doc, name, definition) {
+// With tags, the group is filtered like a cell: hiding or focusing a tag
+// hides or focuses every band of the overlay.
+function overlayGroup(doc, name, definition, tags, tagsAttr) {
   const group = doc.createElementNS(SVG_NS, "g");
   group.classList.add(GROUP_CLASS);
   group.setAttribute("data-overlay", name);
   group.setAttribute("opacity", `${opacityOf(definition)}`);
+  if (tags) group.setAttribute(tagsAttr, tags);
   return group;
 }
 
@@ -120,7 +130,7 @@ function bandElement(doc, d, definition, lines) {
  */
 function drawBands(svg, metadata, boxes) {
   const doc = svg.ownerDocument;
-  const definitions = readDefinitions(svg, metadata);
+  const { definitions, tags } = readDefinitions(svg, metadata);
   const lines = readLines(svg, definitions, metadata);
   if (lines.length === 0) return null;
   const widths = new Map(Array.from(definitions, ([name, path]) => [name, Number.parseFloat(path.getAttribute("stroke-width") || "1")]));
@@ -129,7 +139,7 @@ function drawBands(svg, metadata, boxes) {
   const layer = /** @type {SVGGElement} */ (doc.createElementNS(SVG_NS, "g"));
   layer.classList.add(LAYER_CLASS);
   layer.setAttribute("aria-hidden", "true");
-  const groups = new Map(Array.from(definitions, ([name, path]) => [name, overlayGroup(doc, name, path)]));
+  const groups = new Map(Array.from(definitions, ([name, path]) => [name, overlayGroup(doc, name, path, tags.get(name), metadata.tagsAttr)]));
   const elementOf = new Map(lines.map(({ element, line }) => [line.id, element]));
   const bands = layout.map((band) => {
     const lineElements = band.lines.map((id) => elementOf.get(id));

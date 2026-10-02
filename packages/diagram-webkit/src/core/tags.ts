@@ -47,6 +47,9 @@ export interface TagRoles {
   level: string;
   cssClass: string;
   priority: string;
+  // Topic tags shown only in tag picker mode, left alone by onlyTags and
+  // "hide others": grouping that would be noise in the normal UI.
+  internal: string;
   severityFallback: readonly string[];
 }
 
@@ -66,6 +69,7 @@ export const DEFAULT_TAGS_CONFIG: TagsConfig = Object.freeze({
     level: "^level-(\\d+)$",
     cssClass: "^css-([a-z0-9-]+)$",
     priority: "^pri-(\\d+)$",
+    internal: "^(_)(?:\\.|$)",
     severityFallback: Object.freeze(["info"]),
   }),
   deriveAncestors: false,
@@ -101,6 +105,7 @@ export function createTagModel(config: TagsConfig) {
   const levelRe = compileRole(config.roles.level, "level");
   const cssRe = compileRole(config.roles.cssClass, "cssClass");
   const priorityRe = compileRole(config.roles.priority, "priority");
+  const internalRe = compileRole(config.roles.internal, "internal");
   const severityFallback = config.roles.severityFallback.map((tag) => tag.toLowerCase());
   const descriptions = config.descriptions;
   const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
@@ -126,6 +131,10 @@ export function createTagModel(config: TagsConfig) {
 
   function isPriorityTag(tag: string | null | undefined): boolean {
     return priorityRe.test(`${tag || ""}`.trim());
+  }
+
+  function isInternalTag(tag: string | null | undefined): boolean {
+    return internalRe.test(`${tag || ""}`.trim());
   }
 
   function isTopicTag(tag: string): boolean {
@@ -250,7 +259,7 @@ export function createTagModel(config: TagsConfig) {
   }
 
   function getSortedVisibleTags(tags: readonly string[] | null | undefined): string[] {
-    return [...new Set(getNonLevelTags(tags))].sort(compareTagsByFilterOrder);
+    return [...new Set(getNonLevelTags(tags).filter((tag) => !isInternalTag(tag)))].sort(compareTagsByFilterOrder);
   }
 
   function getBadgeStyle(style: TagStyle | null | undefined): string {
@@ -354,7 +363,8 @@ export function createTagModel(config: TagsConfig) {
       .sort(compareTagsByFilterOrder);
   }
 
-  // Every topic tag except the listed ones, their ancestors and descendants.
+  // Every topic tag except the listed ones, their ancestors and descendants,
+  // and internal tags.
   function hiddenTagsForOnly(onlyTags: readonly string[], allTags: readonly string[]): string[] {
     const keep = new Set<string>();
     onlyTags.forEach((tag) => {
@@ -367,7 +377,7 @@ export function createTagModel(config: TagsConfig) {
     });
     const isKept = (tag: string) =>
       keep.has(tag) || onlyTags.some((only) => tag.startsWith(`${only}${separator}`));
-    return allTags.filter((tag) => isTopicTag(tag) && !isKept(tag));
+    return allTags.filter((tag) => isTopicTag(tag) && !isInternalTag(tag) && !isKept(tag));
   }
 
   // Tag picker mode: which of `tags` are hidden after an action on the
@@ -380,7 +390,8 @@ export function createTagModel(config: TagsConfig) {
     const isFlagged = (tag: string) => visibility.get(tag) === false;
     if (action === "hide") return tags.filter((tag) => isFlagged(tag) || selected.includes(tag));
     if (action === "show") return tags.filter((tag) => (isFlagged(tag) || Boolean(getHiddenAncestor(tag, visibility))) && !isKept(tag));
-    return tags.filter((tag) => !isKept(tag));
+    // "hide-others": internal tags keep their state unless selected.
+    return tags.filter((tag) => (isInternalTag(tag) ? isFlagged(tag) : true) && !isKept(tag));
   }
 
   return {
@@ -391,6 +402,7 @@ export function createTagModel(config: TagsConfig) {
     isLevelTag,
     isCssTag,
     isPriorityTag,
+    isInternalTag,
     isTopicTag,
     parseLevelTag,
     getTagLevel,

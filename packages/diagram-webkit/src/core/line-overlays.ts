@@ -100,6 +100,8 @@ const ARROW_REACH = 12;
 // How far a line end may sit from the border of the box it ends at, and how
 // close two line ends must be to meet without a box.
 const BORDER_REACH = 4;
+// Line ends this much nearer one box border than another count as on both.
+const BORDER_TIE = 0.5;
 const CURVE_STEPS = 12;
 // Corner radius where a join turns inside a box (draw.io's rounded edges use 10).
 export const JOIN_RADIUS = 10;
@@ -354,16 +356,24 @@ const area = (box: Box) => (box.x2 - box.x1) * (box.y2 - box.y1);
 const inBox = (box: Box, p: Point, tolerance: number) => p.x >= box.x1 - tolerance && p.x <= box.x2 + tolerance && p.y >= box.y1 - tolerance && p.y <= box.y2 + tolerance;
 const boxCentre = (box: Box): Point => ({ x: (box.x1 + box.x2) / 2, y: (box.y1 + box.y2) / 2 });
 
-// The smallest box whose border a line end touches, entering it along `dir`.
+// The box whose border a line end sits on, entering it along `dir`: the
+// nearest border, so a small box just inside its parent's edge does not take
+// the parent's lines; of borders equally near, the smallest box.
 function boxAtEnd(boxes: readonly Box[], end: Point, dir: Point): Box | null {
   const ahead = along(end, dir, BORDER_REACH);
   let best: Box | null = null;
-  boxes.forEach((box) => {
-    if (!inBox(box, end, BORDER_REACH) || !inBox(box, ahead, 0)) return;
+  let bestToBorder = Infinity;
+  for (const box of boxes) {
+    if (!inBox(box, end, BORDER_REACH) || !inBox(box, ahead, 0)) continue;
     const toBorder = Math.min(Math.abs(end.x - box.x1), Math.abs(box.x2 - end.x), Math.abs(end.y - box.y1), Math.abs(box.y2 - end.y));
-    if (toBorder > BORDER_REACH) return;
-    if (!best || area(box) < area(best)) best = box;
-  });
+    if (toBorder > BORDER_REACH) continue;
+    const nearer = toBorder < bestToBorder - BORDER_TIE;
+    const asNear = Math.abs(toBorder - bestToBorder) <= BORDER_TIE;
+    if (!best || nearer || (asNear && area(box) < area(best))) {
+      best = box;
+      bestToBorder = toBorder;
+    }
+  }
   return best;
 }
 

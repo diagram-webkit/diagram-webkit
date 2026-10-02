@@ -12,6 +12,8 @@ export interface MetadataAttrs {
   // the overlay a line's look defines.
   overlayAttr: string;
   overlayDefinitionAttr: string;
+  // On an overlay-definition line: tags its bands carry, filtered like a cell's.
+  overlayTagsAttr: string;
   // An arrowhead where the line enters each box that covers it.
   arrowAtEachBoxAttr: string;
   // A box overlays go to and from, never through.
@@ -25,6 +27,7 @@ export const DEFAULT_METADATA_ATTRS: MetadataAttrs = Object.freeze({
   slugAttr: "data-slug",
   overlayAttr: "data-overlay",
   overlayDefinitionAttr: "data-overlay-definition",
+  overlayTagsAttr: "data-overlay-tags",
   arrowAtEachBoxAttr: "data-arrow-at-each-box",
   overlayDestinationAttr: "data-overlay-destination",
 });
@@ -37,6 +40,7 @@ export interface Cell {
   // Optional for callers that build cells by hand; extractCells sets both.
   overlays?: string[];
   overlayDefinition?: string | null;
+  overlayTags?: string[];
   arrowAtEachBox?: string | null;
   overlayDestination?: string | null;
 }
@@ -85,7 +89,7 @@ export function extractCells(svgText: string, attrs: MetadataAttrs = DEFAULT_MET
     const ownId = values[attrs.idAttr] ?? null;
     const inheritedId = ownId ?? [...idStack].reverse().find((id) => id !== null) ?? null;
     if (ownId !== null) lastId = ownId;
-    if ([attrs.tagsAttr, attrs.helpAttr, attrs.overlayAttr, attrs.overlayDefinitionAttr, attrs.arrowAtEachBoxAttr, attrs.overlayDestinationAttr].some((name) => name in values)) {
+    if ([attrs.tagsAttr, attrs.helpAttr, attrs.overlayAttr, attrs.overlayDefinitionAttr, attrs.overlayTagsAttr, attrs.arrowAtEachBoxAttr, attrs.overlayDestinationAttr].some((name) => name in values)) {
       cells.push({
         id: inheritedId ?? values.id ?? lastId ?? `#${cells.length}`,
         tags: (values[attrs.tagsAttr] || "").split(/[\s,]+/).filter(Boolean),
@@ -93,6 +97,7 @@ export function extractCells(svgText: string, attrs: MetadataAttrs = DEFAULT_MET
         slug: values[attrs.slugAttr] ?? null,
         overlays: parseOverlayNames(values[attrs.overlayAttr]),
         overlayDefinition: values[attrs.overlayDefinitionAttr]?.trim() ?? null,
+        overlayTags: (values[attrs.overlayTagsAttr] || "").split(/[\s,]+/).filter(Boolean),
         arrowAtEachBox: values[attrs.arrowAtEachBoxAttr] ?? null,
         overlayDestination: values[attrs.overlayDestinationAttr] ?? null,
       });
@@ -122,15 +127,17 @@ export function validateCells(cells: readonly Cell[], model: TagModel): Issue[] 
       issues.push({ level: "warning", code: "slug-without-help", cell: cell.id, message: `slug ${slug} on a cell without help` });
     }
 
-    const tags = new Set(cell.tags);
-    cell.tags.filter(model.isTopicTag).forEach((tag) => {
-      if (tag.split(separator).length > MAX_TAG_DEPTH) {
-        issues.push({ level: "error", code: "tag-depth", cell: cell.id, message: `${tag} is deeper than ${MAX_TAG_DEPTH} levels` });
-      }
-      const parent = model.getTagParent(tag);
-      if (parent && !tags.has(parent) && !model.config.deriveAncestors) {
-        issues.push({ level: "error", code: "missing-ancestor", cell: cell.id, message: `${tag} without its parent ${parent}` });
-      }
+    [cell.tags, cell.overlayTags || []].forEach((list) => {
+      const tags = new Set(list);
+      list.filter(model.isTopicTag).forEach((tag) => {
+        if (tag.split(separator).length > MAX_TAG_DEPTH) {
+          issues.push({ level: "error", code: "tag-depth", cell: cell.id, message: `${tag} is deeper than ${MAX_TAG_DEPTH} levels` });
+        }
+        const parent = model.getTagParent(tag);
+        if (parent && !tags.has(parent) && !model.config.deriveAncestors) {
+          issues.push({ level: "error", code: "missing-ancestor", cell: cell.id, message: `${tag} without its parent ${parent}` });
+        }
+      });
     });
   });
 
@@ -161,6 +168,9 @@ function validateOverlays(cells: readonly Cell[]): Issue[] {
     }
   });
   cells.forEach((cell) => {
+    if ((cell.overlayTags || []).length > 0 && (cell.overlayDefinition === null || cell.overlayDefinition === undefined)) {
+      issues.push({ level: "error", code: "overlay-tags-without-definition", cell: cell.id, message: "overlay-tags only works on a line with overlay-definition" });
+    }
     ([["arrow-at-each-box", cell.arrowAtEachBox], ["overlay-destination", cell.overlayDestination]] as const).forEach(([name, value]) => {
       if (value !== null && value !== undefined && parseFlag(value) === null) {
         issues.push({ level: "error", code: `${name}-format`, cell: cell.id, message: `${name} must be true or false, got "${value}"` });
@@ -187,7 +197,7 @@ export function validateView(view: DiagramView, cells: readonly Cell[], where: s
   const known = {
     ids: new Set(cells.map((cell) => cell.id)),
     slugs: new Set(cells.map((cell) => (cell.slug || "").trim()).filter(Boolean)),
-    tags: new Set(cells.flatMap((cell) => cell.tags)),
+    tags: new Set(cells.flatMap((cell) => [...cell.tags, ...(cell.overlayTags || [])])),
   };
   checkQuery({ tags: view.hiddenTags }, known, `${where}.hiddenTags`, issues);
   checkQuery({ tags: view.onlyTags }, known, `${where}.onlyTags`, issues);

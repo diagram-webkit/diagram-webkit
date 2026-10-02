@@ -60,14 +60,15 @@ body:has(> .dwk-root.dwk-app) {
 
 /* opacity and filter separately, not filter: opacity(): opacity animates
    cheaply, while animating filter on every cell drops frames. */
-.dwk-root.dwk-dim-others .dwk-main-image [data-tags]:not(.dwk-highlight-target):not(.dwk-highlight-target *) {
+.dwk-root.dwk-dim-others .dwk-main-image [data-tags]:not(.dwk-line-overlay):not(.dwk-highlight-target):not(.dwk-highlight-target *) {
   opacity: 0.2;
   filter: grayscale(0.6);
 }
 
-/* Line overlays follow their lines (overlays/line-overlays.js); no filter:
-   the bands are translucent already. */
-.dwk-root.dwk-dim-others .dwk-main-image .dwk-line-overlay-band:not(.dwk-line-overlay-target),
+/* Line overlays follow their lines (overlays/line-overlays.js), or their
+   overlay's tags (a focused group keeps its bands); no filter: the bands are
+   translucent already. */
+.dwk-root.dwk-dim-others .dwk-main-image .dwk-line-overlay-band:not(.dwk-line-overlay-target):not(.dwk-highlight-target *),
 .dwk-root.dwk-dim-others .dwk-main-image .dwk-box-arrow:not(.dwk-line-overlay-target) {
   opacity: 0.2;
 }

@@ -10,7 +10,8 @@ const CLI = path.join(REPO, "packages/diagram-webkit/src/tools/cli.js");
 const SOURCE = path.join(REPO, "e2e/pages/line-overlays.svg");
 
 // e2e/pages/line-overlays.svg: legend lines define egress and ingress
-// (data-overlay-definition); line "in" arrives at the box from the left, "out"
+// (data-overlay-definition; ingress bands carry Traffic Traffic.Ingress,
+// data-overlay-tags); line "in" arrives at the box from the left, "out"
 // leaves it downwards. Both carry both overlays (data-overlay).
 
 async function bands(page: Page) {
@@ -96,6 +97,52 @@ test("line overlays follow the visibility of their lines", async ({ page }) => {
     ["", "0.2"],
     ["", "1"],
     ["", "0.2"],
+  ]);
+});
+
+test("overlay-tags: an overlay's bands hide and focus by their own tags, apart from their lines", async ({ page }) => {
+  await page.goto("/line-overlays.html");
+  await waitReady(page);
+  const state = () =>
+    page.evaluate(() =>
+      Array.from(document.querySelectorAll<SVGPathElement>(".dwk-line-overlays .dwk-line-overlay-band")).map((band) => {
+        const group = band.parentElement as unknown as SVGGElement;
+        // checkVisibility() misses a hidden ancestor of an SVG path; its box does not.
+        const box = band.getBoundingClientRect();
+        const shown = box.width > 0 || box.height > 0;
+        return [group.dataset.overlay, shown, getComputedStyle(band).opacity, getComputedStyle(group).opacity];
+      }),
+    );
+  expect(await page.locator('.dwk-line-overlays .dwk-line-overlay[data-overlay="ingress"]').getAttribute("data-tags")).toBe("Traffic Traffic.Ingress");
+  expect(await page.locator('.dwk-line-overlays .dwk-line-overlay[data-overlay="egress"]').getAttribute("data-tags")).toBeNull();
+
+  // Hidden: every ingress band goes; the lines and their egress bands stay.
+  await page.evaluate(() => (window as any).instance.setState({ view: { level: 1, hiddenTags: ["Traffic.Ingress"] } }));
+  await settle(page, 300);
+  expect((await state()).map(([overlay, visible]) => [overlay, visible])).toEqual([
+    ["egress", true],
+    ["egress", true],
+    ["egress", true],
+    ["ingress", false],
+    ["ingress", false],
+    ["ingress", false],
+  ]);
+  expect(await page.locator("#cell-in").isVisible()).toBe(true);
+
+  // In focus under "dim others": the ingress bands stay as drawn, the rest dims.
+  await page.evaluate(() => (window as any).instance.setState({ view: { hiddenTags: [], highlight: { tags: ["Traffic.Ingress"], mode: "dim-others" } } }));
+  await settle(page, 300);
+  // The groups keep their own opacity (the definition's): only the bands dim.
+  const groupOpacity = (overlay: string) => page.locator(`.dwk-line-overlays .dwk-line-overlay[data-overlay="${overlay}"]`).getAttribute("opacity");
+  const egress = await groupOpacity("egress");
+  const ingress = await groupOpacity("ingress");
+  expect(await state()).toEqual([
+    ["egress", true, "0.2", egress],
+    ["egress", true, "0.2", egress],
+    ["egress", true, "0.2", egress],
+    ["ingress", true, "1", ingress],
+    ["ingress", true, "1", ingress],
+    ["ingress", true, "1", ingress],
   ]);
 });
 

@@ -50,7 +50,7 @@ Loading from a link only works when the site hosting the SVG allows it to be rea
 | See everything | | `0` |
 | Help, links and controls | the **?** at the bottom left | `?` |
 | Close whatever is open | | `Esc` |
-| Select a topic in the open tooltip ([tag picker mode](#tag-picker-mode)) | | `1`–`9` |
+| Select a topic in the open tooltip ([tag picker mode](#tag-picker-mode)) | | `1`–`9`, then `a`–`z` |
 | Undo / redo in [tag picker mode](#tag-picker-mode) | | `Ctrl`/`⌘` + `Z` / + `Shift` + `Z` |
 
 ### Help text
@@ -84,7 +84,7 @@ Descriptions can use a little formatting (bold, italics, line breaks); everythin
 
 For working out which topics a view (a slide, say) should show. Turn it on under **?** > **Settings** (or add `?tag-picker-mode` to the address). It needs a mouse or trackpad; on touch screens the setting is off and greyed out.
 
-- Hover a part: its tooltip gets a line of its topics, numbered: `Network [1]`, `Network.Ingress [2]`. Click one, or press its number, to select it. Not `Ctrl` + number: Chrome on Windows and Linux uses that to switch tabs. So the digits reach the picker, the search and tag filter fields give up the keyboard in this mode: opening the menu does not put the cursor in search, and a tooltip opening takes it out. Parts without help text get a tooltip with only that line. Hovering another part replaces the tooltip at once; moving onto the tooltip keeps it open.
+- Hover a part: its tooltip gets a line of its topics, with keys: `Network [1]`, `Network.Ingress [2]`; after `[9]` they go on with `[a]` to `[z]`. Click one, or press its key, to select it. Not `Ctrl` + number: Chrome on Windows and Linux uses that to switch tabs. So the digits reach the picker, the search and tag filter fields give up the keyboard in this mode: opening the menu does not put the cursor in search, and a tooltip opening takes it out. Parts without help text get a tooltip with only that line. Hovering another part replaces the tooltip at once; moving onto the tooltip keeps it open.
 - In the menu's tag tree, **select** on a row does the same, also for hidden topics.
 - Selected parts glow magenta, the focus glows yellow. Selecting alone changes nothing else: nothing zooms, dims or hides.
 - A bar above the tags in the menu. The way of working: select topics, choose what they do (the buttons below), clear the selection, select the next ones.
@@ -101,7 +101,7 @@ For working out which topics a view (a slide, say) should show. Turn it on under
 
 **Make final** shows what the result will be: how many topics and parts are shown, what is hidden and in focus, the level, a search or pins. It checks for loose ends: selected topics that are neither in focus nor hidden (the selection alone does nothing in the final view), selected topics that are hidden, and a view that shows everything. **Copy backup link** copies the address as it is, with the selection, to come back to it; **Copy final link** copies the address after Apply. **Apply** turns the mode off and takes it out of the address; the focus and hidden topics stay. It cannot be undone, except with the backup link: the undo history ends with the mode.
 
-The selection stays after each action, so you can go back and forth. Only topics in the tag tree are picked: the level slider and priorities (`pri-1`, `info`) work as always. The selection is in the address (`?tag-picker-mode=Network,Data`), so a reload keeps it; slides and "Copy as slide" never carry it.
+The selection stays after each action, so you can go back and forth. [Internal topics](#tags-internal-topics) (`_.…`) appear in the tree and the tooltips only in this mode. Only topics in the tag tree are picked: the level slider and priorities (`pri-1`, `info`) work as always. The selection is in the address (`?tag-picker-mode=Network,Data`), so a reload keeps it; slides and "Copy as slide" never carry it.
 
 **Settings** also has **Open in debug** (or **Leave debug**): it reloads the page with `?debug`, which loads the diagram's debug source if it has one, reports missing and duplicate slugs in the browser console, and shows **Copy as slide** on the Share tab.
 
@@ -150,6 +150,7 @@ More, for lines, draw on top of them ([Lines: overlays](#lines-overlays), [Lines
 | Property | What it does | Example |
 | --- | --- | --- |
 | `overlay-definition` | this line's look defines an overlay | `egress` |
+| `overlay-tags` | on the `overlay-definition` line: tags every band of that overlay carries | `_ _.Traffic _.Traffic.Egress` |
 | `overlay` | draw these overlays along this line | `egress` or `egress,ingress` |
 | `arrow-at-each-box` | on a line: repeat its arrowhead at every box it passes under. On a box: always (`true`) or never (`false`) an arrow here | `true` |
 | `overlay-destination` | on a box: bands end or start here, never pass through | `true` |
@@ -181,6 +182,15 @@ Some rules that save trouble later:
 - **Things inside a box** (a container, a group) should carry the box's topics too.
 - Keep names short and consistent. `PascalCase` without spaces works well (`Network.PodToPod`). Up to three levels deep (`A.B.C`).
 - Shapes without topics are always visible (unless their level hides them): use that for the frame of the diagram.
+
+### Tags: internal topics
+
+Topics under `_` (`_.Frame.Pod`, `_.Group.Actors`) are for building views, such as slides, without cluttering the menu. Use them for frames, or groupings that would be noise as a regular topic.
+
+- They show only in [tag picker mode](#tag-picker-mode): in the tag tree and in the tooltip's topic line. Never as badges in tooltips or the result list.
+- They hide like any topic: in tag picker mode, in a view's `hiddenTags`, or with `filter-hide-tags=_.Frame.Pod`.
+- `onlyTags` (`only-tags=`) and **Hide others** leave them as they are, so adding one to a shape never changes an existing view.
+- They are not passed on to the shapes inside a frame or to its lines: hiding `_.Frame.Pod` hides only the frame. Write the parents too (`_ _.Frame _.Frame.Pod`).
 
 ### Tags: levels of detail
 
@@ -234,6 +244,7 @@ How the bands are drawn:
 - **Destinations.** A box with `overlay-destination = true` is where a flow ends or starts: bands go to it and from it, but no band is joined through it, and flows do not take their direction from each other there. Use it for a box several flows point at (a process, a service) that is not a way through.
 - **On top.** Bands are drawn over the whole diagram, boxes included, so a flow reads as one band through the boxes it passes. Only the parts with a `slug` (the markers that carry help: circles, `?`) stay above them: they are lifted above the bands, keeping their place and their order among themselves, so a marker can then also lie above a box that came after it in draw.io.
 - **Visibility.** A band is shown, hidden, faded and dimmed with its line. A join shows only while both of its lines do.
+- **Tags of their own.** With `overlay-tags` on the definition line, all bands of that overlay are also filtered by those tags, like a part: hiding the tag hides every band of the overlay, also on lines that carry another overlay, which stays; focusing it keeps the bands sharp under "dim others". Example: `overlay-tags = _ _.Traffic _.Traffic.Ingress` on the ingress line, then `filter-hide-tags=_.Traffic.Ingress` shows only egress.
 - **Boxes** are draw.io shapes (not their labels). A line end counts as arriving at the smallest shape whose border it touches.
 
 Keep in mind:
@@ -268,7 +279,7 @@ npx diagram-webkit render my-diagram.drawio.svg --out my-diagram.svg
 
 `my-diagram.svg` then has the bands and box arrows drawn in and is about half the size (draw.io's model is left out). It no longer opens in draw.io as a diagram: keep editing `my-diagram.drawio.svg` (draw.io recognises the `.drawio.svg` name) and render again after changes, or let CI do it. diagram-webkit opens both; with the rendered one it uses the bands in the file and does not draw them again. Details: [tools.md](tools.md#render).
 
-`diagram-webkit validate` reports an `overlay` without a matching `overlay-definition` (`unknown-overlay`), a name defined twice (`duplicate-overlay-definition`), and an `overlay-definition` that is not exactly one name (`overlay-definition-format`).
+`diagram-webkit validate` reports an `overlay` without a matching `overlay-definition` (`unknown-overlay`), a name defined twice (`duplicate-overlay-definition`), and an `overlay-definition` that is not exactly one name (`overlay-definition-format`), and `overlay-tags` on a line without `overlay-definition` (`overlay-tags-without-definition`).
 
 ### Downloading the diagram
 

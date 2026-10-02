@@ -637,7 +637,10 @@ export function createTagTree(ctx) {
       controls.appendChild(levelSlider.element);
     }
 
-    const discovered = Array.from(s.diagramTagElements.keys()).sort((a, b) => a.localeCompare(b));
+    const pickerOn = Boolean(sv.tagPicker && sv.tagPicker.isOn());
+    const discovered = Array.from(s.diagramTagElements.keys())
+      .filter((tag) => pickerOn || !model.isInternalTag(tag))
+      .sort((a, b) => a.localeCompare(b));
     if (discovered.length === 0) {
       const message = ctx.doc.createElement("div");
       message.className = "filter-result-item";

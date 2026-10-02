@@ -159,7 +159,7 @@ export function helpDialogMarkup(prefix, t, { tabs, aboutHtml, meta, debug }) {
     ${row("<kbd>0</kbd>", escapeHTML(t.shortcutFit))}
     ${row("<kbd>?</kbd>", escapeHTML(t.shortcutHelp))}
     ${row("<kbd>&larr;</kbd> <kbd>&rarr;</kbd>", escapeHTML(t.shortcutTabs))}
-    ${row("<kbd>1</kbd>&ndash;<kbd>9</kbd>", escapeHTML(t.shortcutPickTag))}
+    ${row("<kbd>1</kbd>&ndash;<kbd>9</kbd>, <kbd>a</kbd>&ndash;<kbd>z</kbd>", escapeHTML(t.shortcutPickTag))}
     ${row("<kbd>Ctrl</kbd>/<kbd>&#8984;</kbd> + <kbd>Z</kbd>, + <kbd>Shift</kbd> + <kbd>Z</kbd>", escapeHTML(t.shortcutPickUndo))}
     ${row("<kbd>Esc</kbd>", escapeHTML(t.shortcutClose))}
   </tbody></table></div>`,

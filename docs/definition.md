@@ -22,6 +22,7 @@ export default defineDiagram({
     slugAttr: "data-slug",
     overlayAttr: "data-overlay",                      // line overlays: names on a line
     overlayDefinitionAttr: "data-overlay-definition", // line overlays: the line that defines one
+    overlayTagsAttr: "data-overlay-tags",             // line overlays: on the definition line, tags its bands carry
     arrowAtEachBoxAttr: "data-arrow-at-each-box",     // box arrows: on a line, and per box
     overlayDestinationAttr: "data-overlay-destination", // line overlays: a box bands end at, never pass
   },
@@ -34,6 +35,7 @@ export default defineDiagram({
       level: "^level-(\\d+)$",
       cssClass: "^css-([a-z0-9-]+)$",   // -> class custom-<name>
       priority: "^pri-(\\d+)$",
+      internal: "^(_)(?:\\.|$)",      // topics shown only in tag picker mode, untouched by onlyTags
       severityFallback: ["info"],
     },
     groups: [

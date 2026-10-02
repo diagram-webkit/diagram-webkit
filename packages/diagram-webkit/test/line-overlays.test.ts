@@ -186,6 +186,18 @@ describe("layoutOverlays", () => {
     expect(layoutOverlays([into, left, right], [box], widths).map((band) => band.lines.join(">"))).toEqual(["into", "left", "right", "into>left", "into>right"]);
   });
 
+  it("gives a line end to the box whose border it sits on, not a smaller box just inside it", () => {
+    // A small box 3px inside the right edge of `box`, where line c leaves it.
+    const inner: Box = { id: "inner", x1: 160, y1: 0, x2: 197, y2: 18 };
+    const c = line("c", pts([200, 10], [300, 10]), ["egress"]);
+    const joins = layoutOverlays([a, c], [box, inner], widths).filter((band) => band.lines.length === 2);
+    expect(joins.map((band) => band.lines.join(">"))).toEqual(["a>c"]);
+    // A line that ends on the small box's own border still belongs to it.
+    const d = line("d", pts([197, 60], [197, 18]), ["egress"]);
+    const e = line("e", pts([160, 10], [130, 10]), ["egress"]);
+    expect(layoutOverlays([d, e], [box, inner], widths).filter((band) => band.lines.length === 2).map((band) => band.lines.join(">"))).toEqual(["d>e"]);
+  });
+
   it("joins only overlays both lines have", () => {
     const bands = layoutOverlays([line("a", pts([0, 0], [100, 0]), ["egress", "ingress"]), b], [box], widths);
     expect(bands.filter((band) => band.lines.length === 2).map((band) => band.overlay)).toEqual(["egress"]);

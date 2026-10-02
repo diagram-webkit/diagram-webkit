@@ -7,7 +7,7 @@ export function createKeys(ctx) {
 
   function handleKeyDown(event) {
     if (ctx.destroyed || ctx.suspended) return;
-    // Its dialog closes alone (the panel stays), and 1-9 pick a topic.
+    // Its dialog closes alone (the panel stays), and 1-9, a-z pick a topic.
     if (sv.tagPicker && sv.tagPicker.handleKeyDown(event)) return;
     if (event.key === "Escape" && sv.panel) sv.panel.handleEscape();
     if (event.key === "Escape" && sv.helpDialog) sv.helpDialog.handleEscape(event);

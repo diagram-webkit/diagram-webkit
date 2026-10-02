@@ -6,6 +6,7 @@
 // the diagram: an <svg> with the same viewBox holding copies of the
 // highlighted cells. Fading that layer is a compositor opacity change;
 // animating a filter inside the diagram repaints the whole SVG every frame.
+import { GROUP_CLASS as OVERLAY_GROUP_CLASS } from "./line-overlays.js";
 
 const TARGET_CLASS = "dwk-highlight-target";
 const OUTLINE_CLASS = "dwk-highlighted";
@@ -71,7 +72,9 @@ export function createHighlight(ctx) {
     const target = ensureLayer();
     if (!target) return;
     const svg = diagramSvg();
-    target.replaceChildren(...current.filter(visible).map((element) => copyOf(element, svg)));
+    // An overlay's bands (overlay-tags) are no outline: they stay undimmed instead.
+    const outlined = current.filter((element) => visible(element) && !element.classList.contains(OVERLAY_GROUP_CLASS));
+    target.replaceChildren(...outlined.map((element) => copyOf(element, svg)));
   }
 
   function setLayerVisible(on) {

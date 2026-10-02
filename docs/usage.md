@@ -80,6 +80,7 @@ Cell properties `tags`, `slug`, `help`, `overlay`, `overlay-definition`, `arrow-
                level-N   shown at detail level >= N
                pri-N     priority, styled via tags.meta["pri-N"]
                css-X     adds class custom-X (style it in content.css)
+               _.A.B     internal topic: only in tag picker mode, untouched by onlyTags
              Hierarchy uses tags.separator ("."): Network.Ingress is a child of Network.
   data-slug  stable name for pins, highlight and links
   data-help  first line = title, rest = body (tooltip and search)

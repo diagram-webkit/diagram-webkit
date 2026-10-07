@@ -1,10 +1,11 @@
 // Search results in the panel: rendering, the pinned section, hidden reasons,
 // go-to and the keyboard cursor. dom/filter.js applies the filter.
 import { escapeHTML } from "../core/html";
-import { getFilterResultSummary, helpMatchesSearch } from "../core/help";
+import { getFilterResultSummary, HELP_TAB, helpMatchesSearch } from "../core/help";
 import { formatText } from "../core/texts";
 import { FINE_POINTER_QUERY } from "../dom/context.js";
-import { applySeverityStyleToElement } from "../dom/tag-style.js";
+import { applySeverityStyleToElement, markTagBadges } from "../dom/tag-style.js";
+import { applyExampleTab, examplePanelsHtml, exampleTabsHtml, handleExampleClick, isExampleControl } from "./help-examples.js";
 
 const TOUCH_TAP_MOVE_THRESHOLD_PX = 14;
 const TOUCH_CLICK_SUPPRESS_MS = 700;
@@ -61,7 +62,8 @@ export function createResults(ctx) {
     return item && list.contains(item) ? item : null;
   }
 
-  const isPinTarget = (target) => Boolean(target && typeof target.closest === "function" && target.closest('[data-role="pin"]'));
+  const isPinTarget = (target) =>
+    Boolean(target && typeof target.closest === "function" && target.closest('[data-role="pin"]')) || isExampleControl(target);
 
   function resetTouchTapState() {
     Object.assign(touchTapState, { active: false, pointerId: null, item: null, startX: 0, startY: 0, moved: false });
@@ -227,7 +229,22 @@ export function createResults(ctx) {
     const tagsFooterHtml = tagsHtml ? `<div class="filter-result-tags">${tagsHtml}</div>` : "";
     const actionsRowHtml = tagsFooterHtml || pinButtonHtml ? `<div class="filter-result-actions-row">${tagsFooterHtml}${pinButtonHtml}</div>` : "";
     const actionsHtml = hiddenStateHtml || actionsRowHtml ? `<div class="filter-result-actions">${hiddenStateHtml}${actionsRowHtml}</div>` : "";
-    item.innerHTML = `<div class="filter-result-head"><strong>${escapeHTML(record.title || texts.resultFallbackTitle)}</strong></div><div class="filter-result-content">${record.bodyHtml || escapeHTML(texts.resultFallbackBody)}</div>${actionsHtml}`;
+    item.innerHTML = `<div class="filter-result-head"><strong>${escapeHTML(record.title || texts.resultFallbackTitle)}</strong></div>${exampleTabsHtml(record, texts)}<div class="filter-result-content" data-example-panel="${HELP_TAB}">${record.bodyHtml || escapeHTML(texts.resultFallbackBody)}</div>${examplePanelsHtml(record, texts)}${actionsHtml}`;
+    if (record.examples.length) {
+      applyExampleTab(item, record.exampleTab);
+      item.addEventListener(
+        "click",
+        (event) => {
+          const tab = handleExampleClick(ctx, event, record);
+          if (tab === null) return;
+          sv.helpIndex.setExampleTab(record, tab);
+          applyExampleTab(item, tab);
+        },
+        { signal },
+      );
+    }
+    markTagBadges(model, item, tags);
+    if (sv.tagTree) sv.tagTree.applyChipVisibility(item);
     item.setAttribute("aria-label", buildResultAriaLabel(record, { inactive, hiddenReason }));
     if (slug === keyboardCursorSlug) item.setAttribute("aria-current", "true");
     if (!inactive && hasHoverCapability()) {
@@ -317,6 +334,7 @@ export function createResults(ctx) {
     const allHelp = s.svgHelpRecords;
     const matchingHelp = allHelp.filter((record) =>
       helpMatchesSearch(record, query) &&
+      !sv.filter.isHiddenByExamplesOnly(record) &&
       model.isTagSetVisible(record.tags, s.tagVisibility) &&
       model.isTagSetWithinSelectedLevel(record.tags, s.selectedLevel),
     );

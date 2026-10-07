@@ -3,6 +3,8 @@
 // and pins and the reader's notes are drawn in, all in the diagram's own
 // coordinates. Always in the light theme; draw.io's model is removed, so the
 // file does not open as a draw.io diagram.
+import { COPY_CLASS as HIGHLIGHT_COPY_CLASS } from "./overlays/highlight.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 const ARROW_DASH = { dashed: "10 6", dotted: "2 6" };
 const BORDER_DASH = { dashed: "8 5", dotted: "2 4" };
@@ -144,6 +146,7 @@ export function createViewExport(ctx) {
 
     sv.darkCanvas.lightenCopy(copyOf);
     originals.filter((element) => element !== svg && hidden(element)).forEach((element) => copyOf.get(element).remove());
+    copy.querySelectorAll(`.${HIGHLIGHT_COPY_CLASS}`).forEach((element) => element.remove());
     const root = s.svgRootAttrs || {};
     ["style", "preserveAspectRatio"].forEach((name) => (root[name] === null || root[name] === undefined ? copy.removeAttribute(name) : copy.setAttribute(name, root[name])));
     [copy, ...copy.querySelectorAll("g[content]")].forEach((element) => element.removeAttribute("content"));

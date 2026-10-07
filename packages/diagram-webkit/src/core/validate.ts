@@ -1,5 +1,6 @@
 import type { NamedView } from "./codec/slide";
-import type { DiagramView, ElementQuery } from "./state";
+import { TOOLTIP_HELP_TAB, type DiagramView, type ElementQuery, type TooltipSpec } from "./state";
+import { isKnownExampleFormatter, parseExampleAttrName } from "./help";
 import { parseFlag, parseOverlayNames } from "./line-overlays";
 import type { TagModel } from "./tags";
 
@@ -43,6 +44,8 @@ export interface Cell {
   overlayTags?: string[];
   arrowAtEachBox?: string | null;
   overlayDestination?: string | null;
+  // help.<formatter>.<name> properties, without their code.
+  examples?: { formatter: string; name: string }[];
 }
 
 export interface Issue {
@@ -89,7 +92,8 @@ export function extractCells(svgText: string, attrs: MetadataAttrs = DEFAULT_MET
     const ownId = values[attrs.idAttr] ?? null;
     const inheritedId = ownId ?? [...idStack].reverse().find((id) => id !== null) ?? null;
     if (ownId !== null) lastId = ownId;
-    if ([attrs.tagsAttr, attrs.helpAttr, attrs.overlayAttr, attrs.overlayDefinitionAttr, attrs.overlayTagsAttr, attrs.arrowAtEachBoxAttr, attrs.overlayDestinationAttr].some((name) => name in values)) {
+    const examples = Object.keys(values).map((name) => parseExampleAttrName(name, attrs.helpAttr)).filter((example) => example !== null);
+    if (examples.length > 0 || [attrs.tagsAttr, attrs.helpAttr, attrs.overlayAttr, attrs.overlayDefinitionAttr, attrs.overlayTagsAttr, attrs.arrowAtEachBoxAttr, attrs.overlayDestinationAttr].some((name) => name in values)) {
       cells.push({
         id: inheritedId ?? values.id ?? lastId ?? `#${cells.length}`,
         tags: (values[attrs.tagsAttr] || "").split(/[\s,]+/).filter(Boolean),
@@ -100,6 +104,7 @@ export function extractCells(svgText: string, attrs: MetadataAttrs = DEFAULT_MET
         overlayTags: (values[attrs.overlayTagsAttr] || "").split(/[\s,]+/).filter(Boolean),
         arrowAtEachBox: values[attrs.arrowAtEachBoxAttr] ?? null,
         overlayDestination: values[attrs.overlayDestinationAttr] ?? null,
+        examples,
       });
     }
     if (!match[3]) idStack.push(ownId);
@@ -126,6 +131,18 @@ export function validateCells(cells: readonly Cell[], model: TagModel): Issue[] 
     } else if (slug) {
       issues.push({ level: "warning", code: "slug-without-help", cell: cell.id, message: `slug ${slug} on a cell without help` });
     }
+
+    (cell.examples || []).forEach(({ formatter, name }) => {
+      const property = `help.${formatter}.${name}`;
+      if (cell.help === null) {
+        issues.push({ level: "error", code: "example-without-help", cell: cell.id, message: `${property} on a cell without help` });
+      }
+      if (!formatter || !name.trim()) {
+        issues.push({ level: "error", code: "example-format", cell: cell.id, message: `${property}: write help.<formatter>.<name>` });
+      } else if (!isKnownExampleFormatter(formatter)) {
+        issues.push({ level: "warning", code: "unknown-example-formatter", cell: cell.id, message: `${property}: unknown formatter ${formatter}, shown as text` });
+      }
+    });
 
     [cell.tags, cell.overlayTags || []].forEach((list) => {
       const tags = new Set(list);
@@ -192,6 +209,15 @@ function checkQuery(query: ElementQuery | undefined, known: { ids: Set<string>; 
   (query.tags || []).forEach((tag) => known.tags.has(tag) || issues.push({ level: "error", code: "unknown-tag", message: `${where}: unknown tag ${tag}` }));
 }
 
+function checkTooltip(spec: TooltipSpec, cells: readonly Cell[], where: string): Issue[] {
+  const cell = cells.find((candidate) => (candidate.slug || "").trim() === spec.slug && candidate.help !== null);
+  if (!cell) return [{ level: "error", code: "unknown-tooltip", message: `${where}: no help with slug ${spec.slug}` }];
+  if (spec.tab === undefined || spec.tab === TOOLTIP_HELP_TAB) return [];
+  const names = (cell.examples || []).map((example) => example.name.toLowerCase());
+  if (names.includes(spec.tab.toLowerCase())) return [];
+  return [{ level: "error", code: "unknown-tooltip-tab", message: `${where}: ${spec.slug} has no example ${spec.tab} (${names.length ? names.join(", ") : "none"})` }];
+}
+
 export function validateView(view: DiagramView, cells: readonly Cell[], where: string): Issue[] {
   const issues: Issue[] = [];
   const known = {
@@ -201,8 +227,10 @@ export function validateView(view: DiagramView, cells: readonly Cell[], where: s
   };
   checkQuery({ tags: view.hiddenTags }, known, `${where}.hiddenTags`, issues);
   checkQuery({ tags: view.onlyTags }, known, `${where}.onlyTags`, issues);
+  checkQuery({ tags: view.examplesOnly }, known, `${where}.examplesOnly`, issues);
   checkQuery({ slugs: view.pins }, known, `${where}.pins`, issues);
   checkQuery(view.highlight, known, `${where}.highlight`, issues);
+  if (view.tooltip) issues.push(...checkTooltip(view.tooltip, cells, `${where}.tooltip`));
   if (view.camera && "focus" in view.camera) checkQuery(view.camera.focus, known, `${where}.camera.focus`, issues);
   return issues;
 }

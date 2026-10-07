@@ -3,6 +3,7 @@
 // the diagram, so animating cells costs the same in both themes. Raster
 // images keep a filter of their own.
 import { DARK_FILTER_CSS, darkCssColor } from "../core/dark";
+import { COPY_CLASS as HIGHLIGHT_COPY_CLASS } from "./overlays/highlight.js";
 
 const XHTML_NS = "http://www.w3.org/1999/xhtml";
 const SVG_PROPS = ["fill", "stroke", "color", "stop-color", "flood-color", "lighting-color"];
@@ -37,7 +38,8 @@ export function createDarkCanvas(ctx) {
     const out = [];
     const unsupported = new Set();
     unstyled = new Set();
-    [svg, ...svg.querySelectorAll("*")].forEach((element) => {
+    // Highlight copies are made again from the recoloured cells (redraw).
+    [svg, ...svg.querySelectorAll(`*:not(.${HIGHLIGHT_COPY_CLASS}, .${HIGHLIGHT_COPY_CLASS} *)`)].forEach((element) => {
       const style = ctx.win.getComputedStyle(element);
       propsOf(element, style, svg).forEach((prop) => {
         const value = style.getPropertyValue(prop);

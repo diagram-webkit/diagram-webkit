@@ -2,15 +2,16 @@
 // Both are drawn as one: the union of their elements, with
 // the focus mode when there is a focus.
 //
-// The outline (a CSS filter on .dwk-highlighted) is drawn on a layer above
-// the diagram: an <svg> with the same viewBox holding copies of the
-// highlighted cells. Fading that layer is a compositor opacity change;
-// animating a filter inside the diagram repaints the whole SVG every frame.
+// The outline (a CSS filter on .dwk-highlighted) is drawn on copies of the
+// highlighted cells, each placed right after its cell. The diagram's own
+// stacking stays as drawn: whatever lies above a cell also lies above its
+// copy. Fading a copy is an opacity change; animating the filter on the
+// cell itself repaints it every frame.
 import { GROUP_CLASS as OVERLAY_GROUP_CLASS } from "./line-overlays.js";
 
 const TARGET_CLASS = "dwk-highlight-target";
 const OUTLINE_CLASS = "dwk-highlighted";
-const LAYER_CLASS = "dwk-highlight-layer";
+export const COPY_CLASS = "dwk-highlight-copy";
 const DIM_CLASS = "dwk-dim-others";
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -18,47 +19,26 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 export function createHighlight(ctx) {
   const s = ctx.s;
   const attrs = ctx.config.metadata;
-  const copyAttrs = ["id", attrs.idAttr, attrs.tagsAttr, attrs.helpAttr, attrs.slugAttr];
+  const metadataAttrs = new Set(["id", "type", attrs.idAttr, attrs.tagsAttr, attrs.helpAttr, attrs.slugAttr]);
   let current = [];
-  let layer = null;
+  let copies = [];
+  let mode = null;
 
-  function diagramSvg() {
-    return /** @type {SVGSVGElement | null} */ (ctx.els.image.querySelector(`svg:not(.${LAYER_CLASS})`));
-  }
-
-  function ensureLayer() {
-    const svg = diagramSvg();
-    if (!svg) return null;
-    if (!layer) {
-      layer = /** @type {SVGSVGElement} */ (ctx.doc.createElementNS(SVG_NS, "svg"));
-      layer.classList.add(LAYER_CLASS);
-      layer.setAttribute("aria-hidden", "true");
-      layer.style.opacity = "0";
-    }
-    ["viewBox", "preserveAspectRatio"].forEach((name) => {
-      const value = svg.getAttribute(name);
-      if (value === null) layer.removeAttribute(name);
-      else layer.setAttribute(name, value);
-    });
-    if (layer.parentNode !== ctx.els.image) ctx.els.image.appendChild(layer);
-    return layer;
-  }
-
-  // A copy of the cell in diagram user space. Metadata and ids are dropped,
-  // so queries and lookups only ever find the real cell.
-  function copyOf(element, svg) {
-    const parent = /** @type {SVGGraphicsElement} */ (element.parentNode);
-    const toRoot = svg.getScreenCTM();
-    const toParent = parent && typeof parent.getScreenCTM === "function" ? parent.getScreenCTM() : null;
+  // A copy without ids or metadata (type, data-*), so queries and lookups
+  // only ever find the real cell.
+  function copyOf(element, shown) {
     const clone = /** @type {Element} */ (element.cloneNode(true));
-    [clone, ...clone.querySelectorAll("*")].forEach((node) => copyAttrs.forEach((name) => node.removeAttribute(name)));
+    [clone, ...clone.querySelectorAll("*")].forEach((node) => {
+      Array.from(node.attributes).forEach(({ name }) => {
+        if (metadataAttrs.has(name) || name.startsWith("data-")) node.removeAttribute(name);
+      });
+    });
     clone.classList.remove(TARGET_CLASS);
     clone.classList.add(OUTLINE_CLASS);
     const group = ctx.doc.createElementNS(SVG_NS, "g");
-    if (toRoot && toParent) {
-      const m = toRoot.inverse().multiply(toParent);
-      group.setAttribute("transform", `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`);
-    }
+    group.classList.add(COPY_CLASS);
+    group.setAttribute("aria-hidden", "true");
+    group.style.opacity = shown ? "1" : "0";
     group.appendChild(clone);
     return group;
   }
@@ -68,20 +48,27 @@ export function createHighlight(ctx) {
     return element.getClientRects().length > 0;
   }
 
-  function renderLayer() {
-    const target = ensureLayer();
-    if (!target) return;
-    const svg = diagramSvg();
-    // An overlay's bands (overlay-tags) are no outline: they stay undimmed instead.
-    const outlined = current.filter((element) => visible(element) && !element.classList.contains(OVERLAY_GROUP_CLASS));
-    target.replaceChildren(...outlined.map((element) => copyOf(element, svg)));
+  function removeCopies() {
+    copies.forEach((copy) => copy.remove());
+    copies = [];
   }
 
-  function setLayerVisible(on) {
-    if (!layer) return;
+  function renderCopies(shown = false) {
+    removeCopies();
+    // An overlay's bands (overlay-tags) are no outline: they stay undimmed instead.
+    const outlined = current.filter((element) => visible(element) && !element.classList.contains(OVERLAY_GROUP_CLASS));
+    copies = outlined.map((element) => {
+      const copy = copyOf(element, shown);
+      element.after(copy);
+      return copy;
+    });
+  }
+
+  function setCopiesVisible(on) {
+    if (copies.length === 0) return;
     // From 0 in the same task: commit the 0 first, or nothing fades.
-    if (on && layer.style.opacity === "0") void ctx.win.getComputedStyle(layer).opacity;
-    layer.style.opacity = on ? "1" : "0";
+    if (on) void ctx.win.getComputedStyle(copies[0]).opacity;
+    copies.forEach((copy) => (copy.style.opacity = on ? "1" : "0"));
   }
 
   // One spec for both; null when neither is set.
@@ -99,19 +86,21 @@ export function createHighlight(ctx) {
     ctx.services.pulse.clear({ persistentOnly: true });
   }
 
+  // An outline already on screen is replaced at once; a new one fades in.
   function applyNow() {
+    const shown = copies.length > 0 && copies[0].style.opacity === "1";
     reset();
     const spec = effectiveSpec();
     if (!spec) {
-      setLayerVisible(false);
-      if (layer) layer.replaceChildren();
+      removeCopies();
+      mode = null;
       return;
     }
     current = ctx.queryElements(spec);
-    const mode = spec.mode || "outline";
+    mode = spec.mode || "outline";
     current.forEach((element) => element.classList.add(TARGET_CLASS));
-    renderLayer();
-    setLayerVisible(true);
+    renderCopies(shown);
+    setCopiesVisible(true);
     if (mode === "dim-others") ctx.root.classList.add(DIM_CLASS);
     if (mode === "pulse") reposition();
   }
@@ -128,15 +117,12 @@ export function createHighlight(ctx) {
     const spec = effectiveSpec();
     const next = spec ? ctx.queryElements(spec) : [];
     const same = next.length === current.length && next.every((element, index) => element === current[index]);
-    const sameMode = ((spec && spec.mode) || "outline") === (layer && layer.dataset.mode);
+    const sameMode = (spec ? spec.mode || "outline" : null) === mode;
     if (!(same && sameMode)) {
-      setLayerVisible(false);
+      setCopiesVisible(false);
       if (current.length > 0) phases.outgoing();
     }
-    phases.inPhase("highlight", () => {
-      applyNow();
-      if (layer) layer.dataset.mode = (spec && spec.mode) || "outline";
-    });
+    phases.inPhase("highlight", applyNow);
   }
 
   function reposition() {
@@ -150,7 +136,7 @@ export function createHighlight(ctx) {
 
   // Copies again, after the cells changed colour (theme).
   function redraw() {
-    if (current.length > 0) renderLayer();
+    if (current.length > 0) renderCopies(true);
   }
 
   return { apply, reposition, reset, redraw, elements: () => current };

@@ -21,12 +21,15 @@ export function createUrlSync(ctx) {
       query: s.annotationSearchQuery || "",
       hiddenTags: ctx.services.filter.getExplicitHiddenTags(),
       onlyTags: s.onlyTags,
+      examplesOnly: Array.from(s.examplesOnly),
       pins: Array.from(s.pinnedHelpSlugs).sort((a, b) => a.localeCompare(b)),
       level: s.selectedLevel,
       defaultLevel: s.maxDiagramLevel,
       tagsExpanded: Boolean(s.tagTreeExpanded),
+      tagsAllExpanded: Boolean(s.tagTreeAllExpanded),
       highlight: s.highlight,
       focus: s.focus,
+      tooltip: s.tooltip,
     });
   }
 

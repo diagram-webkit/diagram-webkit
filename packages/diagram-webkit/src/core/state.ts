@@ -24,6 +24,40 @@ export interface FocusSpec {
   mode?: FocusMode;
 }
 
+// An open help popup: the cell's slug and the tab shown, an example's name
+// (help.<formatter>.<name>, any case) or "help" (the default).
+// How a popup opened from the state looks. Defaults: definition.ui.tooltipDefaults.
+export interface TooltipOptions {
+  // simple: the title and the tab's content (no tabs, topics, buttons).
+  mode?: TooltipMode;
+  // The cell's own marker while the popup is open: true shown, false hidden,
+  // left out: as the filter has it.
+  marker?: boolean;
+  // Width as a share of the diagram's width inside its margins, (0, 1].
+  width?: number;
+  // Text size, 1 = as a hover popup.
+  scale?: number;
+  // anchor: next to its cell; center/top/bottom: there, centred across.
+  position?: TooltipPosition;
+  // Away from its cell (position other than anchor): a line to it. Default on.
+  connector?: boolean;
+}
+
+export type TooltipPosition = "anchor" | "center" | "top" | "bottom";
+export const TOOLTIP_POSITIONS: readonly TooltipPosition[] = Object.freeze(["anchor", "center", "top", "bottom"]);
+
+export interface TooltipSpec extends TooltipOptions {
+  slug: string;
+  tab?: string;
+}
+
+export const TOOLTIP_OPTION_KEYS = Object.freeze(["mode", "marker", "width", "scale", "position", "connector"] as const);
+export const TOOLTIP_MAX_SCALE = 5;
+
+export type TooltipMode = "full" | "simple";
+export const TOOLTIP_MODES: readonly TooltipMode[] = Object.freeze(["full", "simple"]);
+export const TOOLTIP_HELP_TAB = "help";
+
 export type CameraSpec = { fit: true } | { rect: Rect } | { focus: ElementQuery; padding?: number };
 
 export interface DiagramView {
@@ -31,10 +65,13 @@ export interface DiagramView {
   level?: number;
   hiddenTags?: string[];
   onlyTags?: string[];
+  // Priority/info tags whose markers show only where they have examples.
+  examplesOnly?: string[];
   query?: string;
   pins?: string[];
   highlight?: HighlightSpec;
   focus?: FocusSpec;
+  tooltip?: TooltipSpec;
   annotations?: UserAnnotation[];
   theme?: "light" | "dark";
 }
@@ -42,6 +79,8 @@ export interface DiagramView {
 export interface DiagramUi {
   panelOpen?: boolean;
   tagTreeExpanded?: boolean;
+  // Every branch open too (Expand all); implies tagTreeExpanded.
+  tagTreeAllExpanded?: boolean;
 }
 
 export interface DiagramState {
@@ -58,16 +97,49 @@ export const VIEW_KEYS = Object.freeze([
   "level",
   "hiddenTags",
   "onlyTags",
+  "examplesOnly",
   "query",
   "pins",
   "highlight",
   "focus",
+  "tooltip",
   "annotations",
   "theme",
 ] as const);
 
-const UI_KEYS = Object.freeze(["panelOpen", "tagTreeExpanded"] as const);
+const UI_KEYS = Object.freeze(["panelOpen", "tagTreeExpanded", "tagTreeAllExpanded"] as const);
 const QUERY_KEYS = Object.freeze(["ids", "slugs", "tags"] as const);
+
+export function normalizeTooltipOptions(value: unknown, path: string): TooltipOptions {
+  if (!isPlainObject(value)) throw new DiagramStateError(path, "expected an object");
+  const out: TooltipOptions = {};
+  if (value.mode !== undefined) {
+    if (!(TOOLTIP_MODES as readonly unknown[]).includes(value.mode)) throw new DiagramStateError(`${path}.mode`, "expected full or simple");
+    out.mode = value.mode as TooltipMode;
+  }
+  (["marker", "connector"] as const).forEach((key) => {
+    if (value[key] === undefined) return;
+    if (typeof value[key] !== "boolean") throw new DiagramStateError(`${path}.${key}`, "expected a boolean");
+    out[key] = value[key];
+  });
+  if (value.width !== undefined) {
+    if (typeof value.width !== "number" || !(value.width > 0 && value.width <= 1)) throw new DiagramStateError(`${path}.width`, "expected a share of the width in (0, 1]");
+    out.width = value.width;
+  }
+  if (value.scale !== undefined) {
+    if (typeof value.scale !== "number" || !(value.scale > 0 && value.scale <= TOOLTIP_MAX_SCALE)) {
+      throw new DiagramStateError(`${path}.scale`, `expected a number in (0, ${TOOLTIP_MAX_SCALE}]`);
+    }
+    out.scale = value.scale;
+  }
+  if (value.position !== undefined) {
+    if (!(TOOLTIP_POSITIONS as readonly unknown[]).includes(value.position)) {
+      throw new DiagramStateError(`${path}.position`, `expected one of ${TOOLTIP_POSITIONS.join(", ")}`);
+    }
+    out.position = value.position as TooltipPosition;
+  }
+  return out;
+}
 
 export class DiagramStateError extends Error {
   constructor(path: string, message: string, options?: ErrorOptions) {
@@ -149,6 +221,7 @@ function normalizeViewValue(key: keyof DiagramView, value: unknown, path: string
       return value;
     case "hiddenTags":
     case "onlyTags":
+    case "examplesOnly":
     case "pins":
       return stringList(value, path);
     case "query":
@@ -159,6 +232,18 @@ function normalizeViewValue(key: keyof DiagramView, value: unknown, path: string
       const mode = normalizeMode((value as Record<string, unknown>).mode, `${path}.mode`);
       if (mode) spec.mode = mode;
       return spec;
+    }
+    case "tooltip": {
+      if (!isPlainObject(value)) throw new DiagramStateError(path, "expected { slug, tab? }");
+      assertKnownKeys(value, ["slug", "tab", ...TOOLTIP_OPTION_KEYS], path);
+      if (typeof value.slug !== "string" || !value.slug.trim()) throw new DiagramStateError(`${path}.slug`, "expected a slug");
+      const spec: TooltipSpec = { slug: value.slug.trim() };
+      if (value.tab !== undefined) {
+        if (typeof value.tab !== "string" || !value.tab.trim()) throw new DiagramStateError(`${path}.tab`, "expected an example name or help");
+        const tab = value.tab.trim().toLowerCase();
+        if (tab !== TOOLTIP_HELP_TAB) spec.tab = tab;
+      }
+      return { ...spec, ...normalizeTooltipOptions(value, path) };
     }
     case "focus": {
       if (!isPlainObject(value)) throw new DiagramStateError(path, "expected { tags, mode? }");
@@ -289,7 +374,7 @@ export function canonicalView(view: DiagramView): DiagramView {
         const focus = value as FocusSpec;
         if (focus.tags.length > 0) out[key] = { tags: sortStrings(focus.tags), ...(focus.mode && focus.mode !== "outline" ? { mode: focus.mode } : {}) };
       }
-      else if (key === "hiddenTags" || key === "onlyTags" || key === "pins") out[key] = sortStrings(value as string[]);
+      else if (key === "hiddenTags" || key === "onlyTags" || key === "examplesOnly" || key === "pins") out[key] = sortStrings(value as string[]);
       else out[key] = value;
     });
   return out as DiagramView;

@@ -1,7 +1,7 @@
 // Applies the filter to the diagram (tag discovery, level clamp, visibility):
 // everything a
 // filter needs without the panel. The panel renders from onFilterApplied.
-import { helpMatchesSearch, normalizeQuery } from "../core/help";
+import { helpMatchesSearch, normalizeQuery, searchTab } from "../core/help";
 import { applyCssTagClasses } from "./tag-style.js";
 
 /** @param {import("./context").Context & Record<string, any>} ctx */
@@ -108,11 +108,42 @@ export function createFilter(ctx) {
     return slug ? s.pinnedHelpSlugs.has(slug) : false;
   }
 
+  // examplesOnly: a marker of one of these priorities without examples.
+  function isHiddenByExamplesOnly(record) {
+    if (!s.examplesOnly.size || record.examples.length) return false;
+    return s.examplesOnly.has(model.getPrimarySeverityTag(record.tags));
+  }
+
+  // On: the markers with examples, so a hidden priority shows again.
+  function setExamplesOnly(tag, on) {
+    if (on) {
+      s.examplesOnly.add(tag);
+      if (s.tagVisibility.get(tag) === false) {
+        clearOnlyTags();
+        setTagHidden(tag, false);
+      }
+    } else {
+      s.examplesOnly.delete(tag);
+    }
+    applyAnnotationFilter();
+    if (ctx.services.tagTree) ctx.services.tagTree.refresh();
+    ctx.services.urlSync.updateURLState();
+  }
+
+  // A new search shows what it found: an example when only that matches.
+  // A tab picked by hand stays until the search changes.
+  function showSearchedTab(record, query) {
+    if (!record.examples.length || record.exampleTabQuery === query) return;
+    record.exampleTabQuery = query;
+    if (query) helpIndex().setExampleTab(record, searchTab(record, query));
+  }
+
   function applyAnnotationFilter() {
     const query = normalizeQuery(s.annotationSearchQuery);
     const updated = new Set();
     s.svgHelpRecords.forEach((record) => {
       record.searchMatch = helpMatchesSearch(record, query);
+      showSearchedTab(record, query);
       helpIndex().updateSvgElementVisibility(record.element);
       updated.add(record.element);
     });
@@ -138,6 +169,8 @@ export function createFilter(ctx) {
     clearOnlyTags,
     getExplicitHiddenTags,
     isRecordPinned,
+    isHiddenByExamplesOnly,
+    setExamplesOnly,
     applyAnnotationFilter,
     onFilterApplied(listener) {
       appliedListeners.add(listener);

@@ -1,11 +1,12 @@
 // Reading draw.io geometry from attributes (path data, shape attributes,
 // transforms), not from layout: cells may already be display:none. Shared by
 // the line overlays and the box arrows.
+import { excludingExampleMarkers } from "../../core/help";
 import { LineOverlayError, arrowheadsAtEnds, boundsOf, centreLine, extendToArrowTips, parseFlag, pathVertices } from "../../core/line-overlays";
 
 // draw.io writes type="edge" / type="vertex" on every cell.
 export const CELL_TYPE_ATTR = "type";
-const SHAPES = "rect, ellipse, circle, path, polygon, polyline, line, image";
+const SHAPES = excludingExampleMarkers("rect, ellipse, circle, path, polygon, polyline, line, image");
 // Label parts: draw.io's <switch> holds the foreignObject and a fallback <text>.
 const NOT_SHAPE = "switch, foreignObject, text";
 

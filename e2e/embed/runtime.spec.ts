@@ -128,6 +128,30 @@ for (const layout of ["scaled", "zoomed"]) {
   });
 }
 
+test("highlight copies keep the diagram's stacking", async ({ page }) => {
+  await page.goto("/embed.html?layout=single");
+  await waitReady(page);
+  // Query order (Cache, WebApp) is the reverse of the document order.
+  await page.evaluate(() => (window as any).instances[0].setState({ view: { highlight: { slugs: ["Cache", "WebApp"] } } }));
+  await settle(page);
+  const order = await page.evaluate(() => {
+    const cell = (slug: string) => document.querySelector(`[data-slug="${slug}"]`)!;
+    const copies = Array.from(document.querySelectorAll(".dwk-highlight-copy"));
+    const before = (a: Element, b: Element) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    return {
+      afterOwnCell: copies.map((copy) => copy.previousElementSibling === cell("WebApp") || copy.previousElementSibling === cell("Cache")),
+      copiesInDocumentOrder: before(copies[0], copies[1]) && copies[0].previousElementSibling === cell("WebApp"),
+      laterCellAbove: before(copies[0], cell("LoadBalancer")),
+      metadata: copies.flatMap((copy) => [copy, ...copy.querySelectorAll("*")]).filter((node) => Array.from(node.attributes).some(({ name }) => name === "id" || name === "type" || name.startsWith("data-"))).length,
+    };
+  });
+  expect(order).toEqual({ afterOwnCell: [true, true], copiesInDocumentOrder: true, laterCellAbove: true, metadata: 0 });
+
+  await page.evaluate(() => (window as any).instances[0].setState({ view: { highlight: null } }));
+  await settle(page);
+  expect(await page.locator(".dwk-highlight-copy").count()).toBe(0);
+});
+
 test("setState camera: rect, focus, fit and default", async ({ page }) => {
   await page.goto("/embed.html?layout=single");
   await waitReady(page);
@@ -192,4 +216,102 @@ test("bad mount options show their error in the container, then reject", async (
   const box = page.locator(".slot .dwk-error-box-standalone");
   await expect(box).toBeVisible();
   await expect(box).toContainText("level");
+});
+
+test("view.tooltip takes its defaults from definition.ui.tooltipDefaults: mode, marker, width, scale", async ({ page }) => {
+  await page.goto("/embed.html?layout=none");
+  await waitReady(page);
+  await page.evaluate(async () => {
+    const container = document.createElement("div");
+    container.className = "slot";
+    container.style.cssText = "width: 1000px; height: 600px";
+    document.getElementById("mount")!.appendChild(container);
+    const definition = (window as any).definition.extend({ ui: { tooltipDefaults: { mode: "simple", marker: true, width: 0.5, scale: 2 } } });
+    (window as any).probe = await (window as any).mountDiagram(container, definition, { initialState: { view: { level: 2, hiddenTags: ["info"] } } });
+  });
+  await settle(page);
+  const popup = page.locator(".slot .svg-property-tooltip.dwk-has-examples");
+  const cacheShown = () =>
+    page.evaluate(() => {
+      const cell = document.querySelector<SVGElement>(".slot #cell-m-cache")!;
+      return cell.style.display !== "none" && cell.style.opacity !== "0";
+    });
+  expect(await cacheShown()).toBe(false);
+
+  await page.evaluate(() => (window as any).probe.setState({ view: { tooltip: { slug: "Cache", tab: "cache_log" } } }));
+  await expect(popup).toHaveCSS("opacity", "1");
+  await expect(popup).toHaveClass(/dwk-tooltip-simple/);
+  // marker: true shows the hidden cell while its popup is open.
+  expect(await cacheShown()).toBe(true);
+  // Title with the example's name; no tabs or buttons.
+  await expect(popup.locator(".tooltip-head")).toHaveText("Cachecache log");
+  await expect(popup.locator(".dwk-example-tabs")).toBeHidden();
+  const size = await popup.evaluate((element) => ({
+    width: element.getBoundingClientRect().width,
+    code: getComputedStyle(element.querySelector(".dwk-example-code")!).fontSize,
+  }));
+  // Half of the width inside the 10px margins.
+  expect(size.width).toBeCloseTo(490, 0);
+  expect(size.code).toBe("24px");
+
+  // The state overrides the defaults.
+  await page.evaluate(() => (window as any).probe.setState({ view: { tooltip: { slug: "Cache", tab: "cache_log", mode: "full", marker: false, scale: 1 } } }));
+  await expect(popup.locator(".dwk-example-tabs")).toBeVisible();
+  expect(await popup.evaluate((element) => getComputedStyle(element.querySelector(".dwk-example-code")!).fontSize)).toBe("12px");
+  await settle(page, 300);
+  expect(await cacheShown()).toBe(false);
+
+  // position center with the full width: equal margins on all sides it can.
+  await page.evaluate(() => (window as any).probe.setState({ view: { tooltip: { slug: "Cache", tab: "cache_log", width: 1, position: "center" } } }));
+  await settle(page, 300);
+  const gaps = await page.evaluate(() => {
+    const root = document.querySelector(".slot .dwk-root")!.getBoundingClientRect();
+    const box = document.querySelector(".slot .svg-property-tooltip.dwk-has-examples")!.getBoundingClientRect();
+    return { left: box.left - root.left, right: root.right - box.right, top: box.top - root.top, bottom: root.bottom - box.bottom };
+  });
+  expect(gaps.left).toBeCloseTo(10, 0);
+  expect(gaps.right).toBeCloseTo(10, 0);
+  expect(Math.abs(gaps.top - gaps.bottom)).toBeLessThan(2);
+
+  // Away from its cell: a line from the popup to the cell, ending on it.
+  const connector = page.locator(".slot .dwk-tooltip-connector");
+  await expect(connector).toHaveClass(/is-shown/);
+  await expect(connector).toHaveCSS("opacity", "1");
+  const end = await page.evaluate(() => {
+    const dot = document.querySelector(".slot .dwk-tooltip-connector-dot")!.getBoundingClientRect();
+    const cell = document.querySelector(".slot #cell-m-cache rect")!.getBoundingClientRect();
+    return Math.hypot(dot.x + dot.width / 2 - (cell.x + cell.width / 2), dot.y + dot.height / 2 - (cell.y + cell.height / 2));
+  });
+  expect(end).toBeLessThan(3);
+  // connector: false, per state.
+  await page.evaluate(() => (window as any).probe.setState({ view: { tooltip: { slug: "Cache", tab: "cache_log", position: "center", connector: false } } }));
+  await expect(connector).not.toHaveClass(/is-shown/);
+
+  // Taller than the diagram: the popup stays inside it and its code scrolls.
+  await page.evaluate(() => {
+    document.querySelector<HTMLElement>(".slot")!.style.height = "220px";
+    return (window as any).probe.setState({ view: { tooltip: { slug: "Cache", tab: "cache_log", width: 0.6, scale: 5, position: "top" } } });
+  });
+  await settle(page, 400);
+  const fit = await page.evaluate(() => {
+    const root = document.querySelector(".slot .dwk-root")!.getBoundingClientRect();
+    const tip = document.querySelector<HTMLElement>(".slot .svg-property-tooltip.dwk-has-examples")!;
+    const box = tip.getBoundingClientRect();
+    const code = tip.querySelector<HTMLElement>(".dwk-example-panel:not([hidden]) .dwk-example-code")!;
+    return { top: box.top - root.top, bottom: root.bottom - box.bottom, scrolls: code.scrollHeight > code.clientHeight, head: tip.querySelector(".tooltip-head")!.getBoundingClientRect().top >= box.top };
+  });
+  expect(fit.top).toBeGreaterThanOrEqual(9);
+  expect(fit.bottom).toBeGreaterThanOrEqual(9);
+  expect(fit.scrolls).toBe(true);
+  expect(fit.head).toBe(true);
+
+  // Closed: the filter decides again, and no line is left.
+  await page.evaluate(() => (window as any).probe.setState({ view: { tooltip: { slug: "Cache", position: "bottom" } } }));
+  await expect(connector).toHaveClass(/is-shown/);
+  await page.evaluate(() => (window as any).probe.setState({ view: { tooltip: null, hiddenTags: [] } }));
+  await expect(connector).toHaveCSS("opacity", "0");
+  await expect(popup).toBeHidden();
+  await settle(page, 300);
+  expect(await cacheShown()).toBe(true);
+  await page.evaluate(() => (window as any).probe.destroy());
 });

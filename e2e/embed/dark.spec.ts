@@ -93,7 +93,7 @@ test("dark theme: highlight copies follow the theme", async ({ page }) => {
   await page.goto("/embed.html?layout=single");
   await waitReady(page);
   const fill = () => page.evaluate(() => {
-    const copy = document.querySelector(".dwk-highlight-layer [style*=fill], .dwk-highlight-layer rect");
+    const copy = document.querySelector(".dwk-highlight-copy [style*=fill], .dwk-highlight-copy rect");
     return copy ? getComputedStyle(copy).fill : null;
   });
   await page.evaluate(() => (window as any).instances[0].setState({ view: { highlight: { slugs: ["Cache"] } } }));

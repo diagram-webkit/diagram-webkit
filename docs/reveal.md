@@ -90,6 +90,10 @@ In shared mode the diagram is not inside the slot. It sits on `.reveal .slides >
       <p class="fragment" data-diagram-state='{"highlight":{"slugs":["WebApp"],"mode":"outline"}}'>Stateless</p>
       <p class="fragment" data-diagram-state='{"camera":{"focus":{"slugs":["Cache"]}}}'>Cache</p>
       <p class="fragment" data-diagram-state-url="?only-tags=Data&v=fit">Data only</p>
+      <!-- Opens the Cache popup on its example help.log.cache_log; going back closes it.
+           "mode":"simple" shows the title and the code only; mode, marker, width and scale default to
+           definition.ui.tooltipDefaults (e.g. half the slide, large text, for a talk). -->
+      <span class="fragment" data-diagram-state='{"tooltip":{"slug":"Cache","tab":"cache_log","mode":"simple"}}'></span>
     </section>
 
     <!-- Per-slide input: wheel, drag, pinch only (features.md) -->

@@ -50,7 +50,7 @@ import { createDarkCanvas } from "./dark-canvas.js";
 
 const EVENTS = new Set(["ready", "error", "statechange", "camerachange", "elementactivate"]);
 const DEFAULT_CAMERA = Object.freeze({ defaultAlign: ["left", "bottom"], maxZoom: 4 });
-const DEFAULT_UI = Object.freeze({ tooltipMinWidth: 380, tooltipHideDelay: 100 });
+const DEFAULT_UI = Object.freeze({ tooltipMinWidth: 380, tooltipHideDelay: 100, tooltipDefaults: Object.freeze({}) });
 const DEFAULT_AREA = Object.freeze({ minHoverDistance: 5, borderWidth: 3, hoverBorderWidth: 4, resizeHandleSize: 8 });
 let instanceCounter = 0;
 
@@ -220,14 +220,17 @@ export function createInstance(container, definitionOrNone, opts = {}) {
     initialHiddenTags: view.hiddenTags ? new Set(view.hiddenTags) : null,
     initialOnlyTags: view.onlyTags && view.onlyTags.length ? view.onlyTags : null,
     onlyTags: null,
+    examplesOnly: new Set(view.examplesOnly || []),
     highlight: view.highlight || null,
     focus: view.focus && view.focus.tags.length ? view.focus : null,
+    tooltip: view.tooltip || null,
     fitAllMode: false,
     fitGeometryMode: "cover",
     viewportUrlSyncReady: false,
     pendingCoverSyncAfterFitExit: false,
     tagVisibility: new Map(),
-    tagTreeExpanded: Boolean(ui.tagTreeExpanded),
+    tagTreeExpanded: Boolean(ui.tagTreeExpanded || ui.tagTreeAllExpanded),
+    tagTreeAllExpanded: Boolean(ui.tagTreeAllExpanded),
     initialCamera: view.camera,
     instantVisibility: false,
     fadeMs: opts.fade ?? VISIBILITY_FADE_MS,
@@ -412,15 +415,18 @@ export function createInstance(container, definitionOrNone, opts = {}) {
         const hidden = sv.filter.getExplicitHiddenTags();
         if (hidden.length) out.view.hiddenTags = hidden;
       }
+      if (s.examplesOnly.size) out.view.examplesOnly = Array.from(s.examplesOnly).sort((a, b) => a.localeCompare(b));
       const query = (s.annotationSearchQuery || "").trim();
       if (query) out.view.query = query;
       if (s.pinnedHelpSlugs.size) out.view.pins = Array.from(s.pinnedHelpSlugs).sort((a, b) => a.localeCompare(b));
       if (s.highlight) out.view.highlight = JSON.parse(JSON.stringify(s.highlight));
       if (s.focus) out.view.focus = JSON.parse(JSON.stringify(s.focus));
+      if (s.tooltip) out.view.tooltip = { ...s.tooltip };
       if (s.userAnnotations.length) out.view.annotations = JSON.parse(JSON.stringify(s.userAnnotations, (key, value) => (key.startsWith("_") ? undefined : value)));
       if (sv.theme.getCurrentTheme() === "dark") out.view.theme = "dark";
       if (s.filterPanelOpen) out.ui.panelOpen = true;
       if (s.tagTreeExpanded) out.ui.tagTreeExpanded = true;
+      if (s.tagTreeAllExpanded) out.ui.tagTreeAllExpanded = true;
       return out;
     },
 
@@ -534,13 +540,20 @@ export function createInstance(container, definitionOrNone, opts = {}) {
   // current values for the rest.
   async function applyState(view, uiPatch, touched, transition) {
     const has = (key) => touched.has(key);
+    if (ctx.loaded && has("tooltip")) await sv.helpIndex.closeHeldTooltip(view.tooltip || null);
     if (has("theme")) sv.theme.applyTheme(view.theme || "light", { persist: false });
     if (has("annotations")) s.userAnnotations = (view.annotations || []).map((ann) => ({ ...ann }));
     if (has("query")) s.annotationSearchQuery = view.query || "";
+    if (has("examplesOnly")) s.examplesOnly = new Set(view.examplesOnly || []);
     if (has("pins")) s.pinnedHelpSlugs = new Set(view.pins || []);
     if (has("highlight")) s.highlight = view.highlight || null;
     if (has("focus")) s.focus = view.focus && view.focus.tags.length ? view.focus : null;
+    if (has("tooltip")) s.tooltip = view.tooltip || null;
     if (uiPatch.tagTreeExpanded !== undefined) s.tagTreeExpanded = uiPatch.tagTreeExpanded;
+    if (uiPatch.tagTreeAllExpanded !== undefined) {
+      s.tagTreeAllExpanded = uiPatch.tagTreeAllExpanded;
+      if (s.tagTreeAllExpanded) s.tagTreeExpanded = true;
+    }
 
     if (!ctx.loaded) {
       if (has("level")) {
@@ -569,6 +582,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
       sv.pins.normalizePinnedHelpSlugs();
       sv.pinRings.render();
     }
+    if (has("examplesOnly")) sv.filter.applyAnnotationFilter();
     sv.helpIndex.refreshPinnedStates();
     if (sv.ui) sv.ui.syncFromState();
     sv.annotations.renderAllMarkers();
@@ -577,6 +591,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
       else s.filterPanelOpen = uiPatch.panelOpen;
     }
     if (has("camera")) await sv.cameraControl.apply(view.camera, { transition });
+    if (has("tooltip")) sv.helpIndex.syncStateTooltip();
     sv.urlSync.updateURLState();
   }
 
@@ -585,6 +600,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
       if (ctx.destroyed) return;
       ctx.loaded = true;
       fittedSize = layoutSize();
+      if (s.tooltip) sv.helpIndex.syncStateTooltip();
       // After the first painted frame, so the initial render does not fade in.
       timers.requestAnimationFrame(() => timers.requestAnimationFrame(() => root.classList.add("dwk-loaded")));
       ctx.emit("ready", undefined);

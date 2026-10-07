@@ -26,3 +26,12 @@ export function applyCssTagClasses(model, element, tags) {
     .forEach((className) => element.classList.remove(className));
   model.getCustomCssClassesForTags(tags).forEach((className) => element.classList.add(className));
 }
+
+// Badges come from model.buildTagBadgesHtml in getSortedVisibleTags order;
+// data-tag lets the tag tree show only the topics it shows itself.
+export function markTagBadges(model, container, tags) {
+  const sorted = model.getSortedVisibleTags(tags);
+  container.querySelectorAll(".annotation-tag-badge").forEach((badge, index) => {
+    if (sorted[index]) badge.setAttribute("data-tag", sorted[index]);
+  });
+}

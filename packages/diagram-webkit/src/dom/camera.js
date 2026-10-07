@@ -1,13 +1,14 @@
 // Anchors, fit-all, cover promotion, focus,
 // centering and go-to. Client-pixel deltas are divided by the ancestor scale
 // before they are added to the translate (layout px).
+import { excludingExampleMarkers } from "../core/help";
 import { FINE_POINTER_QUERY, getScale, isRectValid } from "./context.js";
 
 export const COVER_ZOOM = 1;
 export const FOCUS_MIN_ZOOM = 2;
 export const PROMOTION_MARGIN = 6;
 export const PROMOTION_EPSILON = 0.75;
-const FOCUS_CANDIDATES = "rect,circle,ellipse,path,polygon,polyline,line,text,foreignObject,use,image";
+const FOCUS_CANDIDATES = excludingExampleMarkers("rect,circle,ellipse,path,polygon,polyline,line,text,foreignObject,use,image");
 
 // null when the element is scaled to nothing (e.g. a hidden slide).
 export function invertMatrix(matrix) {

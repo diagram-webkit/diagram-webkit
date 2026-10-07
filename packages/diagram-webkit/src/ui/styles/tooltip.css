@@ -165,6 +165,8 @@
 
 @container dwk (max-width: 768px) {
   :where(.dwk-root) .tooltip-box.mobile-tooltip {
+    /* The width includes the padding: the sheet stays inside the screen. */
+    box-sizing: border-box;
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
@@ -198,6 +200,12 @@
 
   :where(.dwk-root) .tooltip-box.mobile-tooltip .tooltip-head {
     flex: 0 0 auto;
+  }
+
+  /* Sideways scrolling is awkward on a phone: long lines wrap. */
+  :where(.dwk-root) .tooltip-box.mobile-tooltip .dwk-example-panel .dwk-example-code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 
   :where(.dwk-root) .tooltip-box.mobile-tooltip .tooltip-content {
@@ -323,4 +331,280 @@
   margin-top: 0;
   padding-top: 0;
   border-top: 0;
+}
+
+/* Help examples (ui/help-examples.js), in tooltips and result entries. */
+:where(.dwk-root) .dwk-example-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  white-space: normal;
+}
+
+:where(.dwk-root) .dwk-example-tab {
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 6px;
+  padding: 3px 9px;
+  background: transparent;
+  color: #cbd5e1;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+:where(.dwk-root) .dwk-example-tab:not([data-example-tab="-1"]) {
+  border-color: color-mix(in srgb, var(--dwk-example-accent) 70%, transparent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:where(.dwk-root) .dwk-example-tab[aria-selected="true"] {
+  background: rgba(148, 163, 184, 0.25);
+  color: #ffffff;
+}
+
+:where(.dwk-root) .dwk-example-tab:not([data-example-tab="-1"])[aria-selected="true"] {
+  background: var(--dwk-example-accent);
+  border-color: var(--dwk-example-accent);
+}
+
+:where(.dwk-root) .dwk-example-tabs + .filter-result-content {
+  margin-top: 6px;
+}
+
+:where(.dwk-root) .dwk-example-panel {
+  /* Never wider than the box: long lines scroll inside the code. */
+  width: 0;
+  min-width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  border: 1px solid color-mix(in srgb, var(--dwk-example-accent) 55%, transparent);
+  border-radius: 6px;
+  background: #0b1020;
+  overflow: hidden;
+  white-space: normal;
+}
+
+:where(.dwk-root) .dwk-example-panel[hidden] {
+  display: none;
+}
+
+:where(.dwk-root) .dwk-example-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 4px 3px 9px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  color: #94a3b8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+}
+
+:where(.dwk-root) .dwk-example-copy {
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 4px;
+  padding: 2px 8px;
+  background: transparent;
+  color: #e2e8f0;
+  font: inherit;
+  cursor: pointer;
+}
+
+:where(.dwk-root) .dwk-example-copy.is-done {
+  border-color: #4ade80;
+  color: #4ade80;
+}
+
+:where(.dwk-root) .dwk-example-copy.is-error {
+  border-color: #f87171;
+  color: #f87171;
+}
+
+/* Two classes: a host page's pre/code rules (reveal.js: .reveal pre,
+   .reveal pre code) must not restyle the code. */
+:where(.dwk-root) .dwk-example-panel .dwk-example-code {
+  display: block;
+  position: static;
+  width: auto;
+  box-shadow: none;
+  text-align: left;
+  word-wrap: normal;
+  margin: 0;
+  padding: 8px 10px;
+  max-height: min(50cqh, 420px);
+  overflow: auto;
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre;
+  tab-size: 2;
+  touch-action: pan-x pan-y;
+}
+
+:where(.dwk-root) .dwk-example-panel .dwk-example-code > code {
+  display: inline;
+  padding: 0;
+  max-height: none;
+  overflow: visible;
+  font: inherit;
+  white-space: inherit;
+  overflow-wrap: inherit;
+}
+
+:where(.dwk-root) .dwk-code-comment { color: #7f8ea3; font-style: italic; }
+:where(.dwk-root) .dwk-code-key { color: #7dd3fc; }
+:where(.dwk-root) .dwk-code-string { color: #a5e3a1; }
+:where(.dwk-root) .dwk-code-literal { color: #f9b16e; }
+:where(.dwk-root) .dwk-code-keyword { color: #c4a5ff; font-weight: 600; }
+:where(.dwk-root) .dwk-code-prompt { color: #7f8ea3; user-select: none; }
+:where(.dwk-root) .dwk-code-flag { color: #f0c674; }
+:where(.dwk-root) .dwk-code-variable { color: #f48fb1; }
+:where(.dwk-root) .dwk-code-time { color: #94a3b8; }
+:where(.dwk-root) .dwk-code-level-error { color: #f87171; font-weight: 600; }
+:where(.dwk-root) .dwk-code-level-warn { color: #fbbf24; font-weight: 600; }
+:where(.dwk-root) .dwk-code-level-info { color: #60a5fa; }
+
+/* Topics the tag tree does not show (ui/tag-tree.js applyChipVisibility). */
+:where(.dwk-root) .annotation-tag-badge[hidden] {
+  display: none;
+}
+
+/* Popups opened from the state (view.tooltip, ui/tooltip.js showFaded). */
+:where(.dwk-root) .tooltip-box.dwk-tooltip-fade {
+  transition: opacity var(--dwk-tooltip-fade) ease;
+}
+
+@starting-style {
+  :where(.dwk-root) .tooltip-box.dwk-tooltip-fade {
+    opacity: 0;
+  }
+}
+
+/* --dwk-tooltip-scale (view.tooltip scale): the text grows, the layout with it. */
+/* A popup with examples, or one from the state, is never taller than the
+   diagram: a column whose title and tabs stay while the content scrolls
+   (shown as display: flex by ui/tooltip.js). */
+:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) {
+  flex-direction: column;
+  max-height: calc(100cqh - 2 * var(--dwk-tooltip-edge, 10px));
+  overflow: hidden;
+}
+
+:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > * {
+  flex: 0 0 auto;
+}
+
+:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > .tooltip-content {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > .dwk-example-panel:not([hidden]) {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > .dwk-example-panel > * {
+  flex: 0 0 auto;
+}
+
+:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) .dwk-example-panel .dwk-example-code {
+  flex: 0 1 auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+:where(.dwk-root) .tooltip-box.dwk-tooltip-fade {
+  /* A width from view.tooltip is the whole box. */
+  box-sizing: border-box;
+  /* The scale, but no larger than a narrow diagram (a phone) can show. */
+  font-size: min(calc(clamp(11px, 2cqw, 14px) * var(--dwk-tooltip-scale, 1)), 4.2cqw);
+  padding: min(calc(10px * var(--dwk-tooltip-scale, 1)), 3cqw);
+}
+
+
+:where(.dwk-root) .tooltip-box.dwk-tooltip-fade .dwk-example-tab {
+  font-size: calc(11px * var(--dwk-tooltip-scale, 1));
+  padding: calc(3px * var(--dwk-tooltip-scale, 1)) calc(9px * var(--dwk-tooltip-scale, 1));
+}
+
+:where(.dwk-root) .tooltip-box.dwk-tooltip-fade .dwk-example-bar {
+  font-size: calc(10px * var(--dwk-tooltip-scale, 1));
+}
+
+:where(.dwk-root) .tooltip-box.dwk-tooltip-fade .dwk-example-panel .dwk-example-code {
+  /* Shown to an audience: long lines wrap; only a tall example scrolls. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: min(calc(12px * var(--dwk-tooltip-scale, 1)), 3.6cqw);
+  padding: min(calc(8px * var(--dwk-tooltip-scale, 1)), 2cqw) min(calc(10px * var(--dwk-tooltip-scale, 1)), 2.5cqw);
+  max-height: none;
+}
+
+:where(.dwk-root) .dwk-example-current {
+  display: none;
+}
+
+/* mode: "simple": the title and the tab's content, nothing to click. */
+:where(.dwk-root) .tooltip-box.dwk-tooltip-simple :is(.dwk-example-tabs, .tooltip-actions, .dwk-example-bar) {
+  display: none;
+}
+
+:where(.dwk-root) .tooltip-box.dwk-tooltip-simple {
+  /* Its own width, not what is left right of its anchor; capped by the diagram. */
+  width: max-content;
+  max-width: min(720px, calc(100cqw - 2 * var(--dwk-tooltip-edge, 10px)));
+}
+
+:where(.dwk-root) .tooltip-box.dwk-tooltip-simple .dwk-example-current:not(:empty) {
+  display: inline;
+  margin-left: 0.6em;
+  color: #c4b5fd;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:where(.dwk-root) .tooltip-box.dwk-tooltip-simple .dwk-example-panel {
+  width: auto;
+  min-width: 0;
+}
+
+/* The line from a popup placed away from its cell to that cell (ui/tooltip.js
+   createConnector): thin, in the example colour, on a soft halo so it reads on
+   light and dark diagrams; it fades with the popup. */
+:where(.dwk-root) .dwk-tooltip-connector {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dwk-tooltip-fade) ease;
+}
+
+:where(.dwk-root) .dwk-tooltip-connector.is-shown:not(.is-covered) {
+  opacity: 1;
+}
+
+:where(.dwk-root) .dwk-tooltip-connector-halo {
+  stroke: rgba(255, 255, 255, 0.8);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+:where(.dwk-root) .dwk-tooltip-connector-line {
+  stroke: var(--dwk-example-accent);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+
+:where(.dwk-root) .dwk-tooltip-connector-dot {
+  fill: var(--dwk-example-accent);
+  stroke: #ffffff;
+  stroke-width: 2;
 }

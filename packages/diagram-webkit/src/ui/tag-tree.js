@@ -36,6 +36,10 @@ export function createTagTree(ctx) {
   const tagTooltips = new Set();
   // "Dim others" beside Show all / Hide all / Invert (tree groups).
   const dimButtons = new Set();
+  // Topic chips in tooltips and results show only the tree-group topics
+  // whose row the tree shows; tags of other groups always show.
+  const treeTags = new Set();
+  const shownTreeTags = new Set();
 
   const elementCount = (count) => formatText(count === 1 ? texts.elementCountOne : texts.elementCountMany, { count });
 
@@ -69,6 +73,7 @@ export function createTagTree(ctx) {
   }
 
   function commitTagChange(onToggled) {
+    controls.querySelectorAll(".dwk-examples-only-btn").forEach(updateExamplesOnlyVisual);
     sv.filter.applyAnnotationFilter();
     if (onToggled) onToggled();
     renderFocusState();
@@ -130,8 +135,10 @@ export function createTagTree(ctx) {
   // Ancestors are on every cell (METADATA.md R3), so hiding a parent hides
   // its whole branch, and its children follow it. Showing it shows the
   // branch again, children hidden on their own included.
+  // Hidden means none of them, also not those with examples.
   function hideTagBranch(tag) {
     setTagHidden(tag, true);
+    s.examplesOnly.delete(tag);
   }
 
   function showTagBranch(tag, descendantTags) {
@@ -165,8 +172,44 @@ export function createTagTree(ctx) {
   function renderFlatTagGroup(groupWrap, tags, signal) {
     const buttons = ctx.doc.createElement("div");
     buttons.className = "tag-group-buttons";
-    tags.forEach((tag) => buttons.appendChild(createTagToggle(tag, ctx.tagLabel(tag), null, [], signal)));
+    tags.forEach((tag) => {
+      const toggle = createTagToggle(tag, ctx.tagLabel(tag), null, [], signal);
+      if (!hasExamplesForPriority(tag)) {
+        buttons.appendChild(toggle);
+        return;
+      }
+      const pair = ctx.doc.createElement("span");
+      pair.className = "dwk-tag-toggle-pair";
+      const examplesOnly = createExamplesOnlyToggle(tag, signal);
+      ["borderColor", "borderWidth", "borderStyle"].forEach((key) => {
+        if (toggle.style[key]) examplesOnly.style[key] = toggle.style[key];
+      });
+      examplesOnly.style.borderLeftWidth = "0";
+      pair.append(toggle, examplesOnly);
+      buttons.appendChild(pair);
+    });
     groupWrap.appendChild(buttons);
+  }
+
+  // A priority or info tag on at least one marker with examples.
+  function hasExamplesForPriority(tag) {
+    return s.svgHelpRecords.some((record) => record.examples.length > 0 && model.getPrimarySeverityTag(record.tags) === tag);
+  }
+
+  function createExamplesOnlyToggle(tag, signal) {
+    const button = ctx.doc.createElement("button");
+    button.type = "button";
+    button.className = "dwk-examples-only-btn";
+    button.dataset.examplesOnly = tag;
+    button.textContent = "</>";
+    button.title = formatText(texts.examplesOnlyTitle, { tag: ctx.tagLabel(tag) });
+    updateExamplesOnlyVisual(button);
+    button.addEventListener("click", () => sv.filter.setExamplesOnly(tag, !s.examplesOnly.has(tag)), { signal });
+    return button;
+  }
+
+  function updateExamplesOnlyVisual(button) {
+    button.setAttribute("aria-pressed", s.examplesOnly.has(button.dataset.examplesOnly) ? "true" : "false");
   }
 
   function buildTagTree(tags) {
@@ -242,10 +285,15 @@ export function createTagTree(ctx) {
 
     const reset = ctx.doc.createElement("button");
     reset.type = "button";
-    reset.className = "tag-tree-link";
+    reset.className = "tag-tree-link dwk-tag-tree-reset";
     reset.textContent = texts.tagTreeReset;
     reset.title = texts.tagTreeResetTitle;
     reset.addEventListener("click", handlers.onReset, { signal });
+
+    const expandAll = ctx.doc.createElement("button");
+    expandAll.type = "button";
+    expandAll.className = "tag-tree-link dwk-tag-tree-expand-all";
+    expandAll.addEventListener("click", handlers.onExpandAll, { signal });
 
     // Bulk controls act on every tag in the group, expanded or not.
     const bulk = ctx.doc.createElement("div");
@@ -266,12 +314,12 @@ export function createTagTree(ctx) {
       return button;
     });
 
-    headerRow.append(header, reset);
+    headerRow.append(header, expandAll, reset);
     groupTitle.replaceWith(headerRow);
     headerRow.after(bulk);
     bulkButtons[3].classList.add("tag-tree-dim-btn");
     dimButtons.add(bulkButtons[3]);
-    return { header, meta, reset, bulk, showAllBtn: bulkButtons[0], hideAllBtn: bulkButtons[1] };
+    return { header, meta, reset, expandAll, bulk, showAllBtn: bulkButtons[0], hideAllBtn: bulkButtons[1] };
   }
 
   // How many tag rows fit above the result list. The tree is worth expanding
@@ -385,6 +433,8 @@ export function createTagTree(ctx) {
 
     const views = new Map();
     const roots = buildTagTree(tags);
+    tags.forEach((tag) => treeTags.add(tag));
+    if (s.tagTreeAllExpanded && s.tagTreeExpanded) expandAllBranches(roots);
     const refresh = () => refreshTagTree(roots, views, emptyMessage, listView, tree);
     currentTagTreeRefresh = refresh;
     const listView = {
@@ -396,6 +446,7 @@ export function createTagTree(ctx) {
           onToggle: () => {
             if (tagTreeFilterQuery.trim()) return;
             s.tagTreeExpanded = !s.tagTreeExpanded;
+            if (!s.tagTreeExpanded) s.tagTreeAllExpanded = false;
             refreshTagTreeDefaultState();
             refresh();
             sv.urlSync.updateURLState();
@@ -405,6 +456,20 @@ export function createTagTree(ctx) {
             setTagsVisibility(tags, true);
             sv.focus.clear();
             refresh();
+          },
+          onExpandAll: () => {
+            if (tagTreeFilterQuery.trim()) return;
+            tagTreeManualOverride = true;
+            if (s.tagTreeExpanded && allBranchesExpanded(roots)) {
+              s.tagTreeAllExpanded = false;
+              expandedTagPaths.clear();
+            } else {
+              s.tagTreeExpanded = true;
+              s.tagTreeAllExpanded = true;
+              expandAllBranches(roots);
+            }
+            refresh();
+            sv.urlSync.updateURLState();
           },
           onDimOthers: () => sv.focus.setMode(sv.focus.mode() === "dim-others" ? "outline" : "dim-others"),
           onShowAll: () => {
@@ -428,13 +493,20 @@ export function createTagTree(ctx) {
       if (expandedTagPaths.has(path)) expandedTagPaths.delete(path);
       else expandedTagPaths.add(path);
       tagTreeManualOverride = true;
+      const wasAllExpanded = s.tagTreeAllExpanded;
+      s.tagTreeAllExpanded = allBranchesExpanded(roots);
       refresh();
+      if (wasAllExpanded !== s.tagTreeAllExpanded) sv.urlSync.updateURLState();
     };
 
     // The group itself starts closed and its open state comes from the URL.
     // This only decides how much of the tree is pre-expanded once it is open,
     // so opening it never pushes the results off screen.
     applyTagTreeHeightDefault = () => {
+      if (s.tagTreeAllExpanded && s.tagTreeExpanded) {
+        expandAllBranches(roots);
+        return;
+      }
       if (tagTreeManualOverride || !s.tagTreeExpanded) return;
       const rowsThatFit = countTagTreeRowsThatFit(panel);
       expandedTagPaths.clear();
@@ -553,7 +625,38 @@ export function createTagTree(ctx) {
     refresh();
   }
 
+  function forEachBranch(nodes, visit) {
+    nodes.forEach((node) => {
+      if (node.children.length === 0) return;
+      visit(node);
+      forEachBranch(node.children, visit);
+    });
+  }
+
+  function allBranchesExpanded(roots) {
+    let all = true;
+    forEachBranch(roots, (node) => {
+      if (!expandedTagPaths.has(node.path)) all = false;
+    });
+    return all;
+  }
+
+  function expandAllBranches(roots) {
+    forEachBranch(roots, (node) => expandedTagPaths.add(node.path));
+  }
+
+  function isChipVisible(tag) {
+    return !treeTags.has(tag) || shownTreeTags.has(tag);
+  }
+
+  function applyChipVisibility(container) {
+    container.querySelectorAll(".annotation-tag-badge[data-tag]").forEach((badge) => {
+      /** @type {HTMLElement} */ (badge).hidden = !isChipVisible(badge.getAttribute("data-tag"));
+    });
+  }
+
   function refreshTagTree(roots, views, emptyMessage, listView, tree) {
+    listView.tags.forEach((tag) => shownTreeTags.delete(tag));
     const query = tagTreeFilterQuery.trim().toLowerCase();
     const matchMemo = new Map();
     const subtreeMatches = (node) => {
@@ -571,6 +674,7 @@ export function createTagTree(ctx) {
       const view = views.get(node.path);
       const matches = subtreeMatches(node);
       const shown = parentShown && matches;
+      if (shown && node.isTag) shownTreeTags.add(node.path);
       view.element.hidden = !matches;
       if (shown) {
         view.row.classList.toggle("is-striped", visibleRowIndex % 2 === 1);
@@ -616,7 +720,14 @@ export function createTagTree(ctx) {
     listView.hideAllBtn.disabled = hiddenTotal === listView.tags.length;
 
     roots.forEach((root) => walk(root, listOpen));
+    // A closed tree still names its top level: those chips stay.
+    if (!listOpen) roots.forEach((root) => root.isTag && shownTreeTags.add(root.path));
     emptyMessage.hidden = !query || roots.some(subtreeMatches);
+    const collapse = Boolean(s.tagTreeExpanded) && allBranchesExpanded(roots);
+    listView.expandAll.textContent = collapse ? texts.tagTreeCollapseAll : texts.tagTreeExpandAll;
+    listView.expandAll.title = collapse ? texts.tagTreeCollapseAllTitle : texts.tagTreeExpandAllTitle;
+    listView.expandAll.hidden = Boolean(query);
+    applyChipVisibility(ctx.root);
   }
 
   function initializeTagControls() {
@@ -632,6 +743,8 @@ export function createTagTree(ctx) {
 
     levelSlider = null;
     dimButtons.clear();
+    treeTags.clear();
+    shownTreeTags.clear();
     if (s.maxDiagramLevel > 0) {
       levelSlider = createLevelSlider(ctx, signal);
       controls.appendChild(levelSlider.element);
@@ -707,6 +820,7 @@ export function createTagTree(ctx) {
   // After a setState: reflect visibility and level without rebuilding.
   function refresh() {
     controls.querySelectorAll(".tag-filter-btn").forEach((toggle) => updateTagToggleVisual(toggle.dataset.tag, toggle));
+    controls.querySelectorAll(".dwk-examples-only-btn").forEach(updateExamplesOnlyVisual);
     if (levelSlider) levelSlider.render();
     if (currentTagTreeRefresh) currentTagTreeRefresh();
     renderFocusState();
@@ -720,5 +834,6 @@ export function createTagTree(ctx) {
     },
     onResize,
     refresh,
+    applyChipVisibility,
   };
 }

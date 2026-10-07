@@ -3,7 +3,7 @@ import type { HelpParser } from "./help";
 import { assertSafeWhitelist, type HtmlWhitelist } from "./html";
 import { resolveFeatures, type Features, type FeaturesSpec } from "./presets";
 import { satisfies } from "./semver";
-import { mergeView, normalizeView, normalizeViewPatch, type DiagramView } from "./state";
+import { mergeView, normalizeTooltipOptions, normalizeView, normalizeViewPatch, TOOLTIP_OPTION_KEYS, type DiagramView, type TooltipOptions } from "./state";
 import type { TagGroup, TagMeta, TagMetaInput, TagRoles } from "./tags";
 import { DEFAULT_TEXTS, type TextKey } from "./texts";
 import { VERSION } from "./version";
@@ -43,7 +43,7 @@ export interface DefinitionInput {
     markerScale?: number;
   };
   camera?: { defaultAlign?: [string, string]; maxZoom?: number };
-  ui?: { tooltipMinWidth?: number; tooltipHideDelay?: number };
+  ui?: { tooltipMinWidth?: number; tooltipHideDelay?: number; tooltipDefaults?: TooltipOptions };
   content?: {
     page?: { title?: string; description?: string; author?: string; favicon?: string; lang?: string; noscript?: string };
     about?: string;
@@ -103,6 +103,7 @@ type Spec =
   | "view"
   | "views"
   | "development"
+  | "tooltipOptions"
   | { record: Spec }
   | { fields: Record<string, Spec> };
 
@@ -133,7 +134,7 @@ const SCHEMA: Spec = {
       },
     },
     camera: { fields: { defaultAlign: "stringArray", maxZoom: "number" } },
-    ui: { fields: { tooltipMinWidth: "number", tooltipHideDelay: "number" } },
+    ui: { fields: { tooltipMinWidth: "number", tooltipHideDelay: "number", tooltipDefaults: "tooltipOptions" } },
     content: {
       fields: {
         page: { fields: { title: "string", description: "string", author: "string", favicon: "string", lang: "string", noscript: "string" } },
@@ -222,6 +223,13 @@ function validate(value: unknown, spec: Spec, path: string): void {
       return;
     case "development":
       validate(value, DEVELOPMENT_SCHEMA, path);
+      return;
+    case "tooltipOptions":
+      if (!isPlainObject(value)) fail(path, "expected an object");
+      Object.keys(value).forEach((key) => {
+        if (!(TOOLTIP_OPTION_KEYS as readonly string[]).includes(key)) fail(`${path}.${key}`, `unknown key; known: ${TOOLTIP_OPTION_KEYS.join(", ")}`);
+      });
+      normalizeTooltipOptions(value, path);
       return;
     case "views":
       if (!isPlainObject(value)) fail(path, "expected an object");

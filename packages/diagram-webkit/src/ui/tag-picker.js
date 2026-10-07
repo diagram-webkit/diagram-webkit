@@ -416,7 +416,7 @@ export function createTagPicker(ctx) {
 
   function openTooltipLine() {
     return Array.from(ctx.els.tooltipLayer.querySelectorAll(".tooltip-picker")).find(
-      (line) => /** @type {HTMLElement} */ (line.closest(".tooltip-box")).style.display === "block",
+      (line) => /** @type {HTMLElement} */ (line.closest(".tooltip-box")).style.display !== "none",
     );
   }
 

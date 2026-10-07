@@ -230,6 +230,8 @@ export function createInput(ctx) {
     }
     const target = eventElement(event);
     if (target && ctx.isInsideModal(target)) return;
+    // A popup's content scrolls by itself.
+    if (target && target.closest(".tooltip-box")) return;
     if (s.filterPanelOpen && target && target.closest(".filter-panel")) return;
     if (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
 

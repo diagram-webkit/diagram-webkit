@@ -73,7 +73,8 @@ export function escapeHTML(value: unknown): string {
     .replace(/\r\n|\r|\n/g, "<br>");
 }
 
-function escapeText(text: string): string {
+// For <pre>: whitespace and newlines kept as they are.
+export function escapeText(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 

@@ -1,7 +1,10 @@
 // Help records from [data-help], their
 // tooltips and pin button, visibility per element, and debug slug checks.
+import { HELP_TAB } from "../core/help";
 import { escapeHTML, HELP_HTML_WHITELIST, sanitizeUserHtml } from "../core/html";
-import { applyCssTagClasses, applySeverityStyleToElement } from "./tag-style.js";
+import { STATE_TOOLTIP_FADE_MS } from "../ui/tooltip.js";
+import { addExampleMarker, applyExampleTab, collectExamples, examplePanelsHtml, exampleTabsHtml, handleExampleClick } from "../ui/help-examples.js";
+import { applyCssTagClasses, applySeverityStyleToElement, markTagBadges } from "./tag-style.js";
 
 export const VISIBILITY_FADE_MS = 120;
 
@@ -13,6 +16,7 @@ export function createHelpIndex(ctx) {
   const attrs = ctx.config.metadata;
   const parseHelp = ctx.config.parseHelp;
   let renderController = null;
+  let stateTooltipElement = null;
 
   function getElementSlug(targetEl) {
     return `${targetEl.getAttribute(attrs.slugAttr) || ""}`.trim();
@@ -87,12 +91,18 @@ export function createHelpIndex(ctx) {
     }
     const footerHtml = footerParts.length ? `<div class="tooltip-actions">${footerParts.join("")}</div>` : "";
     tooltip.className = `tooltip-box svg-property-tooltip ${model.getSeverityClassForTags(record.tags)}`;
-    tooltip.innerHTML = `<div class="tooltip-head"><b>${escapeHTML(record.title)}</b></div><div class="tooltip-content">${record.bodyHtml || ""}</div>${footerHtml}`;
+    tooltip.innerHTML = `<div class="tooltip-head"><b>${escapeHTML(record.title)}</b><span class="dwk-example-current"></span></div>${exampleTabsHtml(record, texts)}<div class="tooltip-content" data-example-panel="${HELP_TAB}">${record.bodyHtml || ""}</div>${examplePanelsHtml(record, texts)}${footerHtml}`;
+    if (record.examples.length) {
+      tooltip.classList.add("dwk-has-examples");
+      applyExampleTab(tooltip, record.exampleTab);
+    }
     applySeverityStyleToElement(model, tooltip, record.tags);
     tooltip.style.display = "none";
     tooltip.style.whiteSpace = "pre-wrap";
     const badges = tooltip.querySelector(".annotation-tag-badges");
     if (badges) badges.classList.add("tooltip-tag-badges");
+    markTagBadges(model, tooltip, record.tags);
+    if (ctx.services.tagTree) ctx.services.tagTree.applyChipVisibility(tooltip);
     return tooltip;
   }
 
@@ -115,6 +125,7 @@ export function createHelpIndex(ctx) {
       { signal },
     );
     const scheduleHide = () => {
+      if (tooltipService.isHeld(tooltip)) return;
       hideTimeout = ctx.timers.setTimeout(() => {
         tooltip.style.display = "none";
       }, hideDelay());
@@ -150,6 +161,25 @@ export function createHelpIndex(ctx) {
       ctx.services.filter.applyAnnotationFilter();
     };
     tooltip.addEventListener("click", onPin, { signal });
+    if (record.examples.length) {
+      tooltip.addEventListener(
+        "click",
+        (event) => {
+          const tab = handleExampleClick(ctx, event, record);
+          if (tab === null) return;
+          // The box keeps its place and width; only its height follows the tab.
+          if (!tooltipService.getCurrentMobileTooltip()) tooltip.style.width = ctx.win.getComputedStyle(tooltip).width;
+          setExampleTab(record, tab);
+          // An example is read for longer than a hover lasts.
+          if (!tooltipService.getCurrentMobileTooltip()) {
+            ctx.timers.clearTimeout(hideTimeout);
+            tooltipService.hold(tooltip);
+            tooltipService.keepInView(tooltip);
+          }
+        },
+        { signal },
+      );
+    }
     tooltip.addEventListener("touchend", onPin, { passive: false, signal });
     tooltip.addEventListener("mouseleave", scheduleHide, { signal });
   }
@@ -181,7 +211,10 @@ export function createHelpIndex(ctx) {
         searchMatch: false,
         tags,
         slug: getElementSlug(targetEl),
+        examples: collectExamples(targetEl, attrs.helpAttr, getElementSlug(targetEl)),
+        exampleTab: HELP_TAB,
       };
+      if (record.examples.length) addExampleMarker(ctx, targetEl, record.slug);
       if (ctx.features.tooltips) {
         record.tooltip = buildTooltip(record);
         ctx.els.tooltipLayer.appendChild(record.tooltip);
@@ -200,9 +233,107 @@ export function createHelpIndex(ctx) {
     s.svgHelpRecordByElement = recordByElement;
   }
 
+  // One selected tab per record, shared by its tooltip and its result entry.
+  function setExampleTab(record, tab) {
+    if (!record.examples.length || record.exampleTab === tab) return;
+    record.exampleTab = tab;
+    if (record.tooltip) applyExampleTab(record.tooltip, tab);
+  }
+
+  function exampleTabFor(record, tab) {
+    if (tab === undefined) return HELP_TAB;
+    const index = record.examples.findIndex((example) => example.name.toLowerCase() === tab);
+    if (index !== -1) return index;
+    console.warn(`diagram-webkit: tooltip ${record.slug}: no example ${tab}, showing the help`);
+    return HELP_TAB;
+  }
+
+  // The client point a popup is placed at. A cell hidden by the filter is
+  // laid out for the measurement only (still at opacity 0).
+  function anchorPoint(element) {
+    const hidden = element.style.display === "none";
+    if (hidden) element.style.removeProperty("display");
+    try {
+      return ctx.services.tooltip.anchorPoint(element);
+    } finally {
+      if (hidden) element.style.display = "none";
+    }
+  }
+
+  // The open state popup's options: definition.ui.tooltipDefaults under view.tooltip.
+  function stateTooltipOptions() {
+    return s.tooltip ? { ...ctx.config.ui.tooltipDefaults, ...s.tooltip } : null;
+  }
+
+  // options.marker shows or hides the open popup's own cell; undefined: the filter decides.
+  function stateMarker(record) {
+    const options = stateTooltipOptions();
+    if (!options || !record || record.slug !== options.slug) return undefined;
+    return options.marker;
+  }
+
+  // A change that closes or replaces the open popup: it fades out first, so
+  // it is gone before the camera moves. Resolves when it is.
+  function closeHeldTooltip(next) {
+    const tooltipService = ctx.services.tooltip;
+    const held = s.svgHelpRecords.find((record) => record.tooltip && tooltipService.isHeld(record.tooltip));
+    if (!held || (next && next.slug === held.slug)) return Promise.resolve();
+    tooltipService.release();
+    return new Promise((resolve) => ctx.timers.setTimeout(resolve, STATE_TOOLTIP_FADE_MS));
+  }
+
+  // view.tooltip: the popup of one cell, open on a tab and held, as if the
+  // reader had clicked that tab; also over a cell the filter hides, so a
+  // slide decides whether its markers show. Closing it by hand clears it
+  // from the state.
+  function syncStateTooltip() {
+    const tooltipService = ctx.services.tooltip;
+    // Its marker (options.marker) follows the popup in and out.
+    const previous = stateTooltipElement;
+    stateTooltipElement = null;
+    const open = () => {
+      const spec = stateTooltipOptions();
+      const held = s.svgHelpRecords.find((record) => record.tooltip && tooltipService.isHeld(record.tooltip));
+      if (held && (!spec || held.slug !== spec.slug)) tooltipService.release();
+      if (tooltipService.getCurrentMobileTooltip()) tooltipService.hideMobile();
+      if (!spec) return;
+      const record = s.svgHelpRecords.find((candidate) => candidate.slug === spec.slug);
+      if (!record || !record.tooltip) {
+        console.warn(`diagram-webkit: tooltip: no help with slug ${spec.slug}`);
+        return;
+      }
+      setExampleTab(record, exampleTabFor(record, spec.tab));
+      if (tooltipService.isMobileDevice() && spec.mode !== "simple") {
+        tooltipService.showMobile(record.tooltip, record.tooltip.innerHTML);
+        return;
+      }
+      tooltipService.showFaded(record.tooltip, anchorPoint(record.element), {
+        simple: spec.mode === "simple",
+        width: spec.width,
+        scale: spec.scale,
+        position: spec.position,
+        connect: spec.connector !== false,
+      });
+      tooltipService.hold(record.tooltip, () => {
+        if (!s.tooltip || s.tooltip.slug !== record.slug) return;
+        s.tooltip = null;
+        stateTooltipElement = null;
+        updateSvgElementVisibility(record.element);
+        ctx.services.urlSync.updateURLState();
+      });
+    };
+    const record = s.tooltip ? s.svgHelpRecords.find((candidate) => candidate.slug === s.tooltip.slug) : null;
+    if (record) stateTooltipElement = record.element;
+    [previous, stateTooltipElement].forEach((element) => element && updateSvgElementVisibility(element));
+    // With a fade, after the cells of this change have come in.
+    if (ctx.services.phases.active()) ctx.services.phases.inPhase("tooltip", open);
+    else open();
+  }
+
+  // A held popup (view.tooltip) stays over a hidden cell.
   function hideTooltip(element) {
     const record = s.svgHelpRecordByElement.get(element);
-    if (record && record.tooltip) record.tooltip.style.display = "none";
+    if (record && record.tooltip && !ctx.services.tooltip.isHeld(record.tooltip)) record.tooltip.style.display = "none";
   }
 
   function updateSvgElementVisibility(element) {
@@ -214,8 +345,9 @@ export function createHelpIndex(ctx) {
     const hiddenByLevel = !model.isTagSetWithinSelectedLevel(tags, s.selectedLevel);
     const visibleByTags = hiddenByDisabledGroup || hiddenByLevel ? false : pinned || visibleByAllTags;
     const helpRecord = s.svgHelpRecordByElement.get(element);
-    const visibleBySearch = pinned ? true : helpRecord ? helpRecord.searchMatch !== false : true;
-    const shouldShow = visibleByTags && visibleBySearch;
+    const visibleBySearch = pinned ? true : helpRecord ? helpRecord.searchMatch !== false && !ctx.services.filter.isHiddenByExamplesOnly(helpRecord) : true;
+    const markerOverride = stateMarker(helpRecord);
+    const shouldShow = markerOverride ?? (visibleByTags && visibleBySearch);
 
     if (!element._dwkVisibilityInitialized || s.instantVisibility) {
       element._dwkVisibilityInitialized = true;
@@ -276,5 +408,8 @@ export function createHelpIndex(ctx) {
     refreshPinnedStates,
     applyPinnedVisualState,
     getElementSlug,
+    setExampleTab,
+    syncStateTooltip,
+    closeHeldTooltip,
   };
 }

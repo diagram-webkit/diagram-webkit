@@ -35,14 +35,16 @@ describe("extractCells", () => {
       overlayTags: [],
       arrowAtEachBox: null,
       overlayDestination: null,
+      examples: [],
     });
+    expect(cells.find((cell) => cell.slug === "Cache")!.examples).toEqual([{ formatter: "log", name: "cache_log" }]);
   });
 
   it("decodes entities and handles quoting", () => {
     const cells = extractCells(`<svg><g data-cell-id="a"><g data-tags='x &amp; y' data-help="T&#10;&lt;b&gt;&#x41;&quot;"/></g><g data-tags="z"></g></svg>`);
     expect(cells).toEqual([
-      { id: "a", tags: ["x", "&", "y"], help: 'T\n<b>A"', slug: null, overlays: [], overlayDefinition: null, overlayTags: [], arrowAtEachBox: null, overlayDestination: null },
-      { id: "a", tags: ["z"], help: null, slug: null, overlays: [], overlayDefinition: null, overlayTags: [], arrowAtEachBox: null, overlayDestination: null },
+      { id: "a", tags: ["x", "&", "y"], help: 'T\n<b>A"', slug: null, overlays: [], overlayDefinition: null, overlayTags: [], arrowAtEachBox: null, overlayDestination: null, examples: [] },
+      { id: "a", tags: ["z"], help: null, slug: null, overlays: [], overlayDefinition: null, overlayTags: [], arrowAtEachBox: null, overlayDestination: null, examples: [] },
     ]);
   });
 });

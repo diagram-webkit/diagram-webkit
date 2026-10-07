@@ -1257,3 +1257,36 @@
 :where(.dwk-root) .tag-picker-final:hover {
   background: rgba(217, 70, 239, 0.35);
 }
+
+/* A priority toggle with its "only those with examples" half
+   (ui/tag-tree.js). */
+:where(.dwk-root) .dwk-tag-toggle-pair {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+:where(.dwk-root) .dwk-tag-toggle-pair .tag-filter-btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+:where(.dwk-root) .dwk-examples-only-btn {
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-left: 0;
+  border-radius: 0 999px 999px 0;
+  padding: 0 8px 0 6px;
+  background: rgba(30, 41, 59, 0.7);
+  color: #94a3b8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+:where(.dwk-root) .dwk-examples-only-btn:hover {
+  color: #e2e8f0;
+}
+
+:where(.dwk-root) .dwk-examples-only-btn[aria-pressed="true"] {
+  background: var(--dwk-example-accent);
+  color: #ffffff;
+}

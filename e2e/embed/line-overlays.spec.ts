@@ -340,6 +340,19 @@ test("development mode: a small notice when something is logged to the console",
   await mountAndRead(page, `return w.mountDiagram(slot, w.definition, { features: "embed", mode: "development", source: { svgText: ${JSON.stringify(broken)} } });`);
   await settle(page);
   expect(await notice()).toEqual({ text: "Warnings in the developer console×", hidden: false });
+  // A wide popup at the top does not cover it.
+  await page.evaluate(() => (window as any).second.setState({ view: { tooltip: { slug: "Box", width: 1, position: "top" } } }));
+  await settle(page);
+  const onTop = await page.evaluate(() => {
+    const element = document.querySelector("body > div:last-of-type .dwk-dev-notice") as HTMLElement;
+    element.scrollIntoView({ block: "center" });
+    const box = element.getBoundingClientRect();
+    const covered = document.querySelector("body > div:last-of-type .tooltip-box")!.getBoundingClientRect();
+    const overlaps = box.top < covered.bottom && box.bottom > covered.top && box.left < covered.right && box.right > covered.left;
+    return { overlaps, top: element.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)) };
+  });
+  expect(onTop).toEqual({ overlaps: true, top: true });
+  await page.evaluate(() => (window as any).second.setState({ view: { tooltip: null } }));
   await page.evaluate(() => (document.querySelector("body > div:last-of-type .dwk-dev-notice button") as HTMLButtonElement).click());
   expect(await notice()).toMatchObject({ hidden: true });
   await page.evaluate(() => console.warn("something new"));

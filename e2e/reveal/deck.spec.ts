@@ -25,6 +25,16 @@ const WALK: [string, number, object][] = [
     2,
     { camera: { focus: { slugs: ["Cache"] }, padding: 0.3 }, pins: ["LoadBalancer"], highlight: { slugs: ["WebApp"], mode: "outline" } },
   ],
+  [
+    "steps",
+    3,
+    {
+      camera: { focus: { slugs: ["Cache"] }, padding: 0.3 },
+      pins: ["LoadBalancer"],
+      highlight: { slugs: ["WebApp"], mode: "outline" },
+      tooltip: { slug: "Cache", tab: "cache_log" },
+    },
+  ],
   ["live", -1, OVERVIEW],
 ];
 
@@ -64,9 +74,9 @@ test.use({ viewport: { width: 1280, height: 720 } });
 
 test("every slide and fragment forwards, backwards and on a jump", async ({ page }) => {
   await openDeck(page, DECKS.via, "#/overview");
-  const forwards = await walk(page, "ArrowRight", 10);
+  const forwards = await walk(page, "ArrowRight", 11);
   forwards.filter((entry) => entry.id !== "no-diagram").forEach((entry) => expect(entry.view, `${entry.id}/${entry.fragment}`).toEqual(expected(entry.id, entry.fragment)));
-  const backwards = await walk(page, "ArrowLeft", 10);
+  const backwards = await walk(page, "ArrowLeft", 11);
   backwards.filter((entry) => entry.id !== "no-diagram").forEach((entry) => expect(entry.view, `${entry.id}/${entry.fragment}`).toEqual(expected(entry.id, entry.fragment)));
   for (const [id, fragment] of [["pin", -1], ["steps", 1], ["overview", -1], ["steps", 2], ["request-path", -1]] as const) {
     await page.evaluate(([slideId, index]) => {
@@ -78,6 +88,22 @@ test("every slide and fragment forwards, backwards and on a jump", async ({ page
     expect([entry.id, entry.fragment]).toEqual([id, fragment]);
     expect(entry.view).toEqual(expected(id, fragment));
   }
+});
+
+test("a fragment opens a help popup on an example, and going back closes it", async ({ page }) => {
+  await openDeck(page, DECKS.via, "#/steps/2");
+  await current(page);
+  const popup = page.locator(".svg-property-tooltip.dwk-has-examples");
+  await expect(popup).toBeHidden();
+  await page.keyboard.press("ArrowRight");
+  // The camera stays put, so the popup does not wait for a camera move: it fades straight in.
+  await expect(popup).toHaveCSS("opacity", "1", { timeout: 600 });
+  await expect(popup.locator('[data-example-tab="0"]')).toHaveAttribute("aria-selected", "true");
+  await expect(popup.locator(".dwk-example-code")).toContainText("evicted");
+  // The deck's own pre/code styles do not reach the code.
+  expect(await popup.locator(".dwk-example-code").evaluate((element) => getComputedStyle(element).fontSize)).toBe("12px");
+  await page.keyboard.press("ArrowLeft");
+  await expect(popup).toBeHidden();
 });
 
 for (const viewport of [
@@ -110,11 +136,11 @@ for (const viewport of [
     await expect
       .poll(() =>
         page.evaluate(() => {
-          const layer = document.querySelector<SVGSVGElement>(".dwk-highlight-layer")!;
+          const copies = document.querySelectorAll<SVGGElement>(".dwk-highlight-copy");
           return {
             target: document.querySelector('[data-slug="WebApp"]')!.classList.contains("dwk-highlight-target"),
-            copies: layer.querySelectorAll(".dwk-highlighted").length,
-            opacity: getComputedStyle(layer).opacity,
+            copies: copies.length,
+            opacity: copies.length ? getComputedStyle(copies[0]).opacity : null,
           };
         }),
       )
@@ -163,7 +189,7 @@ test("print view: one static instance per slot and fragment step", async ({ page
   expect(result.error).toBe("null");
   expect(result.roots).toBe(result.slots);
   const steps = result.views.filter((view: any) => JSON.stringify(view).includes("0.6,0.8") || (view.camera && view.camera.focus && view.camera.focus.slugs));
-  expect(steps).toEqual([expected("steps", -1), expected("steps", 0), expected("steps", 1), expected("steps", 2)]);
+  expect(steps).toEqual([expected("steps", -1), expected("steps", 0), expected("steps", 1), expected("steps", 2), expected("steps", 3)]);
 });
 
 test("speaker view receiver loads without errors", async ({ page }) => {

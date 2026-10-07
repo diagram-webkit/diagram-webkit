@@ -16,6 +16,7 @@
   --pan-indicator-border: rgba(186, 230, 253, 0.62);
   --pan-indicator-text: rgba(240, 249, 255, 1);
   --pan-indicator-edge-size: 12px;
+  --dwk-example-accent: #8b5cf6;
 }
 
 /* Layout containment makes the root the containing block for every
@@ -277,6 +278,13 @@ body:has(> .dwk-root.dwk-app) {
   --pan-indicator-text: rgba(240, 249, 255, 1);
 }
 
+/* A cell with help examples (ui/help-examples.js). */
+:where(.dwk-root) .dwk-example-marker {
+  fill: var(--dwk-example-accent);
+  stroke: #ffffff;
+  stroke-width: 1.5;
+}
+
 :where(.dwk-root) [data-help],
 :where(.dwk-root) [data-tags] {
   /* --dwk-fade is set by the fade mount option. */
@@ -284,12 +292,13 @@ body:has(> .dwk-root.dwk-app) {
 }
 
 /* Development mode: something was logged to the console (dom/dev-notice.js).
-   Clear but compact, top left; warnings are often temporary while editing. */
+   Clear but compact, top left; warnings are often temporary while editing.
+   Above the popups (tooltip.css): a wide held popup at the top would hide it. */
 :where(.dwk-root) .dwk-dev-notice {
   position: absolute;
   top: 10px;
   left: 10px;
-  z-index: 40;
+  z-index: 20010;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -357,23 +366,17 @@ body:has(> .dwk-root.dwk-app) {
   pointer-events: none;
 }
 
-/* Copies of the highlighted cells, drawn over the diagram (highlight.js).
+/* Copies of the highlighted cells, each right after its cell (highlight.js).
    Fades with --dwk-fade (fade mount option); instant without. */
-:where(.dwk-root) .dwk-highlight-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
+:where(.dwk-root) .dwk-highlight-copy {
   pointer-events: none;
-  overflow: visible;
   transition: opacity var(--dwk-fade, 0s) ease;
 }
 
 /* Copies keep draw.io's pointer-events="all" (an attribute on shapes, an
    inline style on label divs, hence !important); the real cell below must
    get the hover (overlays/highlight.js). */
-:where(.dwk-root) .dwk-highlight-layer * {
+:where(.dwk-root) .dwk-highlight-copy * {
   pointer-events: none !important;
 }
 

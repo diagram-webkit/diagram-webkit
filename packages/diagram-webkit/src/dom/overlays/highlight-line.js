@@ -1,10 +1,11 @@
 // The line from a result to its
 // element and the temporary element highlight. Coordinates are local to the
 // container.
+import { excludingExampleMarkers } from "../../core/help";
 import { getScale } from "../context.js";
 
 const VIEWPORT_PADDING = 8;
-const CANDIDATES = "rect,circle,ellipse,path,polygon,polyline,line,text,foreignObject,use,image";
+const CANDIDATES = excludingExampleMarkers("rect,circle,ellipse,path,polygon,polyline,line,text,foreignObject,use,image");
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 /** @param {import("../context").Context & Record<string, any>} ctx */

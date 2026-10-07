@@ -4,7 +4,7 @@
 interface DiagramState {
   version: 1;
   view: DiagramView; // what the diagram shows; used by baseState, views, slides, setState
-  ui: { panelOpen?: boolean; tagTreeExpanded?: boolean };
+  ui: { panelOpen?: boolean; tagTreeExpanded?: boolean; tagTreeAllExpanded?: boolean }; // all = every branch open (with tagTreeExpanded)
 }
 ```
 
@@ -21,6 +21,7 @@ interface DiagramState {
 
   hiddenTags: ["Observability"],      // hide these (and descendants)
   onlyTags: ["Network"],              // show only these (plus ancestors/descendants); wins over hiddenTags
+  examplesOnly: ["info", "pri-3"],    // markers of these priorities only where they have help examples
 
   query: "tls",                       // search text (title, body, links)
 
@@ -36,6 +37,18 @@ interface DiagramState {
     mode: "dim-others",               // "outline" (default) | "dim-others"
   },                                  // hiding a focused tag (or a parent) drops it
 
+  tooltip: {                          // an open help popup, held until changed or clicked away; fades in/out (200 ms)
+    slug: "ImageBuilder",
+    tab: "some_container_name",       // an example (help.<formatter>.<name>, any case); left out = the help
+    // Each of these defaults to definition.ui.tooltipDefaults:
+    mode: "simple",                   // "full" | "simple": title (with the example's name) and content only
+    marker: false,                    // the cell's own marker while open: true shown, false hidden, left out = the filter
+    width: 0.5,                       // share of the diagram's width inside equal margins (1 = edge to edge minus 10px each side)
+    scale: 2.2,                       // text size, 1 = a hover popup
+    position: "center",               // "anchor" (next to its cell) | "center" | "top" | "bottom" (centred across)
+    connector: true,                  // placed away from its cell: a thin line to it (default true)
+  },                                  // also over a cell the filter hides; closing it by hand removes it
+
   annotations: [                      // user annotations; x/y 0..1
     { x: 0.4, y: 0.3, type: "user-info", title: "Here", description: "..." },
     { x: 0.2, y: 0.2, type: "area-important", title: "Zone", description: "",
@@ -50,8 +63,8 @@ interface DiagramState {
 Highlight CSS hooks (`content.css` or page CSS):
 
 ```css
-/* The outline is drawn on copies in a layer above the diagram, so it fades cheaply. */
-.dwk-root .dwk-highlight-layer .dwk-highlighted { filter: drop-shadow(0 0 4px orange); }
+/* The outline is drawn on copies, each right after its cell, so it fades cheaply and keeps the diagram's stacking. */
+.dwk-root .dwk-main-image .dwk-highlighted { filter: drop-shadow(0 0 4px orange); }
 /* The real cells; dim-others leaves these alone. */
 .dwk-root .dwk-main-image .dwk-highlight-target { }
 ```

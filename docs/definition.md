@@ -78,7 +78,11 @@ export default defineDiagram({
     maxZoom: 4,                         // default
   },
 
-  ui: { tooltipMinWidth: 380, tooltipHideDelay: 100 }, // px, ms. Defaults
+  ui: {
+    tooltipMinWidth: 380, tooltipHideDelay: 100,           // px, ms. Defaults
+    // Popups opened from the state (view.tooltip, e.g. a slide's fragment); each key can be overridden there.
+    tooltipDefaults: { mode: "simple", marker: false, width: 0.5, scale: 2.2, position: "anchor", connector: true }, // engine defaults: full, the filter decides, hover size, 1, anchor, true
+  },
 
   content: {
     page: {                             // used by the Vite plugin / renderPage

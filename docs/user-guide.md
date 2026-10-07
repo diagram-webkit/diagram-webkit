@@ -57,6 +57,8 @@ Loading from a link only works when the site hosting the SVG allows it to be rea
 
 Parts of the diagram can carry a short explanation. Hover over them (or tap on a touch screen) to read it. In many diagrams these parts are marked with a small **?**, but anything can have help text.
 
+A part with a coloured dot in its corner also has examples: a config snippet, a shell command, a log line. They are tabs next to **Help** in its tooltip and its menu entry; clicking one keeps the tooltip open until you click somewhere else. **Copy** puts the example on the clipboard. Search looks through the examples too, and when only an example matches, its tab is shown.
+
 ### The menu
 
 The menu button (bottom right) opens a panel with everything for narrowing down what you see:
@@ -64,7 +66,9 @@ The menu button (bottom right) opens a panel with everything for narrowing down 
 - **Search** (`/` jumps to it) looks through all help text. Parts with matching help stay, the other parts with help are hidden. Click or tap a result to see where it is in the diagram.
 - **Level** controls the amount of detail. Level 0 is the overview; each step up adds more. "max" shows everything.
 - **Tags** are the topics of the diagram, as a tree. Click a topic to hide it and everything under it in the tree. **Show all**, **Hide all** and **Invert** work on the whole tree, and the filter field finds a tag by name. **Reset** (shown once something is hidden or in focus) brings back every tag and ends the focus.
+- Tooltips and results show a topic only while its row is visible in the tree; a closed tree counts as showing its top level. That keeps them short. **Expand all** opens every branch, and with it every topic; **Collapse all** closes the branches again. Both are part of the link (`tags=all`).
 - Hover a tag in the tree for **focus**: it zooms to that topic and highlights it, and stays lit while on. Focus on several at once. **Dim others** (in yellow, after Show all / Hide all / Invert) fades out everything else while something is in focus. Hiding a topic ends its focus.
+- A priority button gets a small **</>** half when some of its markers have examples. Turn it on to show only those markers (pinned ones stay), also when the priority was hidden. Hiding the priority with its button turns it off.
 - A diagram opened without its own settings gets the same menu: priorities (`pri-1`, `info`) in their own group, and the other tags as the tree.
 - **Pinned** lists what you pinned (see below). **Clear** unpins everything; **Hide** folds the list.
 
@@ -144,6 +148,7 @@ Any draw.io SVG can be opened. It becomes much more useful when you add three th
 | `tags` | topics and level, for filtering | `level-1 Network Network.Ingress` |
 | `help` | the explanation shown on hover and found by search | `Load balancer` + a description on the next lines |
 | `slug` | a short, stable name, so the part can be pinned and linked to | `LoadBalancer` |
+| `help.<formatter>.<name>` | an example shown as a tab next to the help ([Help text](#help-text-1)) | `help.yaml.falco_rule` |
 
 More, for lines, draw on top of them ([Lines: overlays](#lines-overlays), [Lines: an arrow at each box](#lines-an-arrow-at-each-box)):
 
@@ -304,6 +309,19 @@ Only the load balancer is reachable from the internet.
 ```
 
 The explanation may use simple HTML: `<b>`, `<i>`, `<code>`, lists (`<ul><li>`), tables, links (`<a href="https://...">`). Anything else is shown as text. Images in help text are not shown.
+
+Examples go in more properties on the same part, one per example: `help.<formatter>.<name>`, with the code as the value. The tab is named after `<name>`, in lowercase, with `_` as a space. The formatter colours the code:
+
+| Formatter | For |
+| --- | --- |
+| `text` | anything, no colours |
+| `shell` | commands: `$` prompt, `#` comments, flags, variables, strings |
+| `yaml` | keys, comments, strings, `true`/`false`/numbers |
+| `json` | keys, strings, literals |
+| `log` | timestamps, levels (`ERROR`, `WARN`, `INFO`, ...), `key=value` |
+| `containerfile` | instructions (`FROM`, `RUN`, ...), comments, variables |
+
+An unknown formatter is shown as `text`, and `validate` warns about it.
 
 Tip: put help on a small `?` marker shape next to the part it explains, and give the marker the same tags as that part, so it disappears together with it.
 

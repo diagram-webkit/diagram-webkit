@@ -1,9 +1,12 @@
 import { decodeAnnotations, encodeAnnotations, type UserAnnotation } from "../annotations";
 import { FIT_VALUE, parseViewportValue, rectFromObject, rectToObject, serializeRect, type ViewportParam } from "./camera";
 import { FILTER_PARAMS, PARAMS } from "./params";
-import { HIGHLIGHT_MODES, type DiagramState, type FocusSpec, type HighlightMode, type HighlightSpec } from "../state";
+import { HIGHLIGHT_MODES, type DiagramState, type FocusSpec, type HighlightMode, type HighlightSpec, type TooltipSpec } from "../state";
 
 const FOCUS_MODE_PARAM = "dim-others";
+// tags=: the tag tree open, or open with every branch.
+const TAGS_OPEN = "open";
+const TAGS_ALL = "all";
 
 export interface FilterParams {
   open: boolean;
@@ -14,10 +17,13 @@ export interface FilterParams {
   hasLevel: boolean;
   hasHiddenTags: boolean;
   tagsExpanded: boolean;
+  tagsAllExpanded: boolean;
   onlyTags: string[];
   hasOnlyTags: boolean;
+  examplesOnly: string[];
   highlight: HighlightSpec | null;
   focus: FocusSpec | null;
+  tooltip: TooltipSpec | null;
 }
 
 export interface ParsedUrl {
@@ -62,6 +68,26 @@ export function parseFocusParams(params: URLSearchParams): FocusSpec | null {
   return params.get(PARAMS.focusMode) === FOCUS_MODE_PARAM ? { tags, mode: FOCUS_MODE_PARAM } : { tags };
 }
 
+// tooltip=Slug or tooltip=Slug:example.
+// tooltip-mode=simple goes with it.
+export function parseTooltipParam(raw: string | null, modeRaw: string | null = null): TooltipSpec | null {
+  const value = (raw || "").trim();
+  if (!value) return null;
+  const index = value.indexOf(":");
+  const slug = (index === -1 ? value : value.slice(0, index)).trim();
+  const tab = index === -1 ? "" : value.slice(index + 1).trim().toLowerCase();
+  if (!slug) return null;
+  const spec: TooltipSpec = { slug };
+  if (tab) spec.tab = tab;
+  if (modeRaw === "simple" || modeRaw === "full") spec.mode = modeRaw;
+  return spec;
+}
+
+export function formatTooltipParam(spec: TooltipSpec | null | undefined): string {
+  if (!spec) return "";
+  return spec.tab ? `${spec.slug}:${spec.tab}` : spec.slug;
+}
+
 export function formatHighlightParam(spec: HighlightSpec | null | undefined): string {
   if (!spec) return "";
   return [
@@ -86,11 +112,14 @@ export function parseFilterParams(search: string): FilterParams {
     level: Math.max(0, Number.parseInt(`${levelRaw}`, 10) || 0),
     hasLevel: levelRaw !== null,
     hasHiddenTags: hideTagsRaw !== null,
-    tagsExpanded: params.get(PARAMS.tags) === "open",
+    tagsExpanded: params.get(PARAMS.tags) === TAGS_OPEN || params.get(PARAMS.tags) === TAGS_ALL,
+    tagsAllExpanded: params.get(PARAMS.tags) === TAGS_ALL,
     onlyTags: splitList(onlyTagsRaw),
     hasOnlyTags: onlyTagsRaw !== null,
+    examplesOnly: splitList(params.get(PARAMS.examplesOnly)),
     highlight: parseHighlightParam(params.get(PARAMS.highlight)),
     focus: parseFocusParams(params),
+    tooltip: parseTooltipParam(params.get(PARAMS.tooltip), params.get(PARAMS.tooltipMode)),
   };
 }
 
@@ -114,6 +143,7 @@ export function urlToState(search: string, maxAnnotations: number): DiagramState
   if (filter.hasLevel) view.level = filter.level;
   if (filter.hasOnlyTags && filter.onlyTags.length > 0) view.onlyTags = filter.onlyTags;
   else if (filter.hasHiddenTags && filter.hiddenTags.length > 0) view.hiddenTags = filter.hiddenTags;
+  if (filter.examplesOnly.length > 0) view.examplesOnly = filter.examplesOnly;
   if (filter.query) view.query = filter.query;
   if (filter.pinnedSlugs.length > 0) view.pins = filter.pinnedSlugs;
   if (filter.highlight) view.highlight = filter.highlight;
@@ -121,10 +151,12 @@ export function urlToState(search: string, maxAnnotations: number): DiagramState
     view.focus = filter.focus;
     if (!view.camera) view.camera = { focus: { tags: filter.focus.tags } };
   }
+  if (filter.tooltip) view.tooltip = filter.tooltip;
   if (parsed.annotations.length > 0) view.annotations = parsed.annotations;
   const ui: DiagramState["ui"] = {};
   if (filter.open) ui.panelOpen = true;
   if (filter.tagsExpanded) ui.tagTreeExpanded = true;
+  if (filter.tagsAllExpanded) ui.tagTreeAllExpanded = true;
   return { version: 1, view, ui };
 }
 
@@ -137,12 +169,15 @@ export interface UrlWriteInput {
   // filter order.
   hiddenTags: readonly string[];
   onlyTags?: readonly string[] | null;
+  examplesOnly?: readonly string[];
   pins: readonly string[];
   level: number;
   defaultLevel: number;
   tagsExpanded: boolean;
+  tagsAllExpanded?: boolean;
   highlight?: HighlightSpec | null;
   focus?: FocusSpec | null;
+  tooltip?: TooltipSpec | null;
 }
 
 // Commas are legal in a query string but URLSearchParams escapes them anyway.
@@ -189,12 +224,15 @@ export function stateToSearch(state: DiagramState, options: StateToSearchOptions
     query: view.query || "",
     hiddenTags: options.explicitHiddenTags ? options.explicitHiddenTags(hidden) : hidden,
     onlyTags: view.onlyTags,
+    examplesOnly: view.examplesOnly,
     pins: [...(view.pins || [])].sort((a, b) => a.localeCompare(b)),
     level: view.level ?? options.defaultLevel,
     defaultLevel: options.defaultLevel,
-    tagsExpanded: Boolean(ui.tagTreeExpanded),
+    tagsExpanded: Boolean(ui.tagTreeExpanded || ui.tagTreeAllExpanded),
+    tagsAllExpanded: Boolean(ui.tagTreeAllExpanded),
     highlight: view.highlight,
     focus: view.focus,
+    tooltip: view.tooltip,
   });
 }
 
@@ -214,13 +252,15 @@ export function writeUrlSearch(search: string, input: UrlWriteInput): string {
   const onlyTags = input.onlyTags && input.onlyTags.length > 0 ? input.onlyTags : null;
   const hiddenTags = onlyTags ? [] : input.hiddenTags;
   const pins = input.pins.filter(Boolean);
+  const examplesOnly = [...(input.examplesOnly || [])].sort((a, b) => a.localeCompare(b));
   const level = Math.max(0, Number.parseInt(`${input.level}`, 10) || 0);
   const defaultLevel = Math.max(0, Number.parseInt(`${input.defaultLevel}`, 10) || 0);
   const hasNonDefaultLevel = level !== defaultLevel;
   const highlight = formatHighlightParam(input.highlight);
   const focus = input.focus && input.focus.tags.length > 0 ? input.focus : null;
+  const tooltip = formatTooltipParam(input.tooltip);
   const hasFilterCriteria =
-    query.length > 0 || hiddenTags.length > 0 || hasNonDefaultLevel || input.tagsExpanded || Boolean(onlyTags) || Boolean(highlight) || Boolean(focus);
+    query.length > 0 || hiddenTags.length > 0 || hasNonDefaultLevel || input.tagsExpanded || Boolean(onlyTags) || examplesOnly.length > 0 || Boolean(highlight) || Boolean(focus) || Boolean(tooltip);
 
   if (!input.panelOpen && !hasFilterCriteria && pins.length === 0) {
     FILTER_PARAMS.forEach((name) => params.delete(name));
@@ -230,11 +270,14 @@ export function writeUrlSearch(search: string, input: UrlWriteInput): string {
     setOrDelete(PARAMS.hideTags, hiddenTags.length > 0 ? hiddenTags.join(",") : null);
     setOrDelete(PARAMS.pins, pins.length > 0 ? pins.join(",") : null);
     setOrDelete(PARAMS.level, hasNonDefaultLevel ? `${level}` : null);
-    setOrDelete(PARAMS.tags, input.tagsExpanded ? "open" : null);
+    setOrDelete(PARAMS.tags, input.tagsAllExpanded ? TAGS_ALL : input.tagsExpanded ? TAGS_OPEN : null);
     setOrDelete(PARAMS.onlyTags, onlyTags ? onlyTags.join(",") : null);
+    setOrDelete(PARAMS.examplesOnly, examplesOnly.length > 0 ? examplesOnly.join(",") : null);
     setOrDelete(PARAMS.highlight, highlight || null);
     setOrDelete(PARAMS.focus, focus ? focus.tags.join(",") : null);
     setOrDelete(PARAMS.focusMode, focus && focus.mode && focus.mode !== "outline" ? focus.mode : null);
+    setOrDelete(PARAMS.tooltip, tooltip || null);
+    setOrDelete(PARAMS.tooltipMode, input.tooltip && input.tooltip.mode ? input.tooltip.mode : null);
   }
 
   return toReadableSearch(params);

@@ -79,6 +79,8 @@ function randomView(random: () => number): DiagramView {
       { x: 0.1, y: 0.2, x2: 0.4, y2: 0.8, type: "arrow-info", title: "", description: "", shape: "rectangle" },
     ];
   }
+  if (random() < 0.3) view.examplesOnly = pick(random, ["info", "pri-1", "pri-3"]);
+  if (random() < 0.3) view.tooltip = random() < 0.5 ? { slug: pick(random, SLUGS)[0] || "Cache" } : { slug: "Cache", tab: "cache_log", mode: "simple" };
   return view;
 }
 
@@ -86,6 +88,7 @@ function randomState(random: () => number): DiagramState {
   const ui: DiagramState["ui"] = {};
   if (random() < 0.5) ui.panelOpen = true;
   if (random() < 0.3) ui.tagTreeExpanded = true;
+  if (ui.tagTreeExpanded && random() < 0.5) ui.tagTreeAllExpanded = true;
   return { version: 1, view: randomView(random), ui };
 }
 
@@ -149,6 +152,36 @@ describe("url codec", () => {
     expect(stateToSearch(normalizeState({ view: { onlyTags: ["Network"], hiddenTags: ["Api"] } }), { defaultLevel: 3 })).toBe(
       "?only-tags=Network",
     );
+  });
+
+  it("tags=all opens the tree and every branch", () => {
+    expect(urlToState("?tags=all", 10).ui).toEqual({ tagTreeExpanded: true, tagTreeAllExpanded: true });
+    expect(stateToSearch(normalizeState({ ui: { tagTreeExpanded: true, tagTreeAllExpanded: true } }), { defaultLevel: 3 })).toBe("?tags=all");
+    expect(stateToSearch(normalizeState({ ui: { tagTreeExpanded: true } }), { defaultLevel: 3 })).toBe("?tags=open");
+  });
+
+  it("tooltip", () => {
+    expect(urlToState("?tooltip=Cache:Cache_Log", 10).view).toEqual({ tooltip: { slug: "Cache", tab: "cache_log" } });
+    expect(urlToState("?tooltip=Cache", 10).view).toEqual({ tooltip: { slug: "Cache" } });
+    expect(normalizeState({ view: { tooltip: { slug: "Cache", tab: "Help" } } }).view).toEqual({ tooltip: { slug: "Cache" } });
+    expect(stateToSearch(normalizeState({ view: { tooltip: { slug: "Cache", tab: "cache_log" } } }), { defaultLevel: 3 })).toBe("?tooltip=Cache%3Acache_log");
+    expect(() => normalizeState({ view: { tooltip: { tab: "x" } } })).toThrow("view.tooltip.slug");
+    expect(urlToState("?tooltip=Cache:cache_log&tooltip-mode=simple", 10).view).toEqual({ tooltip: { slug: "Cache", tab: "cache_log", mode: "simple" } });
+    expect(stateToSearch(normalizeState({ view: { tooltip: { slug: "Cache", mode: "simple" } } }), { defaultLevel: 3 })).toBe("?tooltip=Cache&tooltip-mode=simple");
+    // "full" is kept: it overrides a diagram whose default is simple.
+    expect(normalizeState({ view: { tooltip: { slug: "Cache", mode: "full" } } }).view).toEqual({ tooltip: { slug: "Cache", mode: "full" } });
+    expect(normalizeState({ view: { tooltip: { slug: "Cache", marker: false, width: 0.5, scale: 2 } } }).view.tooltip).toEqual({ slug: "Cache", marker: false, width: 0.5, scale: 2 });
+    expect(() => normalizeState({ view: { tooltip: { slug: "Cache", scale: 0 } } })).toThrow("view.tooltip.scale");
+    expect(normalizeState({ view: { tooltip: { slug: "Cache", position: "center" } } }).view.tooltip).toEqual({ slug: "Cache", position: "center" });
+    expect(() => normalizeState({ view: { tooltip: { slug: "Cache", position: "left" } } })).toThrow("view.tooltip.position");
+    expect(normalizeState({ view: { tooltip: { slug: "Cache", connector: false } } }).view.tooltip).toEqual({ slug: "Cache", connector: false });
+    expect(() => normalizeState({ view: { tooltip: { slug: "Cache", connector: "no" } } })).toThrow("view.tooltip.connector");
+    expect(() => normalizeState({ view: { tooltip: { slug: "Cache", mode: "tiny" } } })).toThrow("view.tooltip.mode");
+  });
+
+  it("examples-only", () => {
+    expect(urlToState("?examples-only=pri-3,info", 10).view).toEqual({ examplesOnly: ["pri-3", "info"] });
+    expect(stateToSearch(normalizeState({ view: { examplesOnly: ["pri-3", "info"] } }), { defaultLevel: 3 })).toBe("?examples-only=info,pri-3");
   });
 
   it("flags are written without =", () => {

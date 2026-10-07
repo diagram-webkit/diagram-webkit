@@ -60,6 +60,8 @@ export function createPhases(ctx) {
     cancelShow(element) {
       incoming.delete(element);
     },
+    // Hidden now, shown in the in-phase.
+    incoming: () => Array.from(incoming),
     // Runs once in the in-phase; a later call with the same key replaces it.
     inPhase(key, callback) {
       inCallbacks.set(key, callback);

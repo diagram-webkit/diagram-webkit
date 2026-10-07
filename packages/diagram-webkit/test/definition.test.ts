@@ -49,6 +49,11 @@ describe("defineDiagram", () => {
     expect(() => defineDiagram({ id: "" })).toThrow(/definition\.id: required/);
     expect(() => defineDiagram(null as never)).toThrow(/expected an object/);
     expect(() => defineDiagram({ id: "x", hooks: { parseHelp: "fn" } } as never)).toThrow(/expected a function/);
+    expect(defineDiagram({ id: "x", ui: { tooltipDefaults: { mode: "simple", marker: false, width: 0.5, scale: 2 } } }).ui!.tooltipDefaults).toEqual({ mode: "simple", marker: false, width: 0.5, scale: 2 });
+    expect(() => defineDiagram({ id: "x", ui: { tooltipDefaults: { mode: "big" } } } as never)).toThrow(/ui\.tooltipDefaults\.mode: expected full or simple/);
+    expect(() => defineDiagram({ id: "x", ui: { tooltipDefaults: { width: 2 } } })).toThrow(/ui\.tooltipDefaults\.width/);
+    expect(defineDiagram({ id: "x", ui: { tooltipDefaults: { connector: false, position: "top" } } }).ui!.tooltipDefaults).toEqual({ connector: false, position: "top" });
+    expect(() => defineDiagram({ id: "x", ui: { tooltipDefaults: { slug: "A" } } } as never)).toThrow(/ui\.tooltipDefaults\.slug: unknown key/);
   });
 
   it("checks requires against the running version", () => {

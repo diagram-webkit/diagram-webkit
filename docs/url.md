@@ -8,14 +8,17 @@ Read on load and written back when `features.urlSync` is on (the `app` preset). 
 | `filter-level` | `filter-level=1` | `level`; left out at max |
 | `filter-hide-tags` | `filter-hide-tags=Observability,Data.Cache` | `hiddenTags`; a parent hides its whole branch |
 | `only-tags` | `only-tags=Network` | `onlyTags`; wins over `filter-hide-tags` |
-| `filter-query` | `filter-query=tls` | `query` |
+| `examples-only` | `examples-only=info,pri-3` | `examplesOnly`; markers of these priorities show only where they have help examples (pins still show) |
+| `filter-query` | `filter-query=tls` | `query`; also searches help examples |
 | `pins` | `pins=LoadBalancer,WebApp` | `pins` (slugs) |
 | `highlight` | `highlight=WebApp,tag:Data,id:cell-3,mode:pulse` | `highlight`; bare = slug; mode `outline`\|`pulse`\|`dim-others` |
 | `focus` | `focus=Network.Ingress,Api` | `focus.tags`; without `v`, also `camera: { focus: { tags } }` |
 | `focus-mode` | `focus-mode=dim-others` | `focus.mode`; left out = `outline` |
+| `tooltip` | `tooltip=Cache` / `tooltip=Cache:cache_log` | `tooltip`: the help popup of a slug, on an example's tab |
+| `tooltip-mode` | `tooltip-mode=simple` | `tooltip.mode`; left out = the definition's default. `marker`, `width`, `scale` have no URL form (state or `ui.tooltipDefaults`) |
 | `annotations` | `annotations=<base64 JSON>` | `annotations` (max `definition.annotations.max`) |
 | `menu` | `menu=true` | `ui.panelOpen` |
-| `tags` | `tags=open` | `ui.tagTreeExpanded` |
+| `tags` | `tags=open` / `tags=all` | `ui.tagTreeExpanded`; `all` also `ui.tagTreeAllExpanded` (every branch open) |
 | `debug` | `debug` | load `source.debug`, debug logs; set from Settings > Open in debug (reloads) |
 | `tag-picker-mode` | `tag-picker-mode` / `tag-picker-mode=Network.Ingress,Data` | not state: tag picker mode on (Settings), with the selected topics; Make final removes it. Unknown or non-tree tags are dropped with a warning; ignored (with a warning) without a mouse or trackpad |
 | `svg` | `#svg=https://example.org/k8s.svg`, `#svg=zZnr…` (or `?svg=`) | local mode only: a link to the SVG, or the SVG itself, deflate + base64url ([standalone.md](standalone.md)) |

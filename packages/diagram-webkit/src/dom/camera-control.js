@@ -1,10 +1,11 @@
 // Programmatic camera: apply a CameraSpec, optionally animated. Reuses the
 // v= restore.
 import { rectFromObject, rectToObject } from "../core/codec/camera";
+import { excludingExampleMarkers } from "../core/help";
 
 export const DEFAULT_FOCUS_PADDING = 0.05;
 
-const SHAPES = "rect,circle,ellipse,path,polygon,polyline,line,text,image,use";
+const SHAPES = excludingExampleMarkers("rect,circle,ellipse,path,polygon,polyline,line,text,image,use");
 
 // Client rects of what an element draws. draw.io writes labels as
 // <switch><foreignObject width="100%" height="100%">…</foreignObject><text/></switch>:
@@ -43,6 +44,11 @@ export function createCameraControl(ctx) {
     return { zoom: s.currentZoom, x: s.imageTranslateX, y: s.imageTranslateY, fit: s.fitAllMode, geometry: s.fitGeometryMode };
   }
 
+  // Under half a pixel and a 0.1% zoom step: nothing to see, so no tween to wait for.
+  function samePlace(a, b) {
+    return Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) < 0.5 && Math.abs(Math.log(a.zoom / b.zoom)) < 0.001;
+  }
+
   // During a tween the image is its own compositor layer, so each frame is a
   // transform, not a repaint of the SVG and the highlight layer. Removed at
   // the end: a promoted layer keeps its raster scale and would stay blurry
@@ -66,7 +72,7 @@ export function createCameraControl(ctx) {
     const result = apply();
     const end = snapshot();
     const ms = /** @type {number} */ (transition);
-    if (!animated(transition) || start.fit !== end.fit || start.geometry !== end.geometry) {
+    if (!animated(transition) || start.fit !== end.fit || start.geometry !== end.geometry || samePlace(start, end)) {
       return Promise.resolve(result);
     }
     s.currentZoom = start.zoom;
@@ -133,9 +139,23 @@ export function createCameraControl(ctx) {
     };
   }
 
+  // Cells waiting for the in-phase (fade) are display:none, so they measure
+  // as nothing. They are laid out for the measurement only, still at opacity 0.
+  function measureIncludingIncoming(elements) {
+    const incoming = sv.phases.incoming().filter((element) => element.style.display === "none");
+    incoming.forEach((element) => element.style.removeProperty("display"));
+    try {
+      return measure(elements);
+    } finally {
+      incoming.forEach((element) => {
+        element.style.display = "none";
+      });
+    }
+  }
+
   function focusRect(focus, padding = DEFAULT_FOCUS_PADDING) {
     const elements = ctx.queryElements(focus);
-    const box = measure(elements);
+    const box = measureIncludingIncoming(elements);
     if (!box) {
       console.warn("diagram-webkit: camera.focus matched nothing visible:", JSON.stringify(focus));
       return null;

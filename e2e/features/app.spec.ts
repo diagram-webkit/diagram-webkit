@@ -4,7 +4,7 @@ import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { settle } from "../helpers";
 
-// F1-F33 on examples/direct--basic-diagram, app preset.
+// F1-F37 on examples/direct--basic-diagram, app preset.
 const EXAMPLE = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../examples/direct--basic-diagram");
 const NS = "basic-diagram";
 const ENGINE_VERSION: string = JSON.parse(fs.readFileSync(path.resolve(EXAMPLE, "../../packages/diagram-webkit/package.json"), "utf8")).version;
@@ -487,7 +487,7 @@ test("F28 focus on topics: row button, dim others, URL, hiding drops it, reset",
   const row = page.locator(".tag-tree-row", { has: page.locator('.tag-filter-btn[data-tag="Data"]') });
   const focusBtn = row.locator(".tag-focus-btn");
   const dim = page.locator(".tag-tree-dim-btn");
-  const reset = page.locator(".tag-tree-header-row .tag-tree-link");
+  const reset = page.locator(".tag-tree-header-row .dwk-tag-tree-reset");
   await expect(dim).toBeDisabled();
   await expect(reset).toBeHidden();
   // Row actions show on hover, and stay while on.
@@ -802,4 +802,203 @@ test("F33 the selection glows in place: selected parts keep their stacking", asy
   await expect(page.locator("#cell-logs")).not.toHaveClass(/dwk-selected/);
   const filter = await page.evaluate(() => getComputedStyle(document.querySelector("#cell-user")!).filter);
   expect(filter).toContain("drop-shadow");
+});
+
+test("F34 help examples: marker, tabs, held tooltip, copy, search shows the matching example", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await open(page, "?filter-level=2");
+  await expect(page.locator(".dwk-example-marker")).toHaveCount(1);
+  await expect(page.locator("#cell-m-cache .dwk-example-marker")).toHaveCount(1);
+
+  await page.locator("#cell-m-cache rect").first().hover({ force: true });
+  const tooltip = page.locator(".svg-property-tooltip.dwk-has-examples");
+  await expect(tooltip.locator(".dwk-example-tab")).toHaveText(["Help", "cache log"]);
+  await expect(tooltip.locator(".tooltip-content")).toBeVisible();
+  const place = () => tooltip.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    return [Math.round(box.x), Math.round(box.y), Math.round(box.width)];
+  });
+  const before = await place();
+  await tooltip.locator('[data-example-tab="0"]').click();
+  await expect(tooltip.locator(".tooltip-content")).toBeHidden();
+  // Only the height follows the tab.
+  expect(await place()).toEqual(before);
+  await expect(tooltip.locator(".dwk-code-level-warn")).toHaveText("WARN");
+  await tooltip.locator("[data-example-copy]").click();
+  await expect(tooltip.locator("[data-example-copy]")).toHaveText("Copied");
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/^2026-10-03T12:00:01Z INFO cache hit/);
+  // Held open after a click in it, until a click outside.
+  await page.mouse.move(10, 450);
+  await settle(page, 600);
+  await expect(tooltip).toBeVisible();
+  await page.mouse.click(10, 450);
+  await expect(tooltip).toBeHidden();
+
+  await open(page, "?filter-level=2&menu=true&filter-query=evicted");
+  const entry = page.locator(".filter-result-item", { hasText: "Cache" });
+  await expect(entry.locator('[data-example-tab="0"]')).toHaveAttribute("aria-selected", "true");
+  await expect(entry.locator(".dwk-example-code")).toContainText("evicted");
+  await entry.locator('[data-example-tab="-1"]').click();
+  await expect(entry.locator(".filter-result-content")).toBeVisible();
+  // The tab is the record's: the tooltip follows the entry.
+  await expect(page.locator(".svg-property-tooltip.dwk-has-examples .tooltip-content")).toHaveCount(1);
+  expect(await page.locator('.svg-property-tooltip.dwk-has-examples [data-example-tab="-1"]').getAttribute("aria-selected")).toBe("true");
+  // Going to the entry aims at the marker, not at its example dot.
+  await entry.locator(".filter-result-head").click();
+  await expect(page.locator(".mobile-go-to-indicator")).toHaveCount(1);
+  const centres = await page.evaluate(() => {
+    const centre = (selector: string) => {
+      const box = document.querySelector(selector)!.getBoundingClientRect();
+      return [box.x + box.width / 2, box.y + box.height / 2];
+    };
+    return { marker: centre("#cell-m-cache rect"), indicator: centre(".mobile-go-to-indicator") };
+  });
+  expect(centres.indicator[0]).toBeCloseTo(centres.marker[0], 0);
+  expect(centres.indicator[1]).toBeCloseTo(centres.marker[1], 0);
+});
+
+test("F34 a popup that grows with its tab stays inside the diagram; its content scrolls", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 240 });
+  await open(page, "?filter-level=2&v=fit");
+  await page.locator("#cell-m-cache rect").first().hover({ force: true });
+  const tooltip = page.locator(".svg-property-tooltip.dwk-has-examples");
+  await tooltip.locator('[data-example-tab="0"]').click();
+  const fit = await tooltip.evaluate((element) => {
+    const root = element.closest(".dwk-root")!.getBoundingClientRect();
+    const box = element.getBoundingClientRect();
+    return { top: box.top - root.top, bottom: root.bottom - box.bottom, head: element.querySelector(".tooltip-head")!.getBoundingClientRect().top >= box.top };
+  });
+  expect(fit.top).toBeGreaterThanOrEqual(9);
+  expect(fit.bottom).toBeGreaterThanOrEqual(9);
+  expect(fit.head).toBe(true);
+});
+
+test("F35 examples only: the half of a priority button, filter, results, URL, pins", async ({ page }) => {
+  await open(page, "?filter-level=2&menu=true");
+  // Only priorities with an example get the half.
+  await expect(page.locator(".dwk-examples-only-btn")).toHaveCount(1);
+  const half = page.locator('[data-examples-only="info"]');
+  await half.click();
+  await expect(half).toHaveAttribute("aria-pressed", "true");
+  await settle(page, 400);
+  expect(await search(page)).toBe("?menu=true&examples-only=info");
+  expect(await visible(page, "#cell-m-cache")).toBe(true);
+  expect(await visible(page, "#cell-m-lb")).toBe(false);
+  expect(await visible(page, "#cell-m-db")).toBe(true);
+  await expect(page.locator(".filter-result-item", { hasText: "Load balancer" })).toHaveCount(0);
+  expect((await state(page)).view.examplesOnly).toEqual(["info"]);
+
+  // Hiding the priority hides those with examples too; </> brings them back.
+  const info = page.locator('.tag-filter-btn[data-tag="info"]');
+  await info.click();
+  await expect(half).toHaveAttribute("aria-pressed", "false");
+  expect(await visible(page, "#cell-m-cache")).toBe(false);
+  await half.click();
+  await settle(page, 400);
+  await expect(info).toHaveClass(/active/);
+  await expect(half).toHaveAttribute("aria-pressed", "true");
+  expect(await visible(page, "#cell-m-cache")).toBe(true);
+  expect(await visible(page, "#cell-m-lb")).toBe(false);
+  expect(await search(page)).toBe("?menu=true&examples-only=info");
+
+  await open(page, "?filter-level=2&examples-only=info&pins=LoadBalancer");
+  expect(await visible(page, "#cell-m-lb")).toBe(true);
+  expect(await visible(page, "#cell-m-app")).toBe(false);
+  await page.evaluate(() => (window as any).diagram.setState({ view: { examplesOnly: null } }));
+  await settle(page, 400);
+  expect(await visible(page, "#cell-m-app")).toBe(true);
+});
+
+test("F36 topic chips follow the tag tree; Expand all / Collapse all and tags=all", async ({ page }) => {
+  const chips = (selector: string) => page.locator(`${selector} .annotation-tag-badge:visible`);
+  await open(page, "?menu=true&filter-query=database&filter-level=2");
+  await page.locator('[data-slug="DbAccess"] rect').hover({ force: true });
+  // The tree is closed: its top level only.
+  await expect(chips(".svg-property-tooltip.severity-pri-1")).toHaveText(["Priority 1", "Data"]);
+  await expect(chips(".filter-result-item.severity-pri-1")).toHaveText(["Priority 1", "Data"]);
+  await expect(chips(".filter-result-item.severity-info")).toHaveText(["Info", "Data"]);
+
+  const expandAll = page.locator(".dwk-tag-tree-expand-all");
+  await expect(expandAll).toHaveText("Expand all");
+  await expandAll.click();
+  await expect(expandAll).toHaveText("Collapse all");
+  expect(await search(page)).toBe("?menu=true&filter-query=database&tags=all");
+  await expect(chips(".filter-result-item.severity-info")).toHaveText(["Info", "Data", "Data.Cache"]);
+  expect((await state(page)).ui).toEqual({ panelOpen: true, tagTreeExpanded: true, tagTreeAllExpanded: true });
+
+  await expandAll.click();
+  expect(await search(page)).toBe("?menu=true&filter-query=database&tags=open");
+  await expect(chips(".filter-result-item.severity-info")).toHaveText(["Info", "Data"]);
+
+  await open(page, "?menu=true&filter-query=cache&tags=all&filter-level=2");
+  await expect(chips(".filter-result-item")).toHaveText(["Info", "Data", "Data.Cache"]);
+  // Closing a branch by hand leaves "all".
+  await page.locator(".tag-tree-row.has-children", { hasText: "Data" }).locator(".tag-tree-caret").click();
+  expect(await search(page)).toContain("tags=open");
+  await expect(chips(".filter-result-item")).toHaveText(["Info", "Data"]);
+});
+
+test("F37 view.tooltip: open a popup on an example from the URL and setState; closing it clears it", async ({ page }) => {
+  const popup = page.locator(".svg-property-tooltip.dwk-has-examples");
+  await open(page, "?filter-level=2&tooltip=Cache:cache_log");
+  await expect(popup).toBeVisible();
+  await expect(popup.locator('[data-example-tab="0"]')).toHaveAttribute("aria-selected", "true");
+  expect((await state(page)).view.tooltip).toEqual({ slug: "Cache", tab: "cache_log" });
+  // Held: the pointer passing by does not close it.
+  await page.mouse.move(10, 450);
+  await settle(page, 600);
+  await expect(popup).toBeVisible();
+  // A click outside closes it, and the state and URL follow.
+  await page.mouse.click(10, 450);
+  await expect(popup).toBeHidden();
+  expect((await state(page)).view.tooltip).toBeUndefined();
+  expect(await search(page)).toBe("");
+
+  await page.evaluate(() => (window as any).diagram.setState({ view: { tooltip: { slug: "Cache" } } }));
+  await expect(popup).toBeVisible();
+  await expect(popup.locator('[data-example-tab="-1"]')).toHaveAttribute("aria-selected", "true");
+  expect(await search(page)).toBe("?tooltip=Cache");
+  await page.evaluate(() => (window as any).diagram.setState({ view: { tooltip: null } }));
+  await expect(popup).toBeHidden();
+
+  // simple: the tab's content only; it fades in, and lands in the same place
+  // when the filter hides its cell.
+  const simple = { slug: "Cache", tab: "cache_log", mode: "simple" };
+  const place = () => popup.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    return [Math.round(box.x), Math.round(box.y)];
+  });
+  await page.evaluate((tooltip) => (window as any).diagram.setState({ view: { tooltip } }), simple);
+  await expect(popup).toHaveCSS("opacity", "1");
+  const shownPlace = await place();
+  await page.evaluate(() => (window as any).diagram.setState({ view: { tooltip: null } }));
+  await expect(popup).toBeHidden();
+  await page.evaluate((tooltip) => (window as any).diagram.setState({ view: { hiddenTags: ["info"], tooltip } }), simple);
+  expect(await visible(page, "#cell-m-cache")).toBe(false);
+  await expect(popup).toHaveClass(/dwk-tooltip-simple/);
+  await expect(popup).toHaveCSS("opacity", "1");
+  expect(await place()).toEqual(shownPlace);
+  await expect(popup.locator(".dwk-example-code")).toBeVisible();
+  for (const hidden of [".dwk-example-tabs", ".tooltip-actions", ".dwk-example-copy"]) await expect(popup.locator(hidden)).toBeHidden();
+  await expect(popup.locator(".tooltip-head")).toHaveText("Cachecache log");
+  expect(await search(page)).toBe("?filter-hide-tags=info&tooltip=Cache%3Acache_log&tooltip-mode=simple");
+
+  // Closing it with a camera move: the popup is gone before the camera moves.
+  const samples = await page.evaluate(async () => {
+    const tip = document.querySelector<HTMLElement>(".svg-property-tooltip.dwk-has-examples")!;
+    const image = document.querySelector<HTMLElement>(".dwk-main-image")!;
+    const start = image.style.transform;
+    const seen: [boolean, string][] = [];
+    let running = true;
+    const tick = () => {
+      seen.push([image.style.transform !== start, tip.style.display]);
+      if (running) requestAnimationFrame(tick);
+    };
+    tick();
+    await (window as any).diagram.setState({ view: { tooltip: null, camera: { rect: [0.3, 0.3, 0.3, 0.3] } } }, { transition: 400 });
+    running = false;
+    return seen;
+  });
+  expect(samples.some(([moved]) => moved)).toBe(true);
+  expect(samples.filter(([moved]) => moved).every(([, display]) => display === "none")).toBe(true);
 });

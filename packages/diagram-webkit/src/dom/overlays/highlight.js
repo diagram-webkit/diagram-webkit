@@ -8,6 +8,7 @@
 // copy. Fading a copy is an opacity change; animating the filter on the
 // cell itself repaints it every frame.
 import { GROUP_CLASS as OVERLAY_GROUP_CLASS } from "./line-overlays.js";
+import { SELECTED_CLASS } from "./selection.js";
 
 const TARGET_CLASS = "dwk-highlight-target";
 const OUTLINE_CLASS = "dwk-highlighted";
@@ -33,7 +34,7 @@ export function createHighlight(ctx) {
         if (metadataAttrs.has(name) || name.startsWith("data-")) node.removeAttribute(name);
       });
     });
-    clone.classList.remove(TARGET_CLASS);
+    clone.classList.remove(TARGET_CLASS, SELECTED_CLASS);
     clone.classList.add(OUTLINE_CLASS);
     const group = ctx.doc.createElementNS(SVG_NS, "g");
     group.classList.add(COPY_CLASS);

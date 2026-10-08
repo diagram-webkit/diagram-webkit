@@ -7,6 +7,8 @@ import { copyWithFeedback } from "./link-info.js";
 const SVG_NS = "http://www.w3.org/2000/svg";
 const MARKER_RADIUS = 4.5;
 const MARKER_SHAPES = "rect, ellipse, circle";
+const EXAMPLE_KEY_COUNT = 9;
+const EXAMPLE_KEY_CODE = /^(?:Digit|Numpad)([1-9])$/;
 
 /** @param {Element} element @param {string} helpAttr @param {string} slug */
 export function collectExamples(element, helpAttr, slug) {
@@ -26,12 +28,26 @@ export function collectExamples(element, helpAttr, slug) {
   return examples;
 }
 
-export function exampleTabsHtml(record, texts) {
+// keys: label the tabs [1] … [9] in tab order, Help first (shown only with
+// a mouse or trackpad, see tooltip.css).
+export function exampleTabsHtml(record, texts, { keys = false } = {}) {
   if (!record.examples.length) return "";
-  const tab = (index, label) =>
-    `<button type="button" class="dwk-example-tab" role="tab" data-example-tab="${index}" aria-selected="false">${escapeHTML(label)}</button>`;
-  const tabs = [tab(HELP_TAB, texts.exampleHelpTab), ...record.examples.map((example, index) => tab(index, example.title))];
+  const tab = (index, position, label) => {
+    const key = keys && position < EXAMPLE_KEY_COUNT ? `<span class="dwk-example-key" aria-hidden="true"> [${position + 1}]</span>` : "";
+    return `<button type="button" class="dwk-example-tab" role="tab" data-example-tab="${index}" aria-selected="false">${escapeHTML(label)}${key}</button>`;
+  };
+  const tabs = [tab(HELP_TAB, 0, texts.exampleHelpTab), ...record.examples.map((example, index) => tab(index, index + 1, example.title))];
   return `<div class="dwk-example-tabs" role="tablist" aria-label="${escapeHTML(texts.exampleTabsLabel)}">${tabs.join("")}</div>`;
+}
+
+// The tab a digit key picks (event.code: the same key on every layout), or
+// null when the key picks none.
+export function exampleTabForKey(event, record) {
+  const match = EXAMPLE_KEY_CODE.exec(event.code);
+  if (!match) return null;
+  const position = Number(match[1]) - 1;
+  if (position === 0) return HELP_TAB;
+  return position <= record.examples.length ? position - 1 : null;
 }
 
 export function examplePanelsHtml(record, texts) {

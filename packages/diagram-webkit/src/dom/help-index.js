@@ -3,7 +3,9 @@
 import { HELP_TAB } from "../core/help";
 import { escapeHTML, HELP_HTML_WHITELIST, sanitizeUserHtml } from "../core/html";
 import { STATE_TOOLTIP_FADE_MS } from "../ui/tooltip.js";
-import { addExampleMarker, applyExampleTab, collectExamples, examplePanelsHtml, exampleTabsHtml, handleExampleClick } from "../ui/help-examples.js";
+import { addExampleMarker, applyExampleTab, collectExamples, examplePanelsHtml, exampleTabForKey, exampleTabsHtml, handleExampleClick } from "../ui/help-examples.js";
+import { isTypingTarget } from "../ui/shortcuts.js";
+import { FINE_POINTER_QUERY } from "./context.js";
 import { applyCssTagClasses, applySeverityStyleToElement, markTagBadges } from "./tag-style.js";
 
 export const VISIBILITY_FADE_MS = 120;
@@ -17,6 +19,8 @@ export function createHelpIndex(ctx) {
   const parseHelp = ctx.config.parseHelp;
   let renderController = null;
   let stateTooltipElement = null;
+  // The part or tooltip with examples under the pointer, for the digit keys.
+  let hovered = null;
 
   function getElementSlug(targetEl) {
     return `${targetEl.getAttribute(attrs.slugAttr) || ""}`.trim();
@@ -91,7 +95,7 @@ export function createHelpIndex(ctx) {
     }
     const footerHtml = footerParts.length ? `<div class="tooltip-actions">${footerParts.join("")}</div>` : "";
     tooltip.className = `tooltip-box svg-property-tooltip ${model.getSeverityClassForTags(record.tags)}`;
-    tooltip.innerHTML = `<div class="tooltip-head"><b>${escapeHTML(record.title)}</b><span class="dwk-example-current"></span></div>${exampleTabsHtml(record, texts)}<div class="tooltip-content" data-example-panel="${HELP_TAB}">${record.bodyHtml || ""}</div>${examplePanelsHtml(record, texts)}${footerHtml}`;
+    tooltip.innerHTML = `<div class="tooltip-head"><b>${escapeHTML(record.title)}</b><span class="dwk-example-current"></span></div>${exampleTabsHtml(record, texts, { keys: true })}<div class="tooltip-content" data-example-panel="${HELP_TAB}">${record.bodyHtml || ""}</div>${examplePanelsHtml(record, texts)}${footerHtml}`;
     if (record.examples.length) {
       tooltip.classList.add("dwk-has-examples");
       applyExampleTab(tooltip, record.exampleTab);
@@ -148,6 +152,28 @@ export function createHelpIndex(ctx) {
       { passive: false, signal },
     );
     tooltip.addEventListener("mouseenter", () => ctx.timers.clearTimeout(hideTimeout), { signal });
+    // A tab picked with a click or a key: the box keeps its place and width,
+    // only its height follows the tab, and it stays open (an example is read
+    // for longer than a hover lasts).
+    const selectTab = (tab) => {
+      if (!tooltipService.getCurrentMobileTooltip()) tooltip.style.width = ctx.win.getComputedStyle(tooltip).width;
+      setExampleTab(record, tab);
+      if (!tooltipService.getCurrentMobileTooltip()) {
+        ctx.timers.clearTimeout(hideTimeout);
+        tooltipService.hold(tooltip);
+        tooltipService.keepInView(tooltip);
+      }
+    };
+    if (record.examples.length) {
+      const enter = () => (hovered = { record, selectTab });
+      const leave = () => {
+        if (hovered && hovered.record === record) hovered = null;
+      };
+      [targetEl, tooltip].forEach((node) => {
+        node.addEventListener("mouseenter", enter, { signal });
+        node.addEventListener("mouseleave", leave, { signal });
+      });
+    }
     const onPin = (event) => {
       const target = event.target instanceof ctx.win.Element ? event.target : null;
       const pinBtn = target ? target.closest('[data-role="tooltip-pin"]') : null;
@@ -166,16 +192,7 @@ export function createHelpIndex(ctx) {
         "click",
         (event) => {
           const tab = handleExampleClick(ctx, event, record);
-          if (tab === null) return;
-          // The box keeps its place and width; only its height follows the tab.
-          if (!tooltipService.getCurrentMobileTooltip()) tooltip.style.width = ctx.win.getComputedStyle(tooltip).width;
-          setExampleTab(record, tab);
-          // An example is read for longer than a hover lasts.
-          if (!tooltipService.getCurrentMobileTooltip()) {
-            ctx.timers.clearTimeout(hideTimeout);
-            tooltipService.hold(tooltip);
-            tooltipService.keepInView(tooltip);
-          }
+          if (tab !== null) selectTab(tab);
         },
         { signal },
       );
@@ -187,6 +204,7 @@ export function createHelpIndex(ctx) {
   function initializeSvgPropertyAnnotations() {
     if (renderController) renderController.abort();
     renderController = new AbortController();
+    hovered = null;
     const signal = AbortSignal.any([ctx.signal, renderController.signal]);
     ctx.els.tooltipLayer.querySelectorAll(".svg-property-tooltip").forEach((tip) => tip.remove());
 
@@ -238,6 +256,21 @@ export function createHelpIndex(ctx) {
     if (!record.examples.length || record.exampleTab === tab) return;
     record.exampleTab = tab;
     if (record.tooltip) applyExampleTab(record.tooltip, tab);
+  }
+
+  // 1-9 pick a tab of the hovered tooltip: Help, then its examples. Only
+  // with a mouse or trackpad, and not in tag picker mode (its digits pick
+  // topics there).
+  function handleExampleKey(event) {
+    if (!hovered || !hovered.record.tooltip || hovered.record.tooltip.style.display === "none") return false;
+    if (event.ctrlKey || event.metaKey || event.altKey || isTypingTarget(event.target)) return false;
+    if (!ctx.win.matchMedia(FINE_POINTER_QUERY).matches) return false;
+    if (ctx.services.tagPicker && ctx.services.tagPicker.isOn()) return false;
+    const tab = exampleTabForKey(event, hovered.record);
+    if (tab === null) return false;
+    event.preventDefault();
+    hovered.selectTab(tab);
+    return true;
   }
 
   function exampleTabFor(record, tab) {
@@ -409,6 +442,7 @@ export function createHelpIndex(ctx) {
     applyPinnedVisualState,
     getElementSlug,
     setExampleTab,
+    handleExampleKey,
     syncStateTooltip,
     closeHeldTooltip,
   };

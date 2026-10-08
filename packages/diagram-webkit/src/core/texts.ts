@@ -230,6 +230,7 @@ export const DEFAULT_TEXTS = Object.freeze({
   ctlMenu: "Search, and filter by detail level and topic",
   ctlMenuHow: "The menu button, bottom right",
   shortcutTabs: "Switch tabs in this dialog",
+  shortcutExampleTab: "Show the tab marked [1] … [9] in the hovered tooltip: Help, then its examples",
   shortcutPickTag: "Tag picker mode: select the topic marked [1] … [9], [a] … [z] in the open tooltip",
   shortcutPickUndo: "Tag picker mode: undo, redo",
   metaBuiltWith: "Built with",

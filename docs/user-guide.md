@@ -50,6 +50,7 @@ Loading from a link only works when the site hosting the SVG allows it to be rea
 | See everything | | `0` |
 | Help, links and controls | the **?** at the bottom left | `?` |
 | Close whatever is open | | `Esc` |
+| Show a tab of the hovered tooltip: Help, then its examples | | `1`–`9` |
 | Select a topic in the open tooltip ([tag picker mode](#tag-picker-mode)) | | `1`–`9`, then `a`–`z` |
 | Undo / redo in [tag picker mode](#tag-picker-mode) | | `Ctrl`/`⌘` + `Z` / + `Shift` + `Z` |
 
@@ -57,7 +58,7 @@ Loading from a link only works when the site hosting the SVG allows it to be rea
 
 Parts of the diagram can carry a short explanation. Hover over them (or tap on a touch screen) to read it. In many diagrams these parts are marked with a small **?**, but anything can have help text.
 
-A part with a coloured dot in its corner also has examples: a config snippet, a shell command, a log line. They are tabs next to **Help** in its tooltip and its menu entry; clicking one keeps the tooltip open until you click somewhere else. **Copy** puts the example on the clipboard. Search looks through the examples too, and when only an example matches, its tab is shown.
+A part with a coloured dot in its corner also has examples: a config snippet, a shell command, a log line. They are tabs next to **Help** in its tooltip and its menu entry; clicking one keeps the tooltip open until you click somewhere else. With a mouse or trackpad, the tabs in a tooltip are marked `[1]`, `[2]`, …: press the number while hovering to switch (not in tag picker mode, where the numbers pick topics). **Copy** puts the example on the clipboard. Search looks through the examples too, and when only an example matches, its tab is shown.
 
 ### The menu
 

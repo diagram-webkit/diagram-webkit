@@ -812,7 +812,7 @@ test("F34 help examples: marker, tabs, held tooltip, copy, search shows the matc
 
   await page.locator("#cell-m-cache rect").first().hover({ force: true });
   const tooltip = page.locator(".svg-property-tooltip.dwk-has-examples");
-  await expect(tooltip.locator(".dwk-example-tab")).toHaveText(["Help", "cache log"]);
+  await expect(tooltip.locator(".dwk-example-tab")).toHaveText(["Help [1]", "cache log [2]"]);
   await expect(tooltip.locator(".tooltip-content")).toBeVisible();
   const place = () => tooltip.evaluate((element) => {
     const box = element.getBoundingClientRect();
@@ -855,6 +855,48 @@ test("F34 help examples: marker, tabs, held tooltip, copy, search shows the matc
   });
   expect(centres.indicator[0]).toBeCloseTo(centres.marker[0], 0);
   expect(centres.indicator[1]).toBeCloseTo(centres.marker[1], 0);
+});
+
+test("F34 example tabs by key: [1] Help, [2] on; held open; not in tag picker mode; no keys on touch", async ({ page, browser }) => {
+  await open(page, "?filter-level=2");
+  const tooltip = page.locator(".svg-property-tooltip.dwk-has-examples");
+  const marker = page.locator("#cell-m-cache rect").first();
+  await marker.hover({ force: true });
+  await page.keyboard.press("2");
+  await expect(tooltip.locator(".tooltip-content")).toBeHidden();
+  await expect(tooltip.locator('[data-example-tab="0"]')).toHaveAttribute("aria-selected", "true");
+  // A key past the last tab, or with a modifier, does nothing.
+  await page.keyboard.press("3");
+  await page.keyboard.press("Control+1");
+  await expect(tooltip.locator('[data-example-tab="0"]')).toHaveAttribute("aria-selected", "true");
+  // Held open like after a click.
+  await page.mouse.move(10, 450);
+  await settle(page, 600);
+  await expect(tooltip).toBeVisible();
+  // Not hovered: the keys do nothing.
+  await page.keyboard.press("1");
+  await expect(tooltip.locator('[data-example-tab="0"]')).toHaveAttribute("aria-selected", "true");
+  await marker.hover({ force: true });
+  await page.keyboard.press("Numpad1");
+  await expect(tooltip.locator(".tooltip-content")).toBeVisible();
+
+  // Tag picker mode: the digits pick topics, the tabs lose their keys.
+  await open(page, "?filter-level=2&tag-picker-mode");
+  await marker.hover({ force: true });
+  await expect(tooltip.locator(".dwk-example-key").first()).toBeHidden();
+  await page.keyboard.press("2");
+  await settle(page);
+  expect(new URLSearchParams(await search(page)).get("tag-picker-mode")).toBe("Data.Cache");
+  await expect(tooltip.locator(".tooltip-content")).toBeVisible();
+
+  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, baseURL: test.info().project.use.baseURL });
+  const mobile = await phone.newPage();
+  await open(mobile, "?filter-level=2");
+  await mobile.locator("#cell-m-cache rect").first().tap({ force: true });
+  const tabs = mobile.locator(".svg-property-tooltip.dwk-has-examples .dwk-example-tab");
+  await expect(tabs.first()).toBeVisible();
+  await expect(tabs).toHaveText(["Help", "cache log"], { useInnerText: true });
+  await phone.close();
 });
 
 test("F34 a popup that grows with its tab stays inside the diagram; its content scrolls", async ({ page }) => {

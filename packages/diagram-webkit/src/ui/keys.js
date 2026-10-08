@@ -1,5 +1,5 @@
 // The one ownerDocument keydown listener. Handlers run in a fixed order:
-// tag picker, panel, help dialog, shortcuts, annotation editor. One Escape closes both
+// tag picker, example tabs, panel, help dialog, shortcuts, annotation editor. One Escape closes both
 // an open dialog and the panel.
 
 export function createKeys(ctx) {
@@ -9,6 +9,8 @@ export function createKeys(ctx) {
     if (ctx.destroyed || ctx.suspended) return;
     // Its dialog closes alone (the panel stays), and 1-9, a-z pick a topic.
     if (sv.tagPicker && sv.tagPicker.handleKeyDown(event)) return;
+    // 1-9 switch the tabs of the hovered tooltip with examples.
+    if (sv.helpIndex && sv.helpIndex.handleExampleKey(event)) return;
     if (event.key === "Escape" && sv.panel) sv.panel.handleEscape();
     if (event.key === "Escape" && sv.helpDialog) sv.helpDialog.handleEscape(event);
     if (sv.shortcuts) sv.shortcuts.handleKeyDown(event);

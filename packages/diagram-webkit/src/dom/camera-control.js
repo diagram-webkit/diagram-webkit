@@ -2,6 +2,7 @@
 // v= restore.
 import { rectFromObject, rectToObject } from "../core/codec/camera";
 import { excludingExampleMarkers } from "../core/help";
+import { svgScreenMatrix } from "./context.js";
 
 export const DEFAULT_FOCUS_PADDING = 0.05;
 
@@ -111,7 +112,7 @@ export function createCameraControl(ctx) {
   function measure(elements) {
     const svg = /** @type {SVGSVGElement | null} */ (ctx.els.image.querySelector("svg"));
     const viewBox = sv.cameraUrl.getViewBox();
-    const rootCtm = svg ? svg.getScreenCTM() : null;
+    const rootCtm = svg ? svgScreenMatrix(svg) : null;
     if (!svg || !viewBox || !rootCtm) return null;
     const toRoot = rootCtm.inverse();
     let minX = Infinity;
@@ -242,6 +243,23 @@ export function createCameraControl(ctx) {
     return animate(() => sv.camera.applyDefaultView(), transition);
   }
 
+  // A view from another window of the same deck (reveal sync): applied at
+  // once, over any running tween, and owned by the reader like their own move.
+  function setView(view) {
+    if (!ctx.loaded) return false;
+    stopAnimation();
+    sv.camera.stopHoverPanAnimation();
+    leaveFitAll();
+    if (s.fitGeometryMode !== "cover") {
+      s.fitGeometryMode = "cover";
+      sv.geometry.syncDiagramSize();
+    }
+    sv.geometry.updateImageTransform();
+    const applied = sv.cameraUrl.applyView(view);
+    if (applied) sv.cameraUrl.markUserControlled();
+    return applied;
+  }
+
   function get() {
     const rect = sv.cameraUrl.getVisibleDiagramRect(true);
     return rect ? rectFromObject(rect) : null;
@@ -253,5 +271,5 @@ export function createCameraControl(ctx) {
     return sv.input.zoomAtPoint(factor >= 1 ? factor : 1 / factor, factor >= 1, point.x, point.y);
   }
 
-  return { apply, applyFocus, focusRect, get, zoomBy, stopAnimation };
+  return { apply, applyFocus, focusRect, get, getView: () => sv.cameraUrl.getView(), setView, zoomBy, stopAnimation };
 }

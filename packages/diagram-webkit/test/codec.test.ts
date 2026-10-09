@@ -7,6 +7,7 @@ import {
   DiagramStateError,
   diffView,
   mergeView,
+  normalizeCameraView,
   normalizeState,
   parseHighlightParam,
   parseTagPickerParam,
@@ -462,5 +463,20 @@ describe("dark colours", () => {
     expect(darkCssColor('url("#gradient")')).toBeNull();
     expect(darkCssColor("oklch(0.5 0.1 200)")).toBeNull();
     expect(DARK_FILTER_CSS).toBe("invert(1) hue-rotate(175deg) saturate(1.5) brightness(1.4)");
+  });
+});
+
+describe("normalizeCameraView", () => {
+  it("accepts a centre and a height, letterboxed heights included", () => {
+    expect(normalizeCameraView({ cx: 0.4, cy: 0.6, h: 0.3 })).toEqual({ cx: 0.4, cy: 0.6, h: 0.3 });
+    expect(normalizeCameraView({ cx: 0.5, cy: 0.5, h: 1.4 })).toEqual({ cx: 0.5, cy: 0.5, h: 1.4 });
+  });
+
+  it("rejects wrong shapes with the path", () => {
+    expect(() => normalizeCameraView(null)).toThrow(DiagramStateError);
+    expect(() => normalizeCameraView({ cx: 0.5, cy: 0.5 })).toThrow("camera.setView.h: expected a finite number");
+    expect(() => normalizeCameraView({ cx: 0.5, cy: 0.5, h: 0 })).toThrow("camera.setView.h: expected a number above 0");
+    expect(() => normalizeCameraView({ cx: "0.5", cy: 0.5, h: 1 })).toThrow("camera.setView.cx");
+    expect(() => normalizeCameraView({ cx: 0.5, cy: 0.5, h: 1, w: 1 })).toThrow("camera.setView.w: unknown key");
   });
 });

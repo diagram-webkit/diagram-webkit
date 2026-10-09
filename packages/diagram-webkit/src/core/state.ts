@@ -148,6 +148,26 @@ export class DiagramStateError extends Error {
   }
 }
 
+// What camera.setView() takes: a centre and the visible height in diagram
+// space; the width follows the viewport. h may exceed 1 (letterboxed).
+export interface CameraView {
+  cx: number;
+  cy: number;
+  h: number;
+}
+
+export function normalizeCameraView(value: unknown, path = "camera.setView"): CameraView {
+  if (!isPlainObject(value)) throw new DiagramStateError(path, "expected { cx, cy, h }");
+  const unknownKey = Object.keys(value).find((key) => !["cx", "cy", "h"].includes(key));
+  if (unknownKey) throw new DiagramStateError(`${path}.${unknownKey}`, "unknown key; known: cx, cy, h");
+  const { cx, cy, h } = value;
+  [["cx", cx], ["cy", cy], ["h", h]].forEach(([key, number]) => {
+    if (typeof number !== "number" || !Number.isFinite(number)) throw new DiagramStateError(`${path}.${key}`, "expected a finite number");
+  });
+  if (!((h as number) > 0)) throw new DiagramStateError(`${path}.h`, "expected a number above 0");
+  return { cx: cx as number, cy: cy as number, h: h as number };
+}
+
 function normalizeMode(mode: unknown, path: string): HighlightMode | undefined {
   if (mode === undefined) return undefined;
   if (!(HIGHLIGHT_MODES as readonly unknown[]).includes(mode)) throw new DiagramStateError(path, "expected outline, pulse or dim-others");

@@ -1,7 +1,7 @@
 // Help tooltips. Desktop tooltips live in the tooltip layer; the mobile
 // sheet is moved to the container root.
 import { excludingExampleMarkers } from "../core/help";
-import { childSignal, getScale } from "../dom/context.js";
+import { childSignal, getScale, svgScreenMatrix } from "../dom/context.js";
 
 export const MOBILE_MAX_WIDTH = 768;
 // Popups opened from the state (view.tooltip) fade in and out.
@@ -342,7 +342,7 @@ export function createTooltip(ctx) {
       frame = 0;
       if (!state) return;
       const svg = diagramSvg();
-      const ctm = svg && svg.getScreenCTM();
+      const ctm = svg && svgScreenMatrix(svg);
       if (!ctm || state.tooltip.style.display === "none") return;
       const target = state.point.matrixTransform(ctm);
       const box = state.tooltip.getBoundingClientRect();
@@ -371,7 +371,7 @@ export function createTooltip(ctx) {
 
     function show(tooltip, clientPoint) {
       const svg = diagramSvg();
-      const ctm = svg && svg.getScreenCTM();
+      const ctm = svg && svgScreenMatrix(svg);
       if (!ctm) return;
       ensureLayer();
       state = { tooltip, point: new DOMPoint(clientPoint.x, clientPoint.y).matrixTransform(ctm.inverse()) };

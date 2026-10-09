@@ -2,7 +2,7 @@
 // centering and go-to. Client-pixel deltas are divided by the ancestor scale
 // before they are added to the translate (layout px).
 import { excludingExampleMarkers } from "../core/help";
-import { FINE_POINTER_QUERY, getScale, isRectValid } from "./context.js";
+import { elementScreenMatrix, FINE_POINTER_QUERY, getScale, isRectValid, svgScreenMatrix } from "./context.js";
 
 export const COVER_ZOOM = 1;
 export const FOCUS_MIN_ZOOM = 2;
@@ -48,7 +48,7 @@ export function createCamera(ctx) {
     };
 
     const svg = rootSvg();
-    const inverse = invertMatrix(svg ? svg.getScreenCTM() : null);
+    const inverse = invertMatrix(svg ? svgScreenMatrix(svg) : null);
     if (inverse) {
       const svgPoint = new DOMPoint(targetClientX, targetClientY).matrixTransform(inverse);
       if (Number.isFinite(svgPoint.x) && Number.isFinite(svgPoint.y)) {
@@ -65,7 +65,7 @@ export function createCamera(ctx) {
     let targetY = null;
     if (Number.isFinite(anchor.svgX) && Number.isFinite(anchor.svgY)) {
       const svg = rootSvg();
-      const ctm = svg ? svg.getScreenCTM() : null;
+      const ctm = svg ? svgScreenMatrix(svg) : null;
       if (ctm) {
         const clientPoint = new DOMPoint(anchor.svgX, anchor.svgY).matrixTransform(ctm);
         if (Number.isFinite(clientPoint.x) && Number.isFinite(clientPoint.y)) {
@@ -121,7 +121,7 @@ export function createCamera(ctx) {
     if (!svg) return;
 
     for (let i = 0; i < iterations; i += 1) {
-      const ctm = svg.getScreenCTM();
+      const ctm = svgScreenMatrix(svg);
       if (!ctm) return;
       const point = new DOMPoint(svgX, svgY).matrixTransform(ctm);
       if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return;
@@ -280,7 +280,7 @@ export function createCamera(ctx) {
   function getRectFromSvgGraphicsElement(element) {
     if (!element || typeof element.getBBox !== "function" || typeof element.getScreenCTM !== "function") return null;
     const bbox = element.getBBox();
-    const ctm = element.getScreenCTM();
+    const ctm = elementScreenMatrix(element);
     if (!bbox || !ctm || !Number.isFinite(bbox.width) || !Number.isFinite(bbox.height)) return null;
     if (bbox.width <= 0 || bbox.height <= 0) return null;
 

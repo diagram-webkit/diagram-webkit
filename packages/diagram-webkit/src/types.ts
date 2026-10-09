@@ -1,7 +1,7 @@
 import type { Rect } from "./core/codec/camera";
 import type { DefinitionMode, DiagramDefinition } from "./core/definition";
 import type { FeaturesSpec } from "./core/presets";
-import type { DiagramState, DiagramView, ElementQuery } from "./core/state";
+import type { CameraView, DiagramState, DiagramView, ElementQuery } from "./core/state";
 
 export interface MountOptions {
   features?: FeaturesSpec;
@@ -37,6 +37,7 @@ export interface DiagramEvents {
   error: Error;
   statechange: DiagramState;
   camerachange: Rect | null;
+  camerainput: Rect | null;
   elementactivate: { element: Element; slug: string; id: string | null };
 }
 
@@ -57,6 +58,10 @@ export interface DiagramInstance {
     focus(target: ElementQuery, options?: SetStateOptions & { padding?: number }): Promise<void>;
     zoomBy(factor: number, at?: { x: number; y: number }): boolean;
     get(): Rect | null;
+    // Centre and visible height, the width following the viewport (reveal syncCamera).
+    getView(): CameraView | null;
+    // Sets exactly that view at once: no state change, no tween, no padding.
+    setView(view: CameraView): boolean;
   };
   query(query: ElementQuery): Element[];
   tags(): TagInfo[];

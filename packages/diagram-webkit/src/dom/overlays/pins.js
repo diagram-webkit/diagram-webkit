@@ -4,7 +4,7 @@
 // following it a frame late. Stroke widths are set per zoom (--dwk-pin-px,
 // one screen pixel in diagram units): vector-effect ignores the CSS
 // transform on the image.
-import { getScale } from "../context.js";
+import { getScale, svgScreenMatrix } from "../context.js";
 
 // Smallest ring on screen, for markers too small to see at a far zoom.
 export const RING_MIN_SIZE_PX = 16;
@@ -59,7 +59,7 @@ export function createPinRings(ctx) {
   function measure(element) {
     const svg = diagramSvg();
     const rect = ctx.services.camera.getElementFocusRect(element);
-    const ctm = svg ? svg.getScreenCTM() : null;
+    const ctm = svg ? svgScreenMatrix(svg) : null;
     if (!rect || !ctm) return null;
     const toUser = ctm.inverse();
     const a = new DOMPoint(rect.left, rect.top).matrixTransform(toUser);
@@ -78,7 +78,7 @@ export function createPinRings(ctx) {
   // come from the layer's transform.
   function place(entry, element) {
     const svg = diagramSvg();
-    const ctm = svg ? svg.getScreenCTM() : null;
+    const ctm = svg ? svgScreenMatrix(svg) : null;
     if (!ctm || !visible(element)) {
       entry.ring.style.display = "none";
       return;

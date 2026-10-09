@@ -5,7 +5,7 @@ import "reveal.js/theme/white.css";
 import { revealPlugin } from "diagram-webkit/reveal";
 import deck from "./diagram.js";
 
-const plugin = revealPlugin(deck, { transition: 600 });
+const plugin = revealPlugin(deck, { transition: 600, syncCamera: true });
 const reveal = new Reveal({ hash: true, width: 1280, height: 720, plugins: [plugin, RevealNotes] });
 window.diagramPlugin = plugin;
 window.deck = reveal;

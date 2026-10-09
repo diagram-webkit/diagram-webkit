@@ -9,12 +9,14 @@ import { createDebugOverlay } from "./debug-overlay";
 import { mountPrintInstances } from "./print";
 import { resolveSlide, slideFeatures, slotOf, type SlideContext } from "./slots";
 import { createStage, transitionMs, type Stage } from "./stage";
+import { createCameraSync } from "./sync";
 
 // The parts of the Reveal API the plugin uses.
 export interface RevealDeck {
   on(event: string, listener: (event: Event & { currentSlide?: HTMLElement; previousSlide?: HTMLElement; fragment?: HTMLElement }) => void): void;
   off(event: string, listener: (event: Event) => void): void;
   getCurrentSlide(): HTMLElement | undefined;
+  getIndices?(): { h: number; v?: number; f?: number };
   getRevealElement(): HTMLElement | null;
   getSlidesElement(): HTMLElement | null;
   getConfig?(): { transition?: string; transitionSpeed?: string };
@@ -43,6 +45,9 @@ export interface RevealPluginOptions {
   instance?: "shared" | "per-slide";
   baseState?: DiagramView;
   features?: FeaturesSpec;
+  // Zoom and pan made by hand in the speaker view's current-slide preview
+  // move the presentation (sync.ts).
+  syncCamera?: boolean;
 }
 
 export interface DiagramRevealPlugin {
@@ -256,6 +261,38 @@ export function revealPlugin(definition: DiagramDefinition, options: RevealPlugi
     listen(deck, "resize", () => instances.forEach((instance) => instance.resize()));
   }
 
+  // The instance showing the current slide, if any.
+  function currentInstance(deck: RevealDeck): DiagramInstance | null {
+    const slot = slotOf(deck.getCurrentSlide());
+    if (!slot) return null;
+    if (shared) return stage && stage.visible() ? shared : null;
+    return instances.get(slot) || null;
+  }
+
+  function initCameraSync(deck: RevealDeck): void {
+    const getIndices = deck.getIndices;
+    const isSpeakerNotes = deck.isSpeakerNotes;
+    if (typeof getIndices !== "function" || typeof isSpeakerNotes !== "function") {
+      throw new Error("diagram-webkit reveal: syncCamera needs deck.getIndices() and deck.isSpeakerNotes()");
+    }
+    const element = deck.getRevealElement();
+    const win = element && element.ownerDocument.defaultView;
+    if (!win) throw new Error("diagram-webkit reveal: syncCamera needs the deck to be in a window");
+    cleanups.push(
+      createCameraSync({
+        win,
+        scope: `${definition.id}:${win.location.pathname}`,
+        instances: Array.from(new Set(instances.values())),
+        speakerView: isSpeakerNotes.call(deck),
+        current: () => currentInstance(deck),
+        step: () => {
+          const { h, v, f } = getIndices.call(deck);
+          return `${h}.${v ?? 0}.${f ?? -1}`;
+        },
+      }),
+    );
+  }
+
   return {
     id: "diagram-webkit",
     async init(deck) {
@@ -270,6 +307,7 @@ export function revealPlugin(definition: DiagramDefinition, options: RevealPlugi
       }
       if (options.instance === "per-slide") await initPerSlide(deck);
       else await initShared(deck);
+      if (options.syncCamera) initCameraSync(deck);
       const overlay = createDebugOverlay(deck, () => shared || instances.values().next().value || null, context);
       if (overlay) cleanups.push(overlay);
     },

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Frame, type Page } from "@playwright/test";
 import { listenerCounts, settle } from "../helpers";
 import { PORTS } from "../../playwright.config";
 
@@ -198,6 +198,52 @@ test("speaker view receiver loads without errors", async ({ page }) => {
   await openDeck(page, DECKS.via, "?receiver#/steps");
   await current(page);
   expect(errors).toEqual([]);
+});
+
+test("syncCamera: zoom and pan in the speaker view's current slide lead the presentation, one way", async ({ page, context }) => {
+  await openDeck(page, DECKS.via, "#/live");
+  await current(page);
+  const [speaker] = await Promise.all([context.waitForEvent("page"), page.keyboard.press("s")]);
+  await speaker.setViewportSize({ width: 1100, height: 700 });
+  const previews = async () => {
+    const out: Record<string, Frame> = {};
+    for (const frame of speaker.frames()) {
+      if (frame === speaker.mainFrame()) continue;
+      const id = await frame.evaluate(() => window.frameElement && window.frameElement.parentElement!.id).catch(() => null);
+      if (id) out[id] = frame;
+    }
+    return out;
+  };
+  await expect.poll(async () => Object.keys(await previews()).sort()).toEqual(["current-slide", "upcoming-slide"]);
+  const { "current-slide": lead, "upcoming-slide": upcoming } = await previews();
+  for (const frame of [lead, upcoming]) await frame.waitForFunction(() => document.body.dataset.ready === "true");
+  await expect.poll(() => lead.evaluate(() => document.querySelector(".present")!.id)).toBe("live");
+  await settle(speaker, 800);
+
+  const view = (frame: Frame) => frame.evaluate(() => (window as any).diagramPlugin.instances()[0].camera.getView() as { cx: number; cy: number; h: number });
+  const same = (a: { cx: number; cy: number; h: number }, b: { cx: number; cy: number; h: number }) =>
+    Math.abs(a.cx - b.cx) < 0.005 && Math.abs(a.cy - b.cy) < 0.005 && Math.abs(a.h / b.h - 1) < 0.01;
+  const upcomingBefore = await view(upcoming);
+  const box = (await (await lead.frameElement()).boundingBox())!;
+  const [x, y] = [box.x + box.width * 0.4, box.y + box.height * 0.5];
+  await speaker.mouse.move(x, y);
+  for (let notch = 0; notch < 4; notch += 1) await speaker.mouse.wheel(0, -200);
+  await expect.poll(async () => same(await view(lead), await view(page.mainFrame()))).toBe(true);
+  expect((await view(page.mainFrame())).h).toBeLessThan(0.7);
+
+  await speaker.mouse.down();
+  for (let step = 1; step <= 8; step += 1) await speaker.mouse.move(x - step * 12, y - step * 6);
+  await speaker.mouse.up();
+  await expect.poll(async () => same(await view(lead), await view(page.mainFrame()))).toBe(true);
+
+  const leadBefore = await view(lead);
+  const main = (await page.locator("#live [data-diagram-slot]").boundingBox())!;
+  await page.mouse.move(main.x + main.width / 2, main.y + main.height / 2);
+  for (let notch = 0; notch < 4; notch += 1) await page.mouse.wheel(0, 200);
+  await settle(speaker, 500);
+  expect(await view(lead)).toEqual(leadBefore);
+  expect(await view(upcoming)).toEqual(upcomingBefore);
+  expect(await page.evaluate(() => String((window as any).diagramPlugin.lastError()))).toBe("null");
 });
 
 test("50 slide changes leak nothing", async ({ page }) => {

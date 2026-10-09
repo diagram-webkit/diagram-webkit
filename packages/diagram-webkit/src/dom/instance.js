@@ -9,7 +9,7 @@ import { MODE_META_NAME, definitionForMode, isDiagramDefinition } from "../core/
 import { parseHelpContent } from "../core/help";
 import { DEFAULT_HTML_WHITELIST, processUserDescription } from "../core/html";
 import { resolveFeatures } from "../core/presets";
-import { mergeView, normalizeState, normalizeUi, normalizeViewPatch, VIEW_KEYS } from "../core/state";
+import { mergeView, normalizeCameraView, normalizeState, normalizeUi, normalizeViewPatch, VIEW_KEYS } from "../core/state";
 import { createTagModel, DEFAULT_TAGS_CONFIG } from "../core/tags";
 import { resolveTexts } from "../core/texts";
 import { DEFAULT_METADATA_ATTRS } from "../core/validate";
@@ -48,7 +48,7 @@ import { createUi } from "../ui/app.js";
 import { createTheme } from "../ui/theme.js";
 import { createDarkCanvas } from "./dark-canvas.js";
 
-const EVENTS = new Set(["ready", "error", "statechange", "camerachange", "elementactivate"]);
+const EVENTS = new Set(["ready", "error", "statechange", "camerachange", "camerainput", "elementactivate"]);
 const DEFAULT_CAMERA = Object.freeze({ defaultAlign: ["left", "bottom"], maxZoom: 4 });
 const DEFAULT_UI = Object.freeze({ tooltipMinWidth: 380, tooltipHideDelay: 100, tooltipDefaults: Object.freeze({}) });
 const DEFAULT_AREA = Object.freeze({ minHoverDistance: 5, borderWidth: 3, hoverBorderWidth: 4, resizeHandleSize: 8 });
@@ -241,6 +241,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
   s.sourceLabel = s.source ? s.source.url || "(inline svg)" : "(local svg)";
 
   let cameraFrame = 0;
+  let cameraInputFrame = 0;
   let stateChangeQueued = false;
 
   /** @type {any} */
@@ -325,6 +326,15 @@ export function createInstance(container, definitionOrNone, opts = {}) {
       cameraFrame = timers.requestAnimationFrame(() => {
         cameraFrame = 0;
         ctx.emit("camerachange", ctx.services.cameraControl.get());
+      });
+    },
+    // Only the reader's own moves (wheel, drag, pinch, keyboard), never a
+    // camera set by state or a tween.
+    notifyCameraInput() {
+      if (cameraInputFrame || !listeners.get("camerainput")?.size) return;
+      cameraInputFrame = timers.requestAnimationFrame(() => {
+        cameraInputFrame = 0;
+        ctx.emit("camerainput", ctx.services.cameraControl.get());
       });
     },
     notifyStateChange() {
@@ -447,6 +457,8 @@ export function createInstance(container, definitionOrNone, opts = {}) {
         api.setState({ view: { camera: { focus: target, ...(options.padding !== undefined ? { padding: options.padding } : {}) } } }, options),
       zoomBy: (factor, at) => sv.cameraControl.zoomBy(factor, at),
       get: () => sv.cameraControl.get(),
+      getView: () => sv.cameraControl.getView(),
+      setView: (view) => sv.cameraControl.setView(normalizeCameraView(view)),
     },
 
     query(query) {

@@ -120,6 +120,7 @@ No path may point outside the repo. The only link to other checkouts is the othe
 - Listeners are bound with the instance's `AbortController` signal, and timers and rAF go through `ctx.timers`. After `destroy()`, no listeners are left on `document`/`window` and no nodes are left outside the container (e2e checks this with CDP). The only global listener allowed is the `ownerDocument` keydown for shortcuts, and only when that feature is on.
 - In `dom/`, `ui/` and `adapters/`, ESLint forbids `document`, `localStorage`, `history` and `location`. Use `ctx.ownerDocument`/root, `adapters/storage.js` and `adapters/url-sync.js`.
 - Geometry is in container layout px. Convert client coordinates with `getScale()` (`rect.width / offsetWidth`), because the root can be CSS-scaled (Reveal `transform: scale`, `zoom`).
+- Never call `getScreenCTM()` for screen coordinates: Safari leaves out CSS transforms on HTML ancestors (the camera matrix, Reveal's scale), so it is off by the zoom. Use `svgScreenMatrix(svg)` / `elementScreenMatrix(element)` (`dom/context.js`), built from the client rect, the viewBox and `preserveAspectRatio`.
 - CSS:
   - Every selector goes under `:where(.dwk-root)`, and ids become `.dwk-<id>`.
   - Use `@container dwk (...)` and not media queries, and `cqw`/`cqh` and not `vw`/`vh`.
@@ -190,6 +191,7 @@ Keep these stable. Changing any of them breaks links and embeds that already exi
 ## Reveal (`src/reveal/`)
 
 - `revealPlugin(definition, { transition: 600, fade: 400, instance: "shared" | "per-slide", baseState, features })`. It does not import reveal.js (it supports `^6` and 4.x).
+- `syncCamera: true` (`reveal/sync.ts`): the speaker view leads, one way. Its current-slide preview (`#current-slide` in reveal's notes markup) sends `camera.getView()` (centre + visible height) on `camerainput` (only from `dom/input.js`) over a `BroadcastChannel`, tagged with the step from `getIndices()`; windows that are not a speaker view apply it with `camera.setView()` (exact, no tween, no state); the upcoming preview does neither.
 - Slide attributes: `data-diagram-slot`, `data-diagram-view`, `data-diagram-state` (JSON), `data-diagram-state-url` (a pasted app URL where only the query is read), and `data-diagram-features`. A fragment carries a delta.
 - State resolves as `definition.baseState` ⊕ deck base ⊕ view ⊕ URL ⊕ JSON. Each slide stands alone, and when going backwards the fragment stack is rebuilt.
 - In shared mode, the instance lives on `.dwk-reveal-stage`, which is laid over the current slot so that it does not follow slide transitions. Slides without a slot fade the stage out. Print mode mounts one static instance per slot after `pdf-ready`.

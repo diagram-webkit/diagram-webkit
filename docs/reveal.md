@@ -36,6 +36,7 @@ const plugin = revealPlugin(diagram, {
                           // "per-slide": one instance inside each slot (more memory; fades with its slide)
   baseState: {},          // merged over definition.baseState
   features: undefined,    // override definition.features, e.g. { input: { wheel: false } } (features.md)
+  syncCamera: false,      // zoom/pan by hand in the speaker view moves the presentation
 });
 
 new Reveal({ hash: true, width: 1280, height: 720, plugins: [plugin] }).initialize();
@@ -171,6 +172,16 @@ From the full-page diagram: copy its URL into `data-diagram-state-url` (see "Sta
 npx diagram-webkit url-to-slide "https://example.org/?v=0.5,0.4,0.3,0.3&only-tags=Data" \
   --definition diagram.js --title "Data layer"
 ```
+
+## Speaker view
+
+With `syncCamera: true`, the speaker view leads: zooming or panning by hand in its current-slide preview (reveal.js notes plugin, `S`) moves the presentation to the same view.
+
+- One way. Only the current-slide preview sends; the presentation, and any other window of the deck that is not a speaker view, follows. The upcoming-slide preview does neither, and the presentation's own zoom stays local.
+- Each message is the whole view: centre and visible height (`camera.getView()`), applied exactly with `camera.setView()` (no tween, no padding, no state change). A lost message is corrected by the next.
+- Only the height is matched. The windows have different shapes, so the wider one shows more on the sides; a view wider than the presentation can zoom out to shows the whole diagram.
+- Messages carry the slide and fragment (`getIndices()`); a window on another step ignores them. The next slide or fragment sets the camera from the slide again everywhere.
+- It runs over a `BroadcastChannel` per definition `id` and page path, so the windows must share an origin (the speaker view does). Input must be on for the slide (`data-diagram-features`, or `features.input`).
 
 ## Print / PDF
 

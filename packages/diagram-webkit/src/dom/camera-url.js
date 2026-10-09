@@ -3,6 +3,7 @@
 // until the reader moves the diagram.
 import { FIT_VALUE, serializeRect, rectToObject, rectFromObject, roundCoord } from "../core/codec/camera";
 import { invertMatrix } from "./camera.js";
+import { svgScreenMatrix } from "./context.js";
 
 const ZOOM_EPSILON = 0.001;
 // Breathing room added around a shared rect so it is not flush against the
@@ -60,7 +61,7 @@ export function createCameraUrl(ctx) {
   function getVisibleDiagramRect(clampToDiagram = true) {
     const viewBox = getViewBox();
     const svg = rootSvg();
-    const inverse = invertMatrix(svg ? svg.getScreenCTM() : null);
+    const inverse = invertMatrix(svg ? svgScreenMatrix(svg) : null);
     if (!viewBox || !inverse) return null;
     const bounds = getDiagramViewportBounds();
     if (!bounds) return null;
@@ -163,10 +164,35 @@ export function createCameraUrl(ctx) {
       return true;
     }
 
-    s.currentZoom = Math.min(s.maxZoom, Math.max(s.minZoom, desiredZoom));
+    zoomAndCenter(desiredZoom, rect);
+    return true;
+  }
+
+  function zoomAndCenter(zoom, center) {
+    s.currentZoom = Math.min(s.maxZoom, Math.max(s.minZoom, zoom));
     geometry().applyRawTransform();
-    centerOnRect(rect);
+    centerOnRect(center);
     geometry().updateImageTransform();
+  }
+
+  // Centre and visible height in diagram space (0..1; above 1 when the
+  // diagram is letterboxed). The width is whatever this viewport's shape gives.
+  function getView() {
+    const rect = getVisibleDiagramRect(false);
+    return rect ? { cx: rect.cx, cy: rect.cy, h: rect.h } : null;
+  }
+
+  // Exactly that centre and height: no padding, no contain fallback. A view
+  // wider than cover geometry allows shows the whole diagram.
+  function applyView(view) {
+    const current = getVisibleDiagramRect(false);
+    if (!current) return false;
+    const desiredZoom = s.currentZoom * (current.h / view.h);
+    if (desiredZoom <= s.minZoom) {
+      camera().setFitAllMode(true);
+      return true;
+    }
+    zoomAndCenter(desiredZoom, view);
     return true;
   }
 
@@ -189,6 +215,8 @@ export function createCameraUrl(ctx) {
     setIntent,
     isUserControlled: () => userControlled,
     applyRect,
+    getView,
+    applyView,
     restoreIntent,
   };
 }

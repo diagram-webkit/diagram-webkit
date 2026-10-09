@@ -81,6 +81,8 @@ await diagram.camera.showRect([0.5, 0.5, 0.4, 0.4], { transition: 600 });
 await diagram.camera.focus({ tags: ["Data"] }, { padding: 0.2, transition: 600 });
 diagram.camera.zoomBy(1.5);          // around the center; or zoomBy(0.5, { x, y }) at client coords
 diagram.camera.get();                // current [cx, cy, w, h] or null
+diagram.camera.getView();            // { cx, cy, h }: centre and visible height (h > 1 when letterboxed) or null
+diagram.camera.setView({ cx, cy, h }); // exactly that, at once: no tween, no padding, no state change; width follows the viewport
 
 diagram.query({ tags: ["Data"] });   // Element[]
 diagram.tags();                      // [{ tag, parent, label, group, description, count, hidden }]
@@ -102,6 +104,7 @@ const off = diagram.on("statechange", (state) => {});
 diagram.on("ready", () => {});
 diagram.on("error", (error) => {});                          // load/runtime errors
 diagram.on("camerachange", (rect) => {});                    // [cx, cy, w, h] | null
+diagram.on("camerainput", (rect) => {});                     // same, only for the reader's own zoom/pan (wheel, drag, pinch, keys, camera.zoomBy)
 diagram.on("elementactivate", ({ element, slug, id }) => {}); // click/tap on a cell
 off();
 ```

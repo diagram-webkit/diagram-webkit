@@ -70,6 +70,7 @@ export function createStage(slides: HTMLElement): Stage {
 
   let shown = false;
   let hideTimer = 0;
+  let fitFrame = 0;
   let observed: HTMLElement | null = null;
   const win = doc.defaultView!;
 
@@ -85,8 +86,16 @@ export function createStage(slides: HTMLElement): Stage {
 
   // The slot can change size without a Reveal resize (fonts, fragments). It
   // also fires when the slot's slide is hidden; the stage stays put then.
+  // Fitted in the next frame: resizing the stage inside this callback resizes
+  // the diagram, whose own observer would then fire in the same frame, which
+  // browsers report as "ResizeObserver loop completed with undelivered
+  // notifications" (Safari logs it as an error).
   const observer = new win.ResizeObserver(() => {
-    if (observed && observed.offsetParent) fit(observed);
+    if (fitFrame) return;
+    fitFrame = win.requestAnimationFrame(() => {
+      fitFrame = 0;
+      if (observed && observed.offsetParent) fit(observed);
+    });
   });
 
   function fade(ms: number, opacity: "0" | "1"): void {
@@ -133,6 +142,7 @@ export function createStage(slides: HTMLElement): Stage {
     },
     destroy() {
       win.clearTimeout(hideTimer);
+      win.cancelAnimationFrame(fitFrame);
       observer.disconnect();
       element.remove();
     },

@@ -183,6 +183,7 @@ export function createInput(ctx) {
     geometry().updateImageTransform();
     camera().maybePromoteFitGeometryToCover(anchorClientX, anchorClientY);
     notifyViewportUserInput();
+    ctx.notifyCameraInput();
     return true;
   }
 
@@ -209,6 +210,7 @@ export function createInput(ctx) {
     viewportInteractionStarted = true;
     geometry().updateImageTransform();
     notifyViewportUserInput();
+    ctx.notifyCameraInput();
     return true;
   }
 
@@ -263,6 +265,7 @@ export function createInput(ctx) {
     s.imageTranslateX = clientX / s.panScale - s.panStartX;
     s.imageTranslateY = clientY / s.panScale - s.panStartY;
     geometry().updateImageTransform();
+    ctx.notifyCameraInput();
   }
 
   function handleMouseDown(event) {
@@ -404,6 +407,7 @@ export function createInput(ctx) {
       if (s.currentZoom < s.minZoom) s.currentZoom = s.minZoom;
 
       geometry().updateImageTransform();
+      ctx.notifyCameraInput();
       lastPinchDistance = currentDistance;
       lastPinchCenter = center;
       if (event.cancelable) event.preventDefault();

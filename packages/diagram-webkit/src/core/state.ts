@@ -37,14 +37,36 @@ export interface TooltipOptions {
   width?: number;
   // Text size, 1 = as a hover popup.
   scale?: number;
-  // anchor: next to its cell; center/top/bottom: there, centred across.
+  // anchor: next to its cell; otherwise a place in the view inside its margins
+  // (top/bottom: centred across, left/right: centred down).
   position?: TooltipPosition;
   // Away from its cell (position other than anchor): a line to it. Default on.
   connector?: boolean;
 }
 
-export type TooltipPosition = "anchor" | "center" | "top" | "bottom";
-export const TOOLTIP_POSITIONS: readonly TooltipPosition[] = Object.freeze(["anchor", "center", "top", "bottom"]);
+export type TooltipPosition =
+  | "anchor"
+  | "center"
+  | "top"
+  | "bottom"
+  | "left"
+  | "right"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
+export const TOOLTIP_POSITIONS: readonly TooltipPosition[] = Object.freeze([
+  "anchor",
+  "center",
+  "top",
+  "bottom",
+  "left",
+  "right",
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+]);
 
 export interface TooltipSpec extends TooltipOptions {
   slug: string;

@@ -305,6 +305,26 @@ test("view.tooltip takes its defaults from definition.ui.tooltipDefaults: mode, 
   expect(fit.scrolls).toBe(true);
   expect(fit.head).toBe(true);
 
+  // Corners: against the margins.
+  const placed = async (position: string) => {
+    await page.evaluate((position) => (window as any).probe.setState({ view: { tooltip: { slug: "Cache", mode: "simple", width: 0.3, position } } }), position);
+    await settle(page, 400);
+    return page.evaluate(() => {
+      const root = document.querySelector(".slot .dwk-root")!.getBoundingClientRect();
+      const box = document.querySelector<HTMLElement>(".slot .svg-property-tooltip.dwk-has-examples")!.getBoundingClientRect();
+      return { left: box.left - root.left, right: root.right - box.right, top: box.top - root.top, bottom: root.bottom - box.bottom };
+    });
+  };
+  const topLeft = await placed("top-left");
+  expect(Math.abs(topLeft.left - 10)).toBeLessThan(2);
+  expect(Math.abs(topLeft.top - 10)).toBeLessThan(2);
+  const bottomRight = await placed("bottom-right");
+  expect(Math.abs(bottomRight.right - 10)).toBeLessThan(2);
+  expect(Math.abs(bottomRight.bottom - 10)).toBeLessThan(2);
+  const left = await placed("left");
+  expect(Math.abs(left.left - 10)).toBeLessThan(2);
+  expect(Math.abs(left.top - left.bottom)).toBeLessThan(2);
+
   // Closed: the filter decides again, and no line is left.
   await page.evaluate(() => (window as any).probe.setState({ view: { tooltip: { slug: "Cache", position: "bottom" } } }));
   await expect(connector).toHaveClass(/is-shown/);

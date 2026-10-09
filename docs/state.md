@@ -45,7 +45,8 @@ interface DiagramState {
     marker: false,                    // the cell's own marker while open: true shown, false hidden, left out = the filter
     width: 0.5,                       // share of the diagram's width inside equal margins (1 = edge to edge minus 10px each side)
     scale: 2.2,                       // text size, 1 = a hover popup
-    position: "center",               // "anchor" (next to its cell) | "center" | "top" | "bottom" (centred across)
+    position: "center",               // "anchor" (next to its cell) | "center" | "top" | "bottom" | "left" | "right"
+                                      // | "top-left" | "top-right" | "bottom-left" | "bottom-right" (inside the margins)
     connector: true,                  // placed away from its cell: a thin line to it (default true)
   },                                  // also over a cell the filter hides; closing it by hand removes it
 

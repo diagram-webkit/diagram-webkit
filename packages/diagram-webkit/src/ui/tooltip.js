@@ -277,21 +277,32 @@ export function createTooltip(ctx) {
     tooltip.style.top = `${Math.round((top - layerRect.top) / scale)}px`;
   }
 
-  // center/top/bottom of the diagram, centred across (translate(-50%, 0)).
+  // A place in the diagram (state position other than anchor), inside the
+  // margins and left of an open filter panel; centred on left by
+  // translate(-50%, 0).
   function positionInView(tooltip, position, margin = EDGE_MARGIN) {
     const scale = getScale(ctx.els.tooltipLayer);
+    const tipWidth = tooltip.offsetWidth * scale;
     const tipHeight = tooltip.offsetHeight * scale;
     const view = ctx.root.getBoundingClientRect();
     const bounds = getTooltipHorizontalBounds(margin);
+    const [vertical, horizontal] = position.includes("-") ? position.split("-") : [position, position];
     const room = view.height - 2 * margin;
     const top =
-      position === "top"
+      vertical === "top"
         ? view.top + margin
-        : position === "bottom"
+        : vertical === "bottom"
           ? view.bottom - margin - tipHeight
           : view.top + margin + Math.max(0, (room - tipHeight) / 2);
+    const halfWidth = Math.min(tipWidth, bounds.maxX - bounds.minX) / 2;
+    const centerX =
+      horizontal === "left"
+        ? bounds.minX + halfWidth
+        : horizontal === "right"
+          ? bounds.maxX - halfWidth
+          : (bounds.minX + bounds.maxX) / 2;
     const layerRect = ctx.els.tooltipLayer.getBoundingClientRect();
-    tooltip.style.left = `${Math.round(((bounds.minX + bounds.maxX) / 2 - layerRect.left) / scale)}px`;
+    tooltip.style.left = `${Math.round((centerX - layerRect.left) / scale)}px`;
     tooltip.style.top = `${Math.round((Math.max(view.top + margin, top) - layerRect.top) / scale)}px`;
   }
 

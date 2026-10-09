@@ -174,7 +174,10 @@ describe("url codec", () => {
     expect(normalizeState({ view: { tooltip: { slug: "Cache", marker: false, width: 0.5, scale: 2 } } }).view.tooltip).toEqual({ slug: "Cache", marker: false, width: 0.5, scale: 2 });
     expect(() => normalizeState({ view: { tooltip: { slug: "Cache", scale: 0 } } })).toThrow("view.tooltip.scale");
     expect(normalizeState({ view: { tooltip: { slug: "Cache", position: "center" } } }).view.tooltip).toEqual({ slug: "Cache", position: "center" });
-    expect(() => normalizeState({ view: { tooltip: { slug: "Cache", position: "left" } } })).toThrow("view.tooltip.position");
+    for (const position of ["left", "right", "top-left", "top-right", "bottom-left", "bottom-right"]) {
+      expect(normalizeState({ view: { tooltip: { slug: "Cache", position } } }).view.tooltip).toEqual({ slug: "Cache", position });
+    }
+    expect(() => normalizeState({ view: { tooltip: { slug: "Cache", position: "middle" } } })).toThrow("view.tooltip.position");
     expect(normalizeState({ view: { tooltip: { slug: "Cache", connector: false } } }).view.tooltip).toEqual({ slug: "Cache", connector: false });
     expect(() => normalizeState({ view: { tooltip: { slug: "Cache", connector: "no" } } })).toThrow("view.tooltip.connector");
     expect(() => normalizeState({ view: { tooltip: { slug: "Cache", mode: "tiny" } } })).toThrow("view.tooltip.mode");

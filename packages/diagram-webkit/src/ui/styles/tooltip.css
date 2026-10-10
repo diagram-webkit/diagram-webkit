@@ -51,10 +51,12 @@
 
 :where(.dwk-root) .tooltip-actions {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
 }
 
 :where(.dwk-root) .tooltip-tag-wrap {
@@ -84,8 +86,9 @@
   top: 0;
   display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
   justify-content: flex-end;
-  gap: 4px;
+  gap: 2px 0;
   max-width: 56%;
 }
 
@@ -94,30 +97,102 @@
   top: auto !important;
   right: auto !important;
   justify-content: flex-start;
-  max-width: 100%;
+  max-width: calc(100% + 15px);
 }
 
-:where(.dwk-root) .tooltip-box .annotation-tag-badges.tooltip-tag-badges .annotation-tag-badge {
-  min-height: 28px;
-  padding: 4px 10px;
-  font-size: 11px;
-  line-height: 1;
+/* Tags are static labels, not buttons (no border, fill, hover or link
+   colour): a tag icon and "path.to.tag" in a monospace font, or a priority
+   with a dot coloured by the tag's style (core/tags.ts getBadgeStyle) like
+   the diagram's markers. A thin line separates priority from tags, a faint
+   bullet the tags. */
+:where(.dwk-root) .annotation-tag-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+  cursor: default;
+  user-select: text;
+}
+
+/* Tag icon after Lucide "tag" (ISC), stroke 2.5. */
+:where(.dwk-root) .annotation-tag-badge:not(.has-dot-style)::before {
+  --dwk-tag-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z' fill='none' stroke='black' stroke-width='2.5' stroke-linejoin='round'/%3E%3Ccircle cx='7.5' cy='7.5' r='1.85'/%3E%3C/svg%3E");
+  content: "";
+  flex: 0 0 auto;
+  align-self: center;
+  width: 13px;
+  height: 13px;
+  margin-right: 4px;
+  background: color-mix(in srgb, currentColor 90%, transparent);
+  -webkit-mask: var(--dwk-tag-icon) center / contain no-repeat;
+  mask: var(--dwk-tag-icon) center / contain no-repeat;
+}
+
+/* Every tag has its bullet in the margin before it; the row is shifted one
+   margin left and clipped, so a bullet at the start of a line is never seen. */
+:where(.dwk-root) .annotation-tag-badges {
+  margin-left: -15px;
+  clip-path: inset(-4px -4px -4px 12px);
 }
 
 :where(.dwk-root) .annotation-tag-badge {
-  border: 1px solid rgba(147, 197, 253, 0.55);
-  background: rgba(59, 130, 246, 0.2);
-  color: #dbeafe;
-  border-radius: 999px;
-  font-size: 10px;
-  line-height: 1;
-  display: inline-flex;
+  margin-left: 15px;
+}
+
+:where(.dwk-root) .annotation-tag-badge::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -9px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  transform: translateY(-50%);
+}
+
+/* A thin vertical line between the priority and the first visible tag. */
+:where(.dwk-root) .annotation-tag-badge.has-dot-style ~ .annotation-tag-badge:not(.has-dot-style):not([hidden])::after {
+  left: -8px;
+  width: 1px;
+  height: 13px;
+  border-radius: 0;
+  background: color-mix(in srgb, currentColor 32%, transparent);
+}
+
+:where(.dwk-root) .annotation-tag-badge:not(.has-dot-style):not([hidden]) ~ .annotation-tag-badge:not(.has-dot-style):not([hidden])::after {
+  left: -9px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+:where(.dwk-root) .annotation-tag-sep {
+  margin: 0 1.5px;
+  font-weight: 800;
+}
+
+:where(.dwk-root) .annotation-tag-badge.has-dot-style {
   align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  min-height: 20px;
-  padding: 0 6px;
-  white-space: nowrap;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+:where(.dwk-root) .annotation-tag-badge.has-dot-style::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dwk-tag-dot);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dwk-tag-dot) 30%, transparent);
 }
 
 :where(.dwk-root) .filter-result-item .annotation-tag-badges {
@@ -125,22 +200,10 @@
   top: auto;
   right: auto;
   justify-content: flex-start;
-  max-width: 100%;
+  max-width: calc(100% + 15px);
   margin-bottom: 0;
 }
 
-:where(.dwk-root) .filter-result-item .annotation-tag-badges .annotation-tag-badge {
-  min-height: 28px;
-  padding: 4px 10px;
-  font-size: 11px;
-  line-height: 1;
-}
-
-.dwk-root[data-theme="dark"] .annotation-tag-badge {
-  border-color: rgba(186, 230, 253, 0.65);
-  background: rgba(14, 116, 144, 0.34);
-  color: #e0f2fe;
-}
 
 .dwk-root.mobile-tooltip-open .mobile-go-to-indicator {
   opacity: 0 !important;
@@ -495,6 +558,12 @@
 }
 
 /* --dwk-tooltip-scale (view.tooltip scale): the text grows, the layout with it. */
+/* A help tooltip's content sits in .dwk-tooltip-card. Unframed, the card
+   takes no box of its own: its children lay out in the tooltip. */
+:where(.dwk-root) .dwk-tooltip-card {
+  display: contents;
+}
+
 /* A popup with examples, or one from the state, is never taller than the
    diagram: a column whose title and tabs stay while the content scrolls
    (shown as display: flex by ui/tooltip.js). */
@@ -504,24 +573,24 @@
   overflow: hidden;
 }
 
-:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > * {
+:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > .dwk-tooltip-card > * {
   flex: 0 0 auto;
 }
 
-:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > .tooltip-content {
+:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > .dwk-tooltip-card > .tooltip-content {
   flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
 }
 
-:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > .dwk-example-panel:not([hidden]) {
+:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > .dwk-tooltip-card > .dwk-example-panel:not([hidden]) {
   display: flex;
   flex: 0 1 auto;
   flex-direction: column;
   min-height: 0;
 }
 
-:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > .dwk-example-panel > * {
+:where(.dwk-root) .tooltip-box:is(.dwk-has-examples, .dwk-tooltip-fade):not(.mobile-tooltip) > .dwk-tooltip-card > .dwk-example-panel > * {
   flex: 0 0 auto;
 }
 
@@ -529,6 +598,50 @@
   flex: 0 1 auto;
   min-height: 0;
   overscroll-behavior: contain;
+}
+
+/* Framed (ui/tooltip.js frameTabs): the box is a quiet glass frame the size
+   of the largest tab; the card is the popup, docked to the frame's edge
+   nearest the cell. The inline severity border and shadow are the card's. */
+:where(.dwk-root) .tooltip-box.dwk-tooltip-framed:not(.mobile-tooltip) {
+  box-sizing: border-box;
+  width: var(--dwk-frame-width) !important;
+  height: var(--dwk-frame-height);
+  min-width: 0 !important;
+  max-width: none !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--tooltip-bg) 10%, transparent);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.4) !important;
+  backdrop-filter: blur(1.5px);
+  overflow: visible;
+}
+
+:where(.dwk-root) .tooltip-box.dwk-tooltip-framed:not(.mobile-tooltip) > .dwk-tooltip-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  overflow: hidden;
+  padding: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: var(--tooltip-bg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+:where(.dwk-root) .tooltip-box.dwk-tooltip-framed:not(.mobile-tooltip) > .dwk-tooltip-card.dwk-tooltip-card-bottom {
+  top: auto;
+  bottom: 0;
+}
+
+:where(.dwk-root) .tooltip-box.dwk-tooltip-framed.dwk-tooltip-fade:not(.mobile-tooltip) > .dwk-tooltip-card {
+  padding: min(calc(10px * var(--dwk-tooltip-scale, 1)), 3cqw);
 }
 
 :where(.dwk-root) .tooltip-box.dwk-tooltip-fade {

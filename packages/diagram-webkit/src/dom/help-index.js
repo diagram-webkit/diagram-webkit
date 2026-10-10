@@ -95,12 +95,13 @@ export function createHelpIndex(ctx) {
     }
     const footerHtml = footerParts.length ? `<div class="tooltip-actions">${footerParts.join("")}</div>` : "";
     tooltip.className = `tooltip-box svg-property-tooltip ${model.getSeverityClassForTags(record.tags)}`;
-    tooltip.innerHTML = `<div class="tooltip-head"><b>${escapeHTML(record.title)}</b><span class="dwk-example-current"></span></div>${exampleTabsHtml(record, texts, { keys: true })}<div class="tooltip-content" data-example-panel="${HELP_TAB}">${record.bodyHtml || ""}</div>${examplePanelsHtml(record, texts)}${footerHtml}`;
+    tooltip.innerHTML = `<div class="dwk-tooltip-card"><div class="tooltip-head"><b>${escapeHTML(record.title)}</b><span class="dwk-example-current"></span></div>${exampleTabsHtml(record, texts, { keys: true })}<div class="tooltip-content" data-example-panel="${HELP_TAB}">${record.bodyHtml || ""}</div>${examplePanelsHtml(record, texts)}${footerHtml}</div>`;
     if (record.examples.length) {
       tooltip.classList.add("dwk-has-examples");
       applyExampleTab(tooltip, record.exampleTab);
     }
     applySeverityStyleToElement(model, tooltip, record.tags);
+    applySeverityStyleToElement(model, /** @type {HTMLElement} */ (tooltip.firstElementChild), record.tags);
     tooltip.style.display = "none";
     tooltip.style.whiteSpace = "pre-wrap";
     const badges = tooltip.querySelector(".annotation-tag-badges");
@@ -135,6 +136,13 @@ export function createHelpIndex(ctx) {
       }, hideDelay());
     };
     targetEl.addEventListener("mouseleave", scheduleHide, { signal });
+    const panel = ctx.services.panel;
+    if (panel) {
+      [targetEl, tooltip].forEach((node) => {
+        node.addEventListener("mouseenter", () => !s.editModeEnabled && panel.suspendTypingFocus(), { signal });
+        node.addEventListener("mouseleave", () => panel.resumeTypingFocus(hideDelay()), { signal });
+      });
+    }
     targetEl.addEventListener(
       "touchstart",
       (event) => {
@@ -152,18 +160,9 @@ export function createHelpIndex(ctx) {
       { passive: false, signal },
     );
     tooltip.addEventListener("mouseenter", () => ctx.timers.clearTimeout(hideTimeout), { signal });
-    // A tab picked with a click or a key: the box keeps its place and width,
-    // only its height follows the tab, and it stays open (an example is read
-    // for longer than a hover lasts).
-    const selectTab = (tab) => {
-      if (!tooltipService.getCurrentMobileTooltip()) tooltip.style.width = ctx.win.getComputedStyle(tooltip).width;
-      setExampleTab(record, tab);
-      if (!tooltipService.getCurrentMobileTooltip()) {
-        ctx.timers.clearTimeout(hideTimeout);
-        tooltipService.hold(tooltip);
-        tooltipService.keepInView(tooltip);
-      }
-    };
+    // The frame holds the largest tab (ui/tooltip.js frameTabs): picking
+    // another one moves nothing.
+    const selectTab = (tab) => setExampleTab(record, tab);
     if (record.examples.length) {
       const enter = () => (hovered = { record, selectTab });
       const leave = () => {

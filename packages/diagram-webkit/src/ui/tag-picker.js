@@ -269,7 +269,6 @@ export function createTagPicker(ctx) {
     if (next === on || (next && !available)) return;
     on = next;
     if (!on) selected = [];
-    else releaseTypingFocus();
     if (on) resetHistory();
     writeUrl();
     // Internal tags are in the tree only while the mode is on.
@@ -399,15 +398,9 @@ export function createTagPicker(ctx) {
   // lingering for the hide delay.
   function beforeTooltipShow(tooltip) {
     if (!on) return;
-    releaseTypingFocus();
     ctx.els.tooltipLayer.querySelectorAll(".tooltip-box").forEach((other) => {
       if (other !== tooltip) /** @type {HTMLElement} */ (other).style.display = "none";
     });
-  }
-
-  function releaseTypingFocus() {
-    const active = ctx.scope.activeElement;
-    if (isTypingTarget(active) && ctx.root.contains(active)) /** @type {HTMLElement} */ (active).blur();
   }
 
   function tooltipHideDelay() {
@@ -433,6 +426,10 @@ export function createTagPicker(ctx) {
     };
     tooltip.addEventListener("mouseenter", () => ctx.timers.clearTimeout(hideTimeout), { signal });
     tooltip.addEventListener("mouseleave", scheduleHide, { signal });
+    const suspendTypingFocus = () => sv.panel && sv.panel.suspendTypingFocus();
+    const resumeTypingFocus = () => sv.panel && sv.panel.resumeTypingFocus(tooltipHideDelay());
+    tooltip.addEventListener("mouseenter", suspendTypingFocus, { signal });
+    tooltip.addEventListener("mouseleave", resumeTypingFocus, { signal });
     return {
       bind(part, tags) {
         part.addEventListener(
@@ -443,11 +440,13 @@ export function createTagPicker(ctx) {
             tooltip.innerHTML = tagLine(tags);
             syncChips();
             beforeTooltipShow(tooltip);
+            suspendTypingFocus();
             sv.tooltip.showForSvgElement(tooltip, part, event);
           },
           { signal },
         );
         part.addEventListener("mouseleave", scheduleHide, { signal });
+        part.addEventListener("mouseleave", resumeTypingFocus, { signal });
       },
     };
   }
@@ -455,7 +454,7 @@ export function createTagPicker(ctx) {
   function addTooltipLines(signal) {
     s.svgHelpRecords.forEach((record) => {
       const tags = record.tags.filter(isPickable);
-      if (record.tooltip && tags.length > 0) record.tooltip.insertAdjacentHTML("beforeend", tagLine(tags));
+      if (record.tooltip && tags.length > 0) record.tooltip.querySelector(".dwk-tooltip-card").insertAdjacentHTML("beforeend", tagLine(tags));
     });
     if (!ctx.features.tooltips) return;
     let shared = null;

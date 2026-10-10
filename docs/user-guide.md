@@ -58,7 +58,7 @@ Loading from a link only works when the site hosting the SVG allows it to be rea
 
 Parts of the diagram can carry a short explanation. Hover over them (or tap on a touch screen) to read it. In many diagrams these parts are marked with a small **?**, but anything can have help text.
 
-A part with a coloured dot in its corner also has examples: a config snippet, a shell command, a log line. They are tabs next to **Help** in its tooltip and its menu entry; clicking one keeps the tooltip open until you click somewhere else. With a mouse or trackpad, the tabs in a tooltip are marked `[1]`, `[2]`, …: press the number while hovering to switch (not in tag picker mode, where the numbers pick topics). **Copy** puts the example on the clipboard. Search looks through the examples too, and when only an example matches, its tab is shown.
+A part with a coloured dot in its corner also has examples: a config snippet, a shell command, a log line. They are tabs next to **Help** in its tooltip and its menu entry. The tooltip is sized for its largest tab and stays in place while you switch; the content sits on the side nearest the part. With a mouse or trackpad, the tabs in a tooltip are marked `[1]`, `[2]`, …: press the number while hovering to switch (not in tag picker mode, where the numbers pick topics). With the menu open, a hovered tooltip takes the cursor from search or the tag filter and gives it back when it closes. **Copy** puts the example on the clipboard. Search looks through the examples too, and when only an example matches, its tab is shown.
 
 ### The menu
 
@@ -89,7 +89,7 @@ Descriptions can use a little formatting (bold, italics, line breaks); everythin
 
 For working out which topics a view (a slide, say) should show. Turn it on under **?** > **Settings** (or add `?tag-picker-mode` to the address). It needs a mouse or trackpad; on touch screens the setting is off and greyed out.
 
-- Hover a part: its tooltip gets a line of its topics, with keys: `Network [1]`, `Network.Ingress [2]`; after `[9]` they go on with `[a]` to `[z]`. Click one, or press its key, to select it. Not `Ctrl` + number: Chrome on Windows and Linux uses that to switch tabs. So the digits reach the picker, the search and tag filter fields give up the keyboard in this mode: opening the menu does not put the cursor in search, and a tooltip opening takes it out. Parts without help text get a tooltip with only that line. Hovering another part replaces the tooltip at once; moving onto the tooltip keeps it open.
+- Hover a part: its tooltip gets a line of its topics, with keys: `Network [1]`, `Network.Ingress [2]`; after `[9]` they go on with `[a]` to `[z]`. Click one, or press its key, to select it. Not `Ctrl` + number: Chrome on Windows and Linux uses that to switch tabs. A hovered tooltip takes the cursor from search or the tag filter, so the keys reach the picker. Parts without help text get a tooltip with only that line. Hovering another part replaces the tooltip at once; moving onto the tooltip keeps it open.
 - In the menu's tag tree, **select** on a row does the same, also for hidden topics.
 - Selected parts glow magenta, the focus glows yellow. Selecting alone changes nothing else: nothing zooms, dims or hides.
 - A bar above the tags in the menu. The way of working: select topics, choose what they do (the buttons below), clear the selection, select the next ones.

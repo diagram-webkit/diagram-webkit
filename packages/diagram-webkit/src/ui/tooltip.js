@@ -1,6 +1,7 @@
 // Help tooltips. Desktop tooltips live in the tooltip layer; the mobile
 // sheet is moved to the container root.
 import { excludingExampleMarkers } from "../core/help";
+import { applyExampleTab } from "./help-examples.js";
 import { childSignal, getScale, svgScreenMatrix } from "../dom/context.js";
 
 export const MOBILE_MAX_WIDTH = 768;
@@ -10,6 +11,9 @@ export const STATE_TOOLTIP_FADE_MS = 200;
 const EDGE_MARGIN = 10;
 const FADE_CLASS = "dwk-tooltip-fade";
 const SIMPLE_CLASS = "dwk-tooltip-simple";
+const FRAMED_CLASS = "dwk-tooltip-framed";
+const CARD_BOTTOM_CLASS = "dwk-tooltip-card-bottom";
+const FRAME_PROPS = ["--dwk-frame-width", "--dwk-frame-height"];
 const SIZED_PROPS = ["width", "max-width", "--dwk-tooltip-scale"];
 const SVG_NS = "http://www.w3.org/2000/svg";
 const CONNECTOR_DOT_RADIUS = 4;
@@ -46,6 +50,7 @@ export function createTooltip(ctx) {
 
   function showMobile(tooltip, content, anchorPoint = null) {
     hideMobile();
+    unframe(tooltip);
     const temp = ctx.doc.createElement("div");
     temp.innerHTML = content || "";
     temp.querySelectorAll(".mobile-close-btn").forEach((button) => button.remove());
@@ -210,13 +215,50 @@ export function createTooltip(ctx) {
     if (heldTooltip && heldTooltip !== tooltip) release();
     tooltip.style.display = shownDisplay(tooltip);
     tooltip.style.minWidth = `${ctx.config.ui.tooltipMinWidth}px`;
+    frameTabs(tooltip);
     ctx.timers.requestAnimationFrame(() => {
       const point =
         hoverEvent && Number.isFinite(hoverEvent.clientX) && Number.isFinite(hoverEvent.clientY)
           ? { x: hoverEvent.clientX, y: hoverEvent.clientY }
           : resolveElementAnchorPoint(targetEl);
       positionNearPoint(tooltip, point.x, point.y);
+      dockCard(tooltip, point.y);
     });
+  }
+
+  // A popup with example tabs: the box becomes a frame as large as its
+  // largest tab, placed once, so it neither moves nor shrinks under the
+  // pointer when the tab changes. The card with the content is docked to the
+  // frame's edge nearest the cell (dockCard).
+  function frameTabs(tooltip) {
+    unframe(tooltip);
+    if (!tooltip.classList.contains("dwk-has-examples") || tooltip.classList.contains(SIMPLE_CLASS)) return;
+    const tabs = Array.from(tooltip.querySelectorAll("[data-example-tab]"), (tab) => Number(tab.getAttribute("data-example-tab")));
+    const selected = Number(tooltip.querySelector('[data-example-tab][aria-selected="true"]').getAttribute("data-example-tab"));
+    let width = 0;
+    let height = 0;
+    tabs.forEach((tab) => {
+      applyExampleTab(tooltip, tab);
+      width = Math.max(width, tooltip.offsetWidth);
+      height = Math.max(height, tooltip.offsetHeight);
+    });
+    applyExampleTab(tooltip, selected);
+    tooltip.style.setProperty("--dwk-frame-width", `${width}px`);
+    tooltip.style.setProperty("--dwk-frame-height", `${height}px`);
+    tooltip.classList.add(FRAMED_CLASS);
+  }
+
+  function unframe(tooltip) {
+    tooltip.classList.remove(FRAMED_CLASS);
+    FRAME_PROPS.forEach((name) => tooltip.style.removeProperty(name));
+  }
+
+  // pointY: the cell's client y. The card goes to the frame's nearer edge.
+  function dockCard(tooltip, pointY) {
+    if (!tooltip.classList.contains(FRAMED_CLASS)) return;
+    const box = tooltip.getBoundingClientRect();
+    const card = tooltip.querySelector(":scope > .dwk-tooltip-card");
+    card.classList.toggle(CARD_BOTTOM_CLASS, Math.abs(box.bottom - pointY) < Math.abs(box.top - pointY));
   }
 
   // onRelease: once, when the tooltip closes for any reason.
@@ -262,19 +304,6 @@ export function createTooltip(ctx) {
   // popup is as tall as the diagram allows.
   function shownDisplay(tooltip) {
     return tooltip.classList.contains("dwk-has-examples") ? "flex" : "block";
-  }
-
-  // After the popup grew (another tab): it stays where it is, unless its
-  // bottom left the diagram; then it moves up just enough.
-  function keepInView(tooltip, margin = EDGE_MARGIN) {
-    if (tooltip.style.display === "none") return;
-    const scale = getScale(ctx.els.tooltipLayer);
-    const box = tooltip.getBoundingClientRect();
-    const view = ctx.root.getBoundingClientRect();
-    if (box.bottom <= view.bottom - margin) return;
-    const top = Math.max(view.top + margin, view.bottom - margin - box.height);
-    const layerRect = ctx.els.tooltipLayer.getBoundingClientRect();
-    tooltip.style.top = `${Math.round((top - layerRect.top) / scale)}px`;
   }
 
   // A place in the diagram (state position other than anchor), inside the
@@ -428,9 +457,11 @@ export function createTooltip(ctx) {
     // A column (tooltip.css): the title stays, the content scrolls when the
     // popup is as tall as the diagram allows.
     tooltip.style.display = "flex";
+    frameTabs(tooltip);
     ctx.timers.requestAnimationFrame(() => {
       if (position === "anchor") positionNearPoint(tooltip, point.x, point.y);
       else positionInView(tooltip, position);
+      dockCard(tooltip, point.y);
     });
     if (position !== "anchor" && connect) connector.show(tooltip, point);
     else connector.hide();
@@ -488,7 +519,6 @@ export function createTooltip(ctx) {
     showAtPointer,
     hold,
     release,
-    keepInView,
     showFaded,
     anchorPoint: resolveElementAnchorPoint,
     isHeld: (tooltip) => heldTooltip === tooltip,

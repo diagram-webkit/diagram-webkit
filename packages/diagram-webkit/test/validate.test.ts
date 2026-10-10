@@ -185,8 +185,8 @@ describe("tag model extras", () => {
     });
     expect(tagModel.getSeverityPanelStyle(["Api"])).toBeNull();
     expect(tagModel.buildTagBadgesHtml(["Api"], (tag) => `<${tag}>`)).toContain("&lt;Api&gt;");
-    const styled = createTagModel({ ...DEFAULT_TAGS_CONFIG, meta: { Api: { style: { borderStyle: "dashed", borderWidth: "2px" } } } });
-    expect(styled.buildTagBadgesHtml(["Api"])).toContain('style="border-width:2px;border-style:dashed;"');
+    const styled = createTagModel({ ...DEFAULT_TAGS_CONFIG, meta: { Api: { style: { background: "#fff", borderColor: "#000" } } } });
+    expect(styled.buildTagBadgesHtml(["Api"])).toContain('class="annotation-tag-badge has-dot-style" style="--dwk-tag-dot:#fff;--dwk-tag-dot-ring:#000;"');
     expect(() => createTagModel({ ...DEFAULT_TAGS_CONFIG, roles: { ...DEFAULT_TAGS_CONFIG.roles, level: "(" } })).toThrow(/tags\.roles\.level/);
   });
 });

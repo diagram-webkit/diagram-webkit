@@ -1,7 +1,8 @@
 // The filter panel: open/close, dock or overlay, backdrop, outside click and
 // the search input. The panel space is a custom property on the
 // container root, and "mobile" means a narrow container.
-import { getScale } from "../dom/context.js";
+import { FINE_POINTER_QUERY, getScale } from "../dom/context.js";
+import { isTypingTarget } from "./shortcuts.js";
 
 export const PANEL_MAX_WIDTH = 420;
 export const PANEL_WIDTH_RATIO = 0.92;
@@ -22,6 +23,9 @@ export function createPanel(ctx) {
   let panelMotionFrame = 0;
   let panelMotionTimer = 0;
   let pendingFocusTimeout = 0;
+  // The menu field a hovered tooltip took the cursor from, so its keys work.
+  let suspendedField = null;
+  let resumeFocusTimeout = 0;
 
   const rootWidth = () => ctx.root.clientWidth;
 
@@ -194,15 +198,41 @@ export function createPanel(ctx) {
       if (!isMobileLayout()) {
         pendingFocusTimeout = ctx.timers.setTimeout(() => {
           pendingFocusTimeout = 0;
-          // Tag picker mode: the digits pick topics, so no field takes them.
-          if (s.filterPanelOpen && !(sv.tagPicker && sv.tagPicker.isOn())) searchInput.focus({ preventScroll: true });
+          if (s.filterPanelOpen && !suspendedField) searchInput.focus({ preventScroll: true });
         }, SEARCH_FOCUS_DELAY_MS);
       }
     } else {
+      suspendedField = null;
       searchInput.blur();
       sv.highlightLine.clear();
     }
     sv.urlSync.updateURLState();
+  }
+
+  // A tooltip under the pointer takes the keys (example tabs, tag picks):
+  // a menu field gives up the cursor while it is hovered and gets it back
+  // once the tooltip is gone. Only with a mouse or trackpad.
+  function suspendTypingFocus() {
+    ctx.timers.clearTimeout(resumeFocusTimeout);
+    resumeFocusTimeout = 0;
+    if (!s.filterPanelOpen || !ctx.win.matchMedia(FINE_POINTER_QUERY).matches) return;
+    const active = ctx.scope.activeElement;
+    if (!isTypingTarget(active) || !panel.contains(active)) return;
+    suspendedField = /** @type {HTMLElement} */ (active);
+    suspendedField.blur();
+  }
+
+  function resumeTypingFocus(delayMs) {
+    if (!suspendedField) return;
+    ctx.timers.clearTimeout(resumeFocusTimeout);
+    resumeFocusTimeout = ctx.timers.setTimeout(() => {
+      resumeFocusTimeout = 0;
+      const field = suspendedField;
+      suspendedField = null;
+      const active = ctx.scope.activeElement;
+      const focusTaken = active && active !== ctx.doc.body;
+      if (s.filterPanelOpen && field.isConnected && !focusTaken) field.focus({ preventScroll: true });
+    }, delayMs);
   }
 
   function resetFilters() {
@@ -283,6 +313,8 @@ export function createPanel(ctx) {
     updateFilterPanelLayout,
     getPanelWidthPx,
     handleEscape,
+    suspendTypingFocus,
+    resumeTypingFocus,
     syncSearchInput() {
       if (searchInput.value !== s.annotationSearchQuery) searchInput.value = s.annotationSearchQuery;
     },

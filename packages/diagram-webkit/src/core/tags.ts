@@ -262,15 +262,14 @@ export function createTagModel(config: TagsConfig) {
     return [...new Set(getNonLevelTags(tags).filter((tag) => !isInternalTag(tag)))].sort(compareTagsByFilterOrder);
   }
 
+  // Badges are static labels, not buttons: a tag's style only colours its
+  // dot, like the marker circles in the diagram.
   function getBadgeStyle(style: TagStyle | null | undefined): string {
     if (!style) return "";
     let inline = "";
-    if (style.background) inline += `background:${style.background};`;
-    if (style.color) inline += `color:${style.color};`;
-    if (style.borderColor) inline += `border-color:${style.borderColor};`;
-    if (style.borderWidth) inline += `border-width:${style.borderWidth};`;
-    if (style.borderStyle) inline += `border-style:${style.borderStyle};`;
-    if (style.fontWeight) inline += `font-weight:${style.fontWeight};`;
+    const fill = style.background || style.borderColor;
+    if (fill) inline += `--dwk-tag-dot:${fill};`;
+    if (style.borderColor) inline += `--dwk-tag-dot-ring:${style.borderColor};`;
     return inline;
   }
 
@@ -280,7 +279,13 @@ export function createTagModel(config: TagsConfig) {
     const badges = sortedTags
       .map((tag) => {
         const meta = getTagMeta(tag);
-        return `<span class="annotation-tag-badge" style="${getBadgeStyle(meta.style)}">${escapeHTML(label(tag, meta))}</span>`;
+        const style = getBadgeStyle(meta.style);
+        const className = style ? "annotation-tag-badge has-dot-style" : "annotation-tag-badge";
+        const text = label(tag, meta)
+          .split(separator)
+          .map(escapeHTML)
+          .join(`<span class="annotation-tag-sep">${escapeHTML(separator)}</span>`);
+        return `<span class="${className}" style="${style}">${text}</span>`;
       })
       .join("");
     return `<div class="annotation-tag-badges">${badges}</div>`;

@@ -429,7 +429,7 @@
         "Api",
         "Api.Rbac"
       ],
-      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Api</span><span class=\"annotation-tag-badge\" style=\"\">Api.Rbac</span></div>",
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Api</span><span class=\"annotation-tag-badge\" style=\"\">Api<span class=\"annotation-tag-sep\">.</span>Rbac</span></div>",
       "severityTag": null,
       "severityClass": "severity-default",
       "hasPriority": false
@@ -450,7 +450,7 @@
         "Api",
         "Api.Rbac"
       ],
-      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Api</span><span class=\"annotation-tag-badge\" style=\"\">Api.Rbac</span></div>",
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Api</span><span class=\"annotation-tag-badge\" style=\"\">Api<span class=\"annotation-tag-sep\">.</span>Rbac</span></div>",
       "severityTag": null,
       "severityClass": "severity-default",
       "hasPriority": false
@@ -475,7 +475,7 @@
         "info",
         "Network"
       ],
-      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"background:#FFD1A1;color:#6B2F00;border-color:#B45F06;border-width:3px;font-weight:700;\">Priority 2</span><span class=\"annotation-tag-badge\" style=\"background:#DFF4FF;color:#0A3D5A;border-color:#0B6FA4;border-width:3px;font-weight:700;\">Info</span><span class=\"annotation-tag-badge\" style=\"\">Network</span></div>",
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge has-dot-style\" style=\"--dwk-tag-dot:#FFD1A1;--dwk-tag-dot-ring:#B45F06;\">Priority 2</span><span class=\"annotation-tag-badge has-dot-style\" style=\"--dwk-tag-dot:#DFF4FF;--dwk-tag-dot-ring:#0B6FA4;\">Info</span><span class=\"annotation-tag-badge\" style=\"\">Network</span></div>",
       "severityTag": "pri-2",
       "severityClass": "severity-pri-2",
       "hasPriority": true
@@ -506,7 +506,7 @@
         "info",
         "Pri-3"
       ],
-      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"background:#FF7A7A;color:#5B1010;border-color:#7A1414;border-width:3px;font-weight:700;\">Priority 1</span><span class=\"annotation-tag-badge\" style=\"background:#DFF4FF;color:#0A3D5A;border-color:#0B6FA4;border-width:3px;font-weight:700;\">Info</span><span class=\"annotation-tag-badge\" style=\"\">Pri-3</span></div>",
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge has-dot-style\" style=\"--dwk-tag-dot:#FF7A7A;--dwk-tag-dot-ring:#7A1414;\">Priority 1</span><span class=\"annotation-tag-badge has-dot-style\" style=\"--dwk-tag-dot:#DFF4FF;--dwk-tag-dot-ring:#0B6FA4;\">Info</span><span class=\"annotation-tag-badge\" style=\"\">Pri-3</span></div>",
       "severityTag": "pri-1",
       "severityClass": "severity-pri-1",
       "hasPriority": true
@@ -529,7 +529,7 @@
         "pri-2",
         "pri-10"
       ],
-      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"background:#FFD1A1;color:#6B2F00;border-color:#B45F06;border-width:3px;font-weight:700;\">Priority 2</span><span class=\"annotation-tag-badge\" style=\"\">pri-10</span></div>",
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge has-dot-style\" style=\"--dwk-tag-dot:#FFD1A1;--dwk-tag-dot-ring:#B45F06;\">Priority 2</span><span class=\"annotation-tag-badge\" style=\"\">pri-10</span></div>",
       "severityTag": "pri-2",
       "severityClass": "severity-pri-2",
       "hasPriority": true
@@ -553,7 +553,7 @@
         "Network.Egress",
         "Network.Egress.Gateway"
       ],
-      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Network</span><span class=\"annotation-tag-badge\" style=\"\">Network.Egress</span><span class=\"annotation-tag-badge\" style=\"\">Network.Egress.Gateway</span></div>",
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Network</span><span class=\"annotation-tag-badge\" style=\"\">Network<span class=\"annotation-tag-sep\">.</span>Egress</span><span class=\"annotation-tag-badge\" style=\"\">Network<span class=\"annotation-tag-sep\">.</span>Egress<span class=\"annotation-tag-sep\">.</span>Gateway</span></div>",
       "severityTag": null,
       "severityClass": "severity-default",
       "hasPriority": false
@@ -573,7 +573,7 @@
         "Access",
         "Access.Cli"
       ],
-      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Access</span><span class=\"annotation-tag-badge\" style=\"\">Access.Cli</span></div>",
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"\">Access</span><span class=\"annotation-tag-badge\" style=\"\">Access<span class=\"annotation-tag-sep\">.</span>Cli</span></div>",
       "severityTag": null,
       "severityClass": "severity-default",
       "hasPriority": false
@@ -607,7 +607,7 @@
       "sorted": [
         "info"
       ],
-      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"background:#DFF4FF;color:#0A3D5A;border-color:#0B6FA4;border-width:3px;font-weight:700;\">Info</span></div>",
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge has-dot-style\" style=\"--dwk-tag-dot:#DFF4FF;--dwk-tag-dot-ring:#0B6FA4;\">Info</span></div>",
       "severityTag": "info",
       "severityClass": "severity-info",
       "hasPriority": false
@@ -658,7 +658,7 @@
         "Ingress.GatewayApi",
         "Ingress.GatewayApi.Route"
       ],
-      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge\" style=\"background:#FFF2A6;color:#5C4300;border-color:#B68A00;border-width:3px;font-weight:700;\">Priority 3</span><span class=\"annotation-tag-badge\" style=\"\">Ingress</span><span class=\"annotation-tag-badge\" style=\"\">Ingress.GatewayApi</span><span class=\"annotation-tag-badge\" style=\"\">Ingress.GatewayApi.Route</span></div>",
+      "badges": "<div class=\"annotation-tag-badges\"><span class=\"annotation-tag-badge has-dot-style\" style=\"--dwk-tag-dot:#FFF2A6;--dwk-tag-dot-ring:#B68A00;\">Priority 3</span><span class=\"annotation-tag-badge\" style=\"\">Ingress</span><span class=\"annotation-tag-badge\" style=\"\">Ingress<span class=\"annotation-tag-sep\">.</span>GatewayApi</span><span class=\"annotation-tag-badge\" style=\"\">Ingress<span class=\"annotation-tag-sep\">.</span>GatewayApi<span class=\"annotation-tag-sep\">.</span>Route</span></div>",
       "severityTag": "pri-3",
       "severityClass": "severity-pri-3",
       "hasPriority": true

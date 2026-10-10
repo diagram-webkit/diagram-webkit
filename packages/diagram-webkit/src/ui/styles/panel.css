@@ -527,7 +527,9 @@
 }
 
 :where(.dwk-root) .filter-result-actions {
-  margin-top: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -537,7 +539,7 @@
 
 :where(.dwk-root) .filter-result-actions-row {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
 }

@@ -775,26 +775,26 @@
   color: var(--help-faint);
 }
 
+/* The values a parameter takes: static text, not buttons. */
 :where(.dwk-root) .link-info-pills {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 2px 10px;
   font-family: var(--help-mono);
   font-size: 11px;
 }
 
 :where(.dwk-root) .link-info-pill {
-  padding: 0 7px;
-  border: 1px solid var(--help-line);
-  border-radius: 999px;
   color: var(--help-faint);
+  cursor: default;
 }
 
 :where(.dwk-root) .link-info-pill.is-active {
-  border-color: #bfdbfe;
-  background: var(--help-accent-soft);
-  color: #1d4ed8;
+  color: var(--help-accent);
   font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 :where(.dwk-root) .link-info-pill.is-none {
@@ -802,10 +802,10 @@
 }
 
 :where(.dwk-root) .link-info-pill.is-invalid {
-  border-color: #fca5a5;
-  background: #fef2f2;
   color: #b91c1c;
   font-weight: 600;
+  text-decoration: underline wavy;
+  text-underline-offset: 3px;
 }
 
 :where(.dwk-root) .param-reference {

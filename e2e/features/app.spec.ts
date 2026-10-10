@@ -603,10 +603,8 @@ test("F30 tag picker mode: settings, select, glow, show/hide/focus, make final",
   expect(new URLSearchParams(await search(page)).get("tag-picker-mode")).toBe("Network.Ingress,Data");
   await expect(bar.locator(".tag-picker-selection .tooltip-picker-tag")).toHaveText(["Network.Ingress", "Data"]);
 
-  // Opening the menu left search without the cursor; a field that has it
-  // gives it up when a tooltip opens, so the digits pick.
+  // A hovered tooltip takes the cursor from search, so the digits pick.
   const searchField = page.locator(".dwk-filter-search-input");
-  await expect(searchField).not.toBeFocused();
   await searchField.focus();
   await page.locator("#cell-m-cache ellipse, #cell-m-cache rect").first().hover({ force: true });
   await expect(searchField).not.toBeFocused();
@@ -617,7 +615,9 @@ test("F30 tag picker mode: settings, select, glow, show/hide/focus, make final",
   await page.keyboard.press("2");
   await settle(page);
   expect(new URLSearchParams(await search(page)).get("tag-picker-mode")).toBe("Network.Ingress,Data");
+  // It gets it back once the tooltip is gone.
   await page.mouse.move(5, 5);
+  await expect(searchField).toBeFocused();
 
   await bar.getByRole("button", { name: "Hide others" }).click();
   await settle(page, 300);
@@ -804,7 +804,7 @@ test("F33 the selection glows in place: selected parts keep their stacking", asy
   expect(filter).toContain("drop-shadow");
 });
 
-test("F34 help examples: marker, tabs, held tooltip, copy, search shows the matching example", async ({ page, context }) => {
+test("F34 help examples: marker, tabs, tooltip not held, copy, search shows the matching example", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await open(page, "?filter-level=2");
   await expect(page.locator(".dwk-example-marker")).toHaveCount(1);
@@ -827,11 +827,8 @@ test("F34 help examples: marker, tabs, held tooltip, copy, search shows the matc
   await tooltip.locator("[data-example-copy]").click();
   await expect(tooltip.locator("[data-example-copy]")).toHaveText("Copied");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/^2026-10-03T12:00:01Z INFO cache hit/);
-  // Held open after a click in it, until a click outside.
+  // Not held: it closes like any hover tooltip.
   await page.mouse.move(10, 450);
-  await settle(page, 600);
-  await expect(tooltip).toBeVisible();
-  await page.mouse.click(10, 450);
   await expect(tooltip).toBeHidden();
 
   await open(page, "?filter-level=2&menu=true&filter-query=evicted");
@@ -857,7 +854,7 @@ test("F34 help examples: marker, tabs, held tooltip, copy, search shows the matc
   expect(centres.indicator[1]).toBeCloseTo(centres.marker[1], 0);
 });
 
-test("F34 example tabs by key: [1] Help, [2] on; held open; not in tag picker mode; no keys on touch", async ({ page, browser }) => {
+test("F34 example tabs by key: [1] Help, [2] on; not held; over the menu search; not in tag picker mode; no keys on touch", async ({ page, browser }) => {
   await open(page, "?filter-level=2");
   const tooltip = page.locator(".svg-property-tooltip.dwk-has-examples");
   const marker = page.locator("#cell-m-cache rect").first();
@@ -869,16 +866,27 @@ test("F34 example tabs by key: [1] Help, [2] on; held open; not in tag picker mo
   await page.keyboard.press("3");
   await page.keyboard.press("Control+1");
   await expect(tooltip.locator('[data-example-tab="0"]')).toHaveAttribute("aria-selected", "true");
-  // Held open like after a click.
+  // Not held: it closes when the pointer leaves, and the keys do nothing.
   await page.mouse.move(10, 450);
-  await settle(page, 600);
-  await expect(tooltip).toBeVisible();
-  // Not hovered: the keys do nothing.
+  await expect(tooltip).toBeHidden();
   await page.keyboard.press("1");
   await expect(tooltip.locator('[data-example-tab="0"]')).toHaveAttribute("aria-selected", "true");
   await marker.hover({ force: true });
   await page.keyboard.press("Numpad1");
   await expect(tooltip.locator(".tooltip-content")).toBeVisible();
+
+  // With the menu open, the hovered tooltip takes the cursor from search
+  // and gives it back once the pointer leaves.
+  await open(page, "?filter-level=2&menu=true&v=fit");
+  const searchField = page.locator(".dwk-filter-search-input");
+  await searchField.focus();
+  await marker.hover({ force: true });
+  await expect(searchField).not.toBeFocused();
+  await page.keyboard.press("2");
+  await expect(tooltip.locator('[data-example-tab="0"]')).toHaveAttribute("aria-selected", "true");
+  await expect(searchField).toHaveValue("");
+  await page.mouse.move(10, 450);
+  await expect(searchField).toBeFocused();
 
   // Tag picker mode: the digits pick topics, the tabs lose their keys.
   await open(page, "?filter-level=2&tag-picker-mode");
@@ -897,6 +905,46 @@ test("F34 example tabs by key: [1] Help, [2] on; held open; not in tag picker mo
   await expect(tabs.first()).toBeVisible();
   await expect(tabs).toHaveText(["Help", "cache log"], { useInnerText: true });
   await phone.close();
+});
+
+test("F34 a popup with examples is a frame for its largest tab; the card docks to the cell's side", async ({ page }) => {
+  await open(page, "?filter-level=2&v=fit");
+  const tooltip = page.locator(".svg-property-tooltip.dwk-has-examples");
+  const card = tooltip.locator(".dwk-tooltip-card");
+  const marker = page.locator("#cell-m-cache rect").first();
+  const rect = (locator: typeof tooltip) => locator.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    return { x: Math.round(box.x), top: Math.round(box.top), bottom: Math.round(box.bottom), width: Math.round(box.width) };
+  });
+  await marker.hover({ force: true });
+  await expect(tooltip).toHaveClass(/dwk-tooltip-framed/);
+  const frame = await rect(tooltip);
+  const help = await rect(card);
+  expect(help.top).toBe(frame.top);
+  expect(help.bottom).toBeLessThan(frame.bottom);
+  await page.keyboard.press("2");
+  expect(await rect(tooltip)).toEqual(frame);
+  expect((await rect(card)).bottom).toBe(frame.bottom);
+  await page.keyboard.press("1");
+  expect(await rect(tooltip)).toEqual(frame);
+  // The empty part of the frame keeps the popup open.
+  await page.mouse.move(frame.x + frame.width / 2, frame.bottom - 4, { steps: 5 });
+  await settle(page, 600);
+  await expect(tooltip).toBeVisible();
+  await page.mouse.move(10, 450);
+  await expect(tooltip).toBeHidden();
+
+  // A cell low in the view: the frame is above it, the card at its bottom.
+  await page.mouse.move(200, 500);
+  await page.mouse.down();
+  await page.mouse.move(200, 800, { steps: 10 });
+  await page.mouse.up();
+  await settle(page, 400);
+  await marker.hover({ force: true });
+  await expect(card).toHaveClass(/dwk-tooltip-card-bottom/);
+  const above = await rect(tooltip);
+  expect((await rect(card)).bottom).toBe(above.bottom);
+  expect(above.bottom).toBeLessThanOrEqual(Math.round((await marker.boundingBox())!.y + 30));
 });
 
 test("F34 a popup that grows with its tab stays inside the diagram; its content scrolls", async ({ page }) => {

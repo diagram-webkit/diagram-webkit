@@ -42,9 +42,6 @@ export function createPulse(ctx) {
 
   function pulseGoToElement(element, { persistent = false, hover = false } = {}) {
     if (!element || typeof element.getBoundingClientRect !== "function") return;
-    // A pinned element already carries a permanent ring; a second one on
-    // arrival would just stack on top of it.
-    if (ctx.services.pinRings.hasIndicatorFor(element)) return;
     const geometry = measure(element);
     // Off-screen elements would draw a ring nobody can see.
     if (!geometry || !geometry.inView) return;

@@ -11,7 +11,7 @@ export function createPins(ctx) {
   }
 
   function onPinnedStateChanged() {
-    ctx.services.pinRings.render();
+    ctx.services.pinPulses.render();
     onFilterConstraintStateChanged();
   }
 

@@ -106,12 +106,12 @@ for (const layout of ["scaled", "zoomed"]) {
     expect(Math.abs(afterDrag.x - beforeDrag.x + 40)).toBeLessThanOrEqual(2);
     expect(Math.abs(afterDrag.y - beforeDrag.y + 30)).toBeLessThanOrEqual(2);
 
-    // Rings sit on their element.
+    // A new pin's pulse sits on its element.
     await page.evaluate(() => (window as any).instances[0].setState({ view: { pins: ["LoadBalancer"], camera: { fit: true } } }));
     await settle(page, 300);
     const offset = await page.evaluate(() => {
-      const ring = document.querySelector(".pin-indicator")!.getBoundingClientRect();
-      // Rings aim at the smallest drawn child of the element.
+      const ring = document.querySelector(".mobile-go-to-indicator")!.getBoundingClientRect();
+      // The pulse aims at the smallest drawn child of the element.
       const element = document.querySelector('[data-slug="LoadBalancer"]')!;
       const target = Array.from(element.querySelectorAll("rect, text"))
         .map((node) => node.getBoundingClientRect())

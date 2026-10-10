@@ -1,5 +1,6 @@
 // Loads the SVG into the instance. Source is { url } | { svgText } | { svg }.
 import { childSignal } from "./context.js";
+import { markRoundCells } from "./overlays/svg-geometry.js";
 import { sanitizeSvg } from "./svg-sanitize.js";
 
 /** @type {WeakMap<Window, Map<string, Promise<Element>>>} */
@@ -124,6 +125,7 @@ export function createLoader(ctx) {
     svgEl.style.height = "100%";
     svgEl.style.pointerEvents = "auto";
     applyLightCanvas(svgEl);
+    markRoundCells(svgEl);
     return parseAspectRatio(svgEl);
   }
 

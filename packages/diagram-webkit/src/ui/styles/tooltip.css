@@ -342,10 +342,6 @@
   opacity: 0.7;
 }
 
-.dwk-root.mobile-tooltip-open .pin-indicator {
-  opacity: 0 !important;
-}
-
 /* Tag picker mode (tag-picker.js): a line of topics to select, at the
    bottom of a part's tooltip. */
 .dwk-root:not(.dwk-tag-picker-mode) .tooltip-picker {

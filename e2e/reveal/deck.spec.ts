@@ -116,7 +116,7 @@ for (const viewport of [
     await openDeck(page, DECKS.via, "#/pin");
     await current(page);
     const offset = await page.evaluate(() => {
-      const ring = document.querySelector(".pin-indicator")!.getBoundingClientRect();
+      const ring = document.querySelector(".mobile-go-to-indicator")!.getBoundingClientRect();
       const element = document.querySelector('[data-slug="DbAccess"]')!;
       const target = Array.from(element.querySelectorAll("rect, text"))
         .map((node) => node.getBoundingClientRect())

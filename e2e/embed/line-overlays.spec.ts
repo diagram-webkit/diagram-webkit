@@ -246,7 +246,7 @@ test("About lists the downloads; This view saves filters, bands, pins and notes,
     const svg = new DOMParser().parseFromString(text, "image/svg+xml").documentElement;
     return {
       bands: svg.querySelectorAll(".dwk-line-overlay-band").length,
-      pins: svg.querySelectorAll(".dwk-view-pins circle").length,
+      pins: svg.querySelectorAll('.svg-help-pinned[style*="drop-shadow"]').length,
       notes: Array.from(svg.querySelectorAll(".dwk-view-annotations > g")).map((g) => g.getAttribute("class")),
       titles: Array.from(svg.querySelectorAll(".dwk-view-annotations title")).map((t) => t.textContent),
       viewBox: svg.getAttribute("viewBox"),
@@ -254,7 +254,7 @@ test("About lists the downloads; This view saves filters, bands, pins and notes,
   }, saved);
   expect(counts).toEqual({
     bands: 2,
-    pins: 2,
+    pins: 1,
     notes: ["dwk-view-point", "dwk-view-area", "dwk-view-arrow"],
     titles: ["Here\n\na point", "Zone"],
     viewBox: "0 0 400 300",
@@ -289,6 +289,8 @@ test("arrow-at-each-box: an arrowhead where the line enters each box over it, sh
   await page.goto("/line-overlays.html?svg=box-arrows");
   await waitReady(page);
   expect(warnings).toEqual([]);
+  // Only the circle marker is round (a stronger glow); box3 is an oval.
+  expect(await page.evaluate(() => Array.from(document.querySelectorAll("#mount .dwk-round")).map((cell) => cell.id))).toEqual(["cell-marker"]);
   // As draw.io places its own arrows, the drawn tip touches the edge: the
   // outline's tip stops 0.5 / sin(atan(3.5 / 7)) = 1.12 before it, the 1 px
   // stroke's miter covering the rest. Edges: box2's left (x 150), box3's

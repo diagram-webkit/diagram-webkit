@@ -55,8 +55,16 @@ body:has(> .dwk-root.dwk-app) {
   overflow: hidden;
 }
 
-:where(.dwk-root) .dwk-main-image .dwk-highlighted {
+:where(.dwk-root) .dwk-main-image .dwk-highlighted,
+:where(.dwk-root) .svg-help-pinned {
   filter: drop-shadow(0 0 3px rgba(250, 204, 21, 0.95)) drop-shadow(0 0 8px rgba(250, 204, 21, 0.55));
+}
+
+/* A round cell (dom/overlays/svg-geometry.js) is usually a small coloured
+   marker, where the yellow glow hardly shows. */
+:where(.dwk-root) .dwk-main-image .dwk-highlighted.dwk-round,
+:where(.dwk-root) .svg-help-pinned.dwk-round {
+  filter: drop-shadow(0 0 2px rgba(249, 115, 22, 1)) drop-shadow(0 0 6px rgba(249, 115, 22, 1)) drop-shadow(0 0 14px rgba(234, 88, 12, 0.85));
 }
 
 /* opacity and filter separately, not filter: opacity(): opacity animates
@@ -251,10 +259,6 @@ body:has(> .dwk-root.dwk-app) {
 
 :where(.dwk-root) .dwk-main-image:active {
   cursor: grabbing;
-}
-
-:where(.dwk-root) .svg-help-pinned {
-  filter: drop-shadow(0 0 0 rgba(250, 204, 21, 1)) drop-shadow(0 0 2px rgba(250, 204, 21, 1)) drop-shadow(0 0 4px rgba(245, 158, 11, 0.75));
 }
 
 :where(.dwk-root) .help-highlight {
@@ -509,51 +513,6 @@ body:has(> .dwk-root.dwk-app) {
 :where(.dwk-root) .selector-row {
   align-items: flex-end;
   gap: 15px;
-}
-
-:where(.dwk-root) .dwk-pin-indicator-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  pointer-events: none;
-  overflow: visible;
-}
-
-:where(.dwk-root) .pin-indicator circle {
-  fill: none;
-}
-
-:where(.dwk-root) .pin-indicator-halo {
-  stroke: rgba(255, 255, 255, 0.9);
-  stroke-width: calc(7px * var(--dwk-pin-px, 1));
-}
-
-:where(.dwk-root) .pin-indicator-glow {
-  fill: rgba(56, 189, 248, 0.18) !important;
-  stroke: rgb(2, 132, 199);
-  stroke-width: calc(3px * var(--dwk-pin-px, 1));
-}
-
-:where(.dwk-root) .pin-indicator-ping {
-  stroke: rgba(2, 132, 199, 0.9);
-  stroke-width: calc(3px * var(--dwk-pin-px, 1));
-  transform-box: fill-box;
-  transform-origin: center;
-  opacity: 0;
-  animation: dwk-pin-ping 1.1s ease-out 2;
-}
-
-@keyframes dwk-pin-ping {
-  0% {
-    opacity: 0.9;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.8);
-  }
 }
 
 /* Tag picker selection (dom/overlays/selection.js): the focus glow, in

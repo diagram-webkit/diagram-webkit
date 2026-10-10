@@ -4,13 +4,14 @@
 // coordinates. Always in the light theme; draw.io's model is removed, so the
 // file does not open as a draw.io diagram.
 import { COPY_CLASS as HIGHLIGHT_COPY_CLASS } from "./overlays/highlight.js";
+import { ROUND_CLASS } from "./overlays/svg-geometry.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const ARROW_DASH = { dashed: "10 6", dotted: "2 6" };
 const BORDER_DASH = { dashed: "8 5", dotted: "2 4" };
-// Pin rings, as runtime.css draws them (one screen pixel = one unit here).
-const PIN_HALO = { stroke: "rgba(255, 255, 255, 0.9)", width: 7 };
-const PIN_RING = { fill: "rgba(56, 189, 248, 0.18)", stroke: "rgb(2, 132, 199)", width: 3 };
+// The pin glow, as .svg-help-pinned in runtime.css.
+const PIN_GLOW = "drop-shadow(0 0 3px rgba(250, 204, 21, 0.95)) drop-shadow(0 0 8px rgba(250, 204, 21, 0.55))";
+const PIN_GLOW_ROUND = "drop-shadow(0 0 2px rgba(249, 115, 22, 1)) drop-shadow(0 0 6px rgba(249, 115, 22, 1)) drop-shadow(0 0 14px rgba(234, 88, 12, 0.85))";
 // As .user-annotation-marker: drawn at twice its box, at 80 % opacity.
 const POINT_MARKER_SCALE = 2;
 const POINT_MARKER_OPACITY = 0.8;
@@ -124,15 +125,11 @@ export function createViewExport(ctx) {
     return group;
   }
 
-  function pins() {
-    const group = el("g", { class: "dwk-view-pins" });
-    sv.pinRings.drawnRings().forEach(({ cx, cy, r }) => {
-      group.append(
-        el("circle", { cx, cy, r, fill: "none", stroke: PIN_HALO.stroke, "stroke-width": PIN_HALO.width }),
-        el("circle", { cx, cy, r, fill: PIN_RING.fill, stroke: PIN_RING.stroke, "stroke-width": PIN_RING.width }),
-      );
+  function glowPins(root, copyOf) {
+    sv.pins.getPinnedElements().forEach((element) => {
+      const copy = copyOf.get(element);
+      if (copy && root.contains(copy)) copy.style.setProperty("filter", copy.classList.contains(ROUND_CLASS) ? PIN_GLOW_ROUND : PIN_GLOW);
     });
-    return group;
   }
 
   // The SVG text of this view.
@@ -147,13 +144,14 @@ export function createViewExport(ctx) {
     sv.darkCanvas.lightenCopy(copyOf);
     originals.filter((element) => element !== svg && hidden(element)).forEach((element) => copyOf.get(element).remove());
     copy.querySelectorAll(`.${HIGHLIGHT_COPY_CLASS}`).forEach((element) => element.remove());
+    glowPins(copy, copyOf);
     const root = s.svgRootAttrs || {};
     ["style", "preserveAspectRatio"].forEach((name) => (root[name] === null || root[name] === undefined ? copy.removeAttribute(name) : copy.setAttribute(name, root[name])));
     [copy, ...copy.querySelectorAll("g[content]")].forEach((element) => element.removeAttribute("content"));
 
     const viewBox = svg.viewBox.baseVal;
-    if (!viewBox || !(viewBox.width > 0) || !(viewBox.height > 0)) throw new ViewExportError("the diagram has no viewBox to place pins and notes in");
-    copy.append(pins(), notes({ x: viewBox.x, y: viewBox.y, width: viewBox.width, height: viewBox.height }));
+    if (!viewBox || !(viewBox.width > 0) || !(viewBox.height > 0)) throw new ViewExportError("the diagram has no viewBox to place notes in");
+    copy.append(notes({ x: viewBox.x, y: viewBox.y, width: viewBox.width, height: viewBox.height }));
 
     const note = `<!-- This view of ${ctx.config.id}, saved ${new Date().toISOString()} by diagram-webkit: filters, pins and notes as on screen. Not a draw.io file. -->`;
     return `<?xml version="1.0" encoding="UTF-8"?>\n${note}\n${new ctx.win.XMLSerializer().serializeToString(copy)}\n`;

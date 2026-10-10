@@ -181,7 +181,8 @@ test("F8 tooltips, pin button, badges, severity", async ({ page }) => {
   await tooltip.locator('[data-role="tooltip-pin"]').click();
   await settle(page, 600);
   expect(await search(page)).toBe("?pins=DbAccess");
-  await expect(page.locator(".pin-indicator")).toHaveCount(1);
+  await expect(page.locator(".svg-help-pinned")).toHaveCount(1);
+  await expect(page.locator(".mobile-go-to-indicator")).toHaveCount(1);
 });
 
 test("F8 mobile tooltip sheet", async ({ browser }) => {
@@ -324,11 +325,11 @@ test("F14 mobile: a tap on a result shows the element", async ({ browser }) => {
   await context.close();
 });
 
-test("F15 pins, rings, normalization; constraint is no longer read", async ({ page }) => {
+test("F15 pins, normalization; constraint is no longer read", async ({ page }) => {
   await open(page, "?pins=Cache,Nope&constraint=pinned");
   await settle(page, 600);
   expect(await search(page)).toBe("?pins=Cache&constraint=pinned");
-  await expect(page.locator(".pin-indicator")).toHaveCount(1);
+  await expect(page.locator(".svg-help-pinned")).toHaveCount(1);
   expect(await visible(page, '[data-slug="WebApp"]')).toBe(true);
   expect(await visible(page, '[data-slug="Cache"]')).toBe(true);
 });

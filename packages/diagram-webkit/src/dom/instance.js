@@ -36,7 +36,7 @@ import { STANDALONE_ID, standaloneDefinition } from "./standalone.js";
 import { renderErrorBox } from "./error-box.js";
 import { STARTING_CLASS } from "./lifecycle.js";
 import { createHighlightLine } from "./overlays/highlight-line.js";
-import { createPinRings } from "./overlays/pins.js";
+import { createPinPulses } from "./overlays/pin-pulses.js";
 import { createLineOverlays } from "./overlays/line-overlays.js";
 import { createViewExport } from "./view-export.js";
 import { createDevNotice } from "./dev-notice.js";
@@ -362,7 +362,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
   sv.helpIndex = createHelpIndex(ctx);
   sv.filter = createFilter(ctx);
   sv.pins = createPins(ctx);
-  sv.pinRings = createPinRings(ctx);
+  sv.pinPulses = createPinPulses(ctx);
   sv.lineOverlays = createLineOverlays(ctx);
   sv.viewExport = createViewExport(ctx);
   sv.pulse = createPulse(ctx);
@@ -377,9 +377,8 @@ export function createInstance(container, definitionOrNone, opts = {}) {
   sv.overlays = {
     scheduleMarkerPositioning(immediate = false) {
       sv.annotationPositioning.scheduleMarkerPositioning(immediate);
-      if (immediate) sv.pinRings.reposition();
-      else sv.pinRings.scheduleReposition();
       sv.highlight.reposition();
+      sv.pinPulses.reposition();
       sv.pulse.reposition();
       sv.highlightLine.refreshConnectionPosition();
     },
@@ -592,7 +591,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
     }
     if (has("pins")) {
       sv.pins.normalizePinnedHelpSlugs();
-      sv.pinRings.render();
+      sv.pinPulses.render();
     }
     if (has("examplesOnly")) sv.filter.applyAnnotationFilter();
     sv.helpIndex.refreshPinnedStates();

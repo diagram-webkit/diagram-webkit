@@ -81,7 +81,7 @@ export function createLifecycle(ctx) {
     sv.geometry.syncDiagramSize();
     sv.helpIndex.initializeSvgPropertyAnnotations();
     sv.pins.normalizePinnedHelpSlugs();
-    sv.pinRings.render();
+    sv.pinPulses.render();
     // Before the filter hides lines and before the dark theme reads colours.
     sv.lineOverlays.render();
     sv.filter.indexTags();
@@ -111,6 +111,8 @@ export function createLifecycle(ctx) {
     const ms = reduced ? 0 : REVEAL_FADE_MS;
     const loading = ctx.root.querySelector(":scope > .dwk-loading");
     ctx.root.classList.remove(STARTING_CLASS);
+    // Held back while the diagram was invisible.
+    sv.pinPulses.reposition();
     if (ms > 0) {
       Array.from(ctx.root.children).forEach((child) => {
         if (typeof child.animate !== "function") return;

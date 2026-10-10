@@ -10,6 +10,11 @@ const SHAPES = excludingExampleMarkers("rect, ellipse, circle, path, polygon, po
 // Label parts: draw.io's <switch> holds the foreignObject and a fallback <text>.
 const NOT_SHAPE = "switch, foreignObject, text";
 
+// A vertex drawn as one circle (or a near-circular ellipse): runtime.css
+// gives its glow more strength.
+export const ROUND_CLASS = "dwk-round";
+const ROUND_MAX_ASPECT = 1.25;
+
 export const warn = (message) => console.warn(`diagram-webkit: line overlay: ${message}`);
 export const byId = (svg, id) => svg.querySelector(`[id="${id.replace(/["\\]/g, "\\$&")}"]`);
 
@@ -76,6 +81,26 @@ function isFilled(shape) {
   return fill !== "none" && fill !== "transparent" && !(opacity !== null && opacity !== "" && Number.parseFloat(opacity) === 0);
 }
 
+// A cell's own drawn parts, without its label or nested cells.
+function ownShapes(cell) {
+  return Array.from(cell.querySelectorAll(SHAPES)).filter((shape) => shape.closest(`[${CELL_TYPE_ATTR}]`) === cell && !shape.closest(NOT_SHAPE));
+}
+
+const isEllipse = (shapes) => shapes.length === 1 && (shapes[0].localName === "ellipse" || shapes[0].localName === "circle");
+
+function isRound(shapes) {
+  if (!isEllipse(shapes)) return false;
+  const [shape] = shapes;
+  if (shape.localName === "circle") return true;
+  const rx = num(shape, "rx");
+  const ry = num(shape, "ry");
+  return rx > 0 && ry > 0 && Math.max(rx, ry) / Math.min(rx, ry) <= ROUND_MAX_ASPECT;
+}
+
+export function markRoundCells(svg) {
+  svg.querySelectorAll(`[${CELL_TYPE_ATTR}="vertex"]`).forEach((cell) => cell.classList.toggle(ROUND_CLASS, isRound(ownShapes(cell))));
+}
+
 /**
  * The drawn outline of every box (draw.io vertex), without its label: a
  * label's foreignObject spans the whole diagram.
@@ -85,7 +110,7 @@ export function readBoxes(svg, metadata) {
   const boxes = [];
   svg.querySelectorAll(`[${CELL_TYPE_ATTR}="vertex"]`).forEach((cell) => {
     const points = [];
-    const shapes = Array.from(cell.querySelectorAll(SHAPES)).filter((shape) => shape.closest(`[${CELL_TYPE_ATTR}]`) === cell && !shape.closest(NOT_SHAPE));
+    const shapes = ownShapes(cell);
     shapes.forEach((shape) => {
       try {
         points.push(...shapePoints(shape).map(toRoot(shape, svg)));
@@ -96,7 +121,7 @@ export function readBoxes(svg, metadata) {
     });
     if (points.length === 0) return;
     const box = boundsOf(cell.id || cellName(cell, metadata), points);
-    if (shapes.length === 1 && (shapes[0].localName === "ellipse" || shapes[0].localName === "circle")) box.ellipse = true;
+    if (isEllipse(shapes)) box.ellipse = true;
     const destination = cell.getAttribute(metadata.overlayDestinationAttr);
     if (destination !== null) {
       const flag = parseFlag(destination);

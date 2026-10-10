@@ -395,6 +395,11 @@ body:has(> .dwk-root.dwk-app) {
   transition: none !important;
 }
 
+/* setState({ instant: true }) (dom/instance.js applyInstantly). */
+:where(.dwk-root.dwk-instant) :is([data-help], [data-tags], .dwk-line-overlay-band, .dwk-box-arrow, .dwk-highlight-copy) {
+  transition: none;
+}
+
 /* Cells shown again after display:none fade in from transparent. */
 @starting-style {
   :where(.dwk-root.dwk-loaded) [data-help],

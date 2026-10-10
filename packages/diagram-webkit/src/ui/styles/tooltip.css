@@ -553,6 +553,11 @@
   }
 }
 
+/* setState({ instant: true }) (dom/instance.js applyInstantly). */
+:where(.dwk-root.dwk-instant) :is(.tooltip-box.dwk-tooltip-fade, .dwk-tooltip-connector) {
+  transition: none;
+}
+
 /* --dwk-tooltip-scale (view.tooltip scale): the text grows, the layout with it. */
 /* A help tooltip's content sits in .dwk-tooltip-card. Unframed, the card
    takes no box of its own: its children lay out in the tooltip. */

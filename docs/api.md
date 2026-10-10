@@ -75,6 +75,7 @@ await diagram.ready;                 // resolved when loaded and shown: layout f
 
 diagram.getState();                  // see state.md
 await diagram.setState(patch, { transition: 600, replace: false });
+await diagram.setState(patch, { instant: true }); // all at once: no camera tween, no fades, no out/in phases
 
 await diagram.camera.fit({ transition: 600 });
 await diagram.camera.showRect([0.5, 0.5, 0.4, 0.4], { transition: 600 });

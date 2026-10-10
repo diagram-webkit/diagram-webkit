@@ -171,10 +171,12 @@ export function revealPlugin(definition: DiagramDefinition, options: RevealPlugi
     }
     clearError(where);
     instance.resume();
-    // Coming back from a slide without a diagram: jump to the new view while
-    // hidden, then fade in with the slide.
+    // Coming back from a slide without a diagram: the hidden stage still
+    // shows the last diagram slide, so the new view is applied at once (no
+    // cell fades either), then the stage fades in with the slide.
+    const options = wasVisible ? { transition: animate ? transition : false } : { instant: true };
     instance
-      .setState({ view }, { replace: true, transition: animate && wasVisible ? transition : false })
+      .setState({ view }, { replace: true, ...options })
       .catch((error) => showError(where, slideTitle(slide), error));
     if (!wasVisible) stage.show(animate ? transitionMs(deck, slide, "in") : 0);
   }

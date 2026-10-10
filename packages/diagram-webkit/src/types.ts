@@ -20,6 +20,8 @@ export interface MountOptions {
 export interface SetStateOptions {
   transition?: number | false;
   replace?: boolean;
+  // Everything at once: no camera tween, no fades, no out/in phases.
+  instant?: boolean;
 }
 
 export interface TagInfo {

@@ -311,6 +311,7 @@ export function createHelpIndex(ctx) {
     const held = s.svgHelpRecords.find((record) => record.tooltip && tooltipService.isHeld(record.tooltip));
     if (!held || (next && next.slug === held.slug)) return Promise.resolve();
     tooltipService.release();
+    if (s.instantVisibility) return Promise.resolve();
     return new Promise((resolve) => ctx.timers.setTimeout(resolve, STATE_TOOLTIP_FADE_MS));
   }
 
@@ -384,6 +385,8 @@ export function createHelpIndex(ctx) {
     if (!element._dwkVisibilityInitialized || s.instantVisibility) {
       element._dwkVisibilityInitialized = true;
       ctx.timers.clearTimeout(element._dwkVisibilityFadeTimeout);
+      // A pending in-phase from an earlier change must not show it again.
+      ctx.services.phases.cancelShow(element);
       // Shown cells carry no inline opacity, so the dim rule applies to them.
       if (shouldShow) {
         element.style.removeProperty("display");

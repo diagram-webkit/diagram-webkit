@@ -48,7 +48,7 @@ new Reveal({ hash: true, width: 1280, height: 720, plugins: [plugin] }).initiali
 
 ## Slides
 
-A slide shows the diagram when it has a `[data-diagram-slot]`. Slides without one fade it out (with the slide's own `data-transition`/speed) and suspend it.
+A slide shows the diagram when it has a `[data-diagram-slot]`. Slides without one fade it out (with the slide's own `data-transition`/speed) and suspend it. The next diagram slide gets its view while the stage is still hidden, at once (`setState(..., { instant: true })`), so the previous diagram slide never shows.
 
 In shared mode the diagram is not inside the slot. It sits on `.reveal .slides > .dwk-reveal-stage`, positioned over the current slot, above the slides (z-index 12). Slide transitions therefore never hide it between two diagram slides. Only its state moves.
 

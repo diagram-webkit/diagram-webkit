@@ -52,6 +52,8 @@ const EVENTS = new Set(["ready", "error", "statechange", "camerachange", "camera
 const DEFAULT_CAMERA = Object.freeze({ defaultAlign: ["left", "bottom"], maxZoom: 4 });
 const DEFAULT_UI = Object.freeze({ tooltipMinWidth: 380, tooltipHideDelay: 100, tooltipDefaults: Object.freeze({}) });
 const DEFAULT_AREA = Object.freeze({ minHoverDistance: 5, borderWidth: 3, hoverBorderWidth: 4, resizeHandleSize: 8 });
+// On the root while an instant setState applies (runtime.css: no transitions).
+const INSTANT_CLASS = "dwk-instant";
 let instanceCounter = 0;
 
 function resolveConfig(definition) {
@@ -446,6 +448,7 @@ export function createInstance(container, definitionOrNone, opts = {}) {
       const uiPatch = normalizeUi(patch && patch.ui, "setState.ui");
       const touched = new Set(replace ? VIEW_KEYS : Object.keys(viewPatch));
       const next = mergeView(replace ? {} : api.getState().view, viewPatch);
+      if (options.instant) return applyInstantly(next, uiPatch, touched);
       return applyState(next, uiPatch, touched, options.transition ?? false);
     },
 
@@ -545,6 +548,31 @@ export function createInstance(container, definitionOrNone, opts = {}) {
 
   function assertAlive() {
     if (ctx.destroyed) throw new Error("diagram-webkit: instance is destroyed");
+  }
+
+  // No camera tween, no fades, no out/in phases. The CSS transitions stay off
+  // until the change is painted (two frames), so none starts afterwards.
+  let instantDepth = 0;
+  let instantFrame = 0;
+  async function applyInstantly(view, uiPatch, touched) {
+    timers.cancelAnimationFrame(instantFrame);
+    root.classList.add(INSTANT_CLASS);
+    instantDepth += 1;
+    s.instantVisibility = true;
+    try {
+      await applyState(view, uiPatch, touched, false);
+    } finally {
+      instantDepth -= 1;
+      s.instantVisibility = instantDepth > 0;
+      if (!instantDepth) {
+        instantFrame = timers.requestAnimationFrame(() => {
+          instantFrame = timers.requestAnimationFrame(() => {
+            instantFrame = 0;
+            root.classList.remove(INSTANT_CLASS);
+          });
+        });
+      }
+    }
   }
 
   // Applies only the keys a setState touched; `view` already holds the

@@ -366,6 +366,36 @@ test("the diagram stays on screen between diagram slides and fades out on text s
   await expect(stage).toHaveCSS("visibility", "hidden");
 });
 
+test("after a text slide, the next diagram slide shows its own view from the first frame", async ({ page }) => {
+  await openDeck(page, DECKS.via, "#/live");
+  await page.evaluate(() => {
+    (window as any).shownCells = () =>
+      Array.from(document.querySelectorAll<HTMLElement>(".dwk-reveal-stage .dwk-main-image [data-tags]"))
+        .filter((cell) => {
+          const style = getComputedStyle(cell);
+          return style.display !== "none" && Number(style.opacity) > 0;
+        })
+        .map((cell) => cell.id)
+        .sort();
+  });
+  const shownCells = () => page.evaluate(() => (window as any).shownCells() as string[]);
+  const before = await shownCells();
+  await page.evaluate(() => (window as any).deck.prev());
+  await expect(page.locator(".dwk-reveal-stage")).toHaveCSS("visibility", "hidden");
+  const firstFrame = await page.evaluate(
+    () =>
+      new Promise<string[]>((resolve) => {
+        const deck = (window as any).deck;
+        deck.slide(deck.getSlides().findIndex((slide: Element) => slide.id === "only-data"));
+        requestAnimationFrame(() => resolve((window as any).shownCells()));
+      }),
+  );
+  await settle(page, 1000);
+  const settled = await shownCells();
+  expect(settled.length).toBeLessThan(before.length);
+  expect(firstFrame).toEqual(settled);
+});
+
 test("resize at an unchanged size keeps the camera where it is", async ({ page }) => {
   await openDeck(page, DECKS.via, "#/overview");
   const [before, after] = await page.evaluate(async () => {

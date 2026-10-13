@@ -40,6 +40,7 @@ export function createCameraControl(ctx) {
   const s = ctx.s;
   const sv = ctx.services;
   let animationFrame = 0;
+  let tweenEnd = 0;
 
   function snapshot() {
     return { zoom: s.currentZoom, x: s.imageTranslateX, y: s.imageTranslateY, fit: s.fitAllMode, geometry: s.fitGeometryMode };
@@ -61,7 +62,13 @@ export function createCameraControl(ctx) {
   function stopAnimation() {
     ctx.timers.cancelAnimationFrame(animationFrame);
     animationFrame = 0;
+    tweenEnd = 0;
     setTweening(false);
+  }
+
+  // Milliseconds until the running tween ends; 0 when the camera is still.
+  function remaining() {
+    return animationFrame ? Math.max(0, tweenEnd - ctx.win.performance.now()) : 0;
   }
 
   // Applies the change instantly to learn the end state, then tweens from
@@ -82,6 +89,7 @@ export function createCameraControl(ctx) {
     sv.geometry.applyRawTransform();
     setTweening(true);
     const startTime = ctx.win.performance.now();
+    tweenEnd = startTime + ms;
     return new Promise((resolve) => {
       const step = (now) => {
         // rAF time can predate startTime by a frame; below 0 the curve runs backwards.
@@ -97,6 +105,7 @@ export function createCameraControl(ctx) {
           return;
         }
         animationFrame = 0;
+        tweenEnd = 0;
         setTweening(false);
         s.currentZoom = end.zoom;
         s.imageTranslateX = end.x;
@@ -271,5 +280,5 @@ export function createCameraControl(ctx) {
     return sv.input.zoomAtPoint(factor >= 1 ? factor : 1 / factor, factor >= 1, point.x, point.y);
   }
 
-  return { apply, applyFocus, focusRect, get, getView: () => sv.cameraUrl.getView(), setView, zoomBy, stopAnimation };
+  return { apply, applyFocus, focusRect, get, getView: () => sv.cameraUrl.getView(), setView, zoomBy, stopAnimation, remaining };
 }

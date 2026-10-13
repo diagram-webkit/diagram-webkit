@@ -148,6 +148,31 @@ for (const viewport of [
   });
 }
 
+test("a highlight that comes with a camera move fades in only as the move ends", async ({ page }) => {
+  await openDeck(page, DECKS.via, "#/only-data");
+  await current(page);
+  // Per frame: is the camera tweening (its layer promoted), is the highlight shown?
+  const frames = await page.evaluate(
+    () =>
+      new Promise<{ tweening: boolean; shown: boolean }[]>((resolve) => {
+        const out: { tweening: boolean; shown: boolean }[] = [];
+        const start = performance.now();
+        const tick = (now: number) => {
+          const copy = document.querySelector<SVGGElement>(".dwk-highlight-copy");
+          out.push({ tweening: Boolean(document.querySelector('.dwk-root [style*="will-change: transform"]')), shown: copy?.style.opacity === "1" });
+          if (now - start < 2000) requestAnimationFrame(tick);
+          else resolve(out);
+        };
+        (window as any).deck.next();
+        requestAnimationFrame(tick);
+      }),
+  );
+  expect(frames.some((frame) => frame.tweening)).toBe(true);
+  expect(frames.at(-1)!.shown).toBe(true);
+  // Shown at most the lead (50 ms) before the tween ends: a few frames, not the whole fade.
+  expect(frames.filter((frame) => frame.tweening && frame.shown).length).toBeLessThanOrEqual(6);
+});
+
 test("Reveal owns the keys; the diagram only takes input on the live slide", async ({ page }) => {
   await openDeck(page, DECKS.via, "#/overview");
   const transform = () => page.evaluate(() => document.querySelector<HTMLElement>(".dwk-main-image")!.style.transform);

@@ -7,6 +7,10 @@
 // stacking stays as drawn: whatever lies above a cell also lies above its
 // copy. Fading a copy is an opacity change; animating the filter on the
 // cell itself repaints it every frame.
+//
+// A highlight that appears while the camera moves waits until the move has
+// (almost) ended. During a tween the image is one promoted layer; outlines
+// fading in on it re-raster the whole layer every frame, which flickers.
 import { GROUP_CLASS as OVERLAY_GROUP_CLASS } from "./line-overlays.js";
 import { SELECTED_CLASS } from "./selection.js";
 
@@ -15,6 +19,8 @@ const OUTLINE_CLASS = "dwk-highlighted";
 export const COPY_CLASS = "dwk-highlight-copy";
 const DIM_CLASS = "dwk-dim-others";
 const SVG_NS = "http://www.w3.org/2000/svg";
+// Starts this long before the camera stops: the eased tween hardly moves then.
+const CAMERA_LEAD_MS = 50;
 
 /** @param {import("../context").Context & Record<string, any>} ctx */
 export function createHighlight(ctx) {
@@ -24,6 +30,7 @@ export function createHighlight(ctx) {
   let current = [];
   let copies = [];
   let mode = null;
+  let showTimer = 0;
 
   // A copy without ids or metadata (type, data-*), so queries and lookups
   // only ever find the real cell.
@@ -80,7 +87,21 @@ export function createHighlight(ctx) {
     return { ...highlight, tags: [...(highlight.tags || []), ...focus.tags], mode: focus.mode || "outline" };
   }
 
+  // Runs show() now, or once the running camera tween is about to end. A
+  // tween started meanwhile (a new slide) pushes it back again.
+  function whenCameraSettles(show) {
+    const wait = ctx.services.cameraControl.remaining() - CAMERA_LEAD_MS;
+    if (wait <= 0) {
+      showTimer = 0;
+      show();
+      return;
+    }
+    showTimer = ctx.timers.setTimeout(() => whenCameraSettles(show), wait);
+  }
+
   function reset() {
+    ctx.timers.clearTimeout(showTimer);
+    showTimer = 0;
     current.forEach((element) => element.classList.remove(TARGET_CLASS));
     current = [];
     ctx.root.classList.remove(DIM_CLASS);
@@ -101,9 +122,13 @@ export function createHighlight(ctx) {
     mode = spec.mode || "outline";
     current.forEach((element) => element.classList.add(TARGET_CLASS));
     renderCopies(shown);
-    setCopiesVisible(true);
-    if (mode === "dim-others") ctx.root.classList.add(DIM_CLASS);
-    if (mode === "pulse") reposition();
+    const show = () => {
+      setCopiesVisible(true);
+      if (mode === "dim-others") ctx.root.classList.add(DIM_CLASS);
+      if (mode === "pulse") reposition();
+    };
+    if (shown) show();
+    else whenCameraSettles(show);
   }
 
   // With phases: a highlight that changes fades out now and the new one
@@ -127,6 +152,7 @@ export function createHighlight(ctx) {
   }
 
   function reposition() {
+    if (showTimer) return;
     const spec = effectiveSpec();
     if (!spec || (spec.mode || "outline") !== "pulse") return;
     const pulse = ctx.services.pulse;

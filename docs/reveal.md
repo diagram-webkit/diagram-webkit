@@ -32,6 +32,7 @@ import diagram from "./diagram.js";
 const plugin = revealPlugin(diagram, {
   transition: 600,        // ms camera move between slides/fragments; false = jump. Default 600
   fade: 400,              // ms per phase: out (leaving cells, old highlight), then in. false = engine default. Default 400
+                          // a new highlight waits for the camera move, so it never fades in on a moving diagram
   instance: "shared",     // "shared": one instance on a stage laid over the current slot (default)
                           // "per-slide": one instance inside each slot (more memory; fades with its slide)
   baseState: {},          // merged over definition.baseState

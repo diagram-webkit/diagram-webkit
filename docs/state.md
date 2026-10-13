@@ -30,7 +30,7 @@ interface DiagramState {
   highlight: {                        // any of slugs/tags/ids
     slugs: ["WebApp"], tags: ["Data"], ids: ["cell-3"],
     mode: "outline",                  // "outline" | "pulse" | "dim-others"
-  },
+  },                                  // with a fade: a new one comes in as a camera move ends (last 50 ms)
 
   focus: {                            // topics in focus (menu > Focus)
     tags: ["Api.Rbac"],               // highlighted with mode, drawn together with highlight
